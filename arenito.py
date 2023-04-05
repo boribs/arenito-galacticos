@@ -1,7 +1,4 @@
-import serial
-
-CONF = 0xFF
+import serial, time
 
 ser = serial.Serial('/dev/ttyUSB0') # Encontrar esto automáticamente?
-ser.write(CONF)
-ser.write(0)
+ser.write(bytes('8', 'utf-8'))
