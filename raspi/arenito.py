@@ -31,9 +31,9 @@ def detecta_latas():
         if cv2.waitKey(1) == 27:
             break
 
-        cap.release()
-        cv2.destroyAllWindows()
-        return None
+    cap.release()
+    cv2.destroyAllWindows()
+    return None
 
 
 def main():
@@ -46,3 +46,7 @@ def main():
         if msg == "latas":
             detecciones = detecta_latas()
             ser.write(bytes(crea_lista(detecciones), "utf-8"))
+
+
+if __name__ == '__main__':
+    main()
