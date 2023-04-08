@@ -10,14 +10,16 @@ def resize(
         replace: bool = True
     ):
     img = Image.open(path)
-    filename = path[path.rfind('/') + 1:]
+    img = img.convert('RGB')
+
+    filename = path[path.rfind('/') + 1 : path.rfind('.')]
 
     size = res if res else (img.size[0] * scale, img.size[1] * scale)
     outname = filename if replace else 'c-'+ filename
-    outpath = path[:path.find('/') + 1] + outname
+    outpath = path[:path.find('/') + 1] + outname + '.JPG'
 
     img.thumbnail(size)
-    img.save(outpath)
+    img.save(outpath, format='JPEG')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
