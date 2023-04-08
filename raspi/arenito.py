@@ -6,14 +6,21 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
+def crea_lista(detecciones: processor.DetectionResult) -> str:
+    """
+    Crea una cadena con las detecciones:
+    "{x1,y1,x2,y2,...,xn,yn}"
 
-def crea_lista(detecciones) -> str:
+    Donde cada par x, y corresponde al punto medio del rectángulo
+    que encierra cada lata detectada.
+    """
+
     salida = "{"
     for det in detecciones.detections:
         bbox = det.bounding_box
         a = (bbox.origin_x, bbox.origin_y)
         b = (a[0] + bbox.width, a[1] + bbox.height)
-        salida += f"[{a[0]},{a[1]},{b[0]},{b[1]},]"
+        salida += f"{a[0] + b[0] // 2},{a[1] + b[1] // 2},"
 
     return salida + "}"
 
