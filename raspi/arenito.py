@@ -1,6 +1,7 @@
 import serial
 import cv2
 import sys
+import time
 from random import randint
 from tflite_support.task import core
 from tflite_support.task import processor
@@ -33,8 +34,6 @@ def detecta_latas(model: str, cap: cv2.VideoCapture) -> str:
     Regresa una cadena formateada con las detecciones de las latas.
     """
 
-    global i
-
     ok, img = cap.read()
     if not ok:
         sys.exit("Error leyendo la cámara.")
@@ -51,8 +50,7 @@ def detecta_latas(model: str, cap: cv2.VideoCapture) -> str:
     input_tensor = vision.TensorImage.create_from_array(rgb_img)
     detecciones = detector.detect(input_tensor)
 
-    img.save(f'det{i}.jpg')
-    i += 1
+    cv2.imwrite(f'det{time.process_time()}.jpg', img)
 
     return crea_lista(detecciones)
 
