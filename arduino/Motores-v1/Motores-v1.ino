@@ -7,6 +7,19 @@ int motIa = 8;
 int motDb = 7;
 int motDa = 6;
 
+/*
+ * Asume inicialmente una resolución de RES_XxRES_Ypx
+ * y un margen de MARGENpx.
+ * El margen es para la alineación con la lata seleccionada.
+ */
+const int RES_X = 600,
+          RES_Y = 400,
+          MARGEN = 15, // Determinar margen
+          CENTRO_X_MIN = (RES_X / 2) - MARGEN,
+          CENTRO_X_MAX = (RES_X / 2) + MARGEN;
+
+const float CENTRO_X = RES_X / 2;
+
 typedef struct lata {
   int x;
   int y;
@@ -16,15 +29,53 @@ const int MAX_LATAS = 20;
 lata detectadas[MAX_LATAS] = { 0 };
 int eleigda = -1; // -1 = no se ha elegido ninguna
 
+float distAlCentro, t;
+int d;
+
 void setup() {
   pinMode(motIa, OUTPUT);
   pinMode(motIb, OUTPUT);
   pinMode(motDa, OUTPUT);
   pinMode(motDb, OUTPUT);
+
+  Serial.begin(115200);
+  Serial.setTimeout(100); // hay que checar esto
 }
 
 void loop() {
-  
+  if (Serial.available() > 0) {
+    int n = descifraLatas();
+
+    // PARA EL CASO DE PRUEBA ESPECIFICO
+    // CUANDO ENCUENTRA SOLO UNA LATA
+    if (n == 1) {
+      Serial.print("Ok: ");
+      int d = detectadas[0].x;
+      // si la lata está centrada, camina hacia esta
+      if (d >= CENTRO_X_MIN && d <= CENTRO_X_MAX) {
+        // avanza(pxAMs(detectadas[0].y));
+        alto(0);
+      }
+
+      // si la lata está a la izquierda del margen, gira derecha
+      if (d < CENTRO_X_MIN) {
+        distAlCentro = CENTRO_X - d;
+        t = distAlCentro / CENTRO_X;
+
+        derecha(pxAMs(t));
+        alto(0);
+      }
+
+      // si la lata está a la derecha del margen, gira izquierda
+      if (d > CENTRO_X_MAX) {
+        distAlCentro = d - CENTRO_X;
+        t = distAlCentro / CENTRO_X;
+
+        izquierda(pxAMs(t));
+        alto(0);
+      }
+    }
+  }
 }
 
 /*
@@ -106,4 +157,21 @@ void alto(int tiempo) {
   digitalWrite(motDb, LOW);
   delay(tiempo);
 }
+
+/*
+ * Pixel a MS.
+ * Se usa para determinar cuánto hay que girar
+ * tomando en cuenta la distancia de la detección
+ * al centro de la pantalla.
+ *
+ * minT y maxT son valores arbitrarios.
+ */
+int pxAMs(float t) {
+  const int minT = 200,
+            maxT = 500;
+  return lerp(minT, maxT, t);
+}
+
+int lerp(int a, int b, float t) {
+  return (int)(a + ((b - a) * t));
 }
