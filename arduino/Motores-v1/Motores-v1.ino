@@ -75,29 +75,35 @@ int descifraLatas() {
   return num_latas;
 }
 
+void avanza(int tiempo) {
   digitalWrite(motIa, HIGH);
   digitalWrite(motIb, LOW);
   digitalWrite(motDa, HIGH);
   digitalWrite(motDb, LOW);
+  delay(tiempo);
 }
 
-void derecha () {
+void derecha(int tiempo) {
   digitalWrite(motIa, HIGH);
   digitalWrite(motIb, LOW);
   digitalWrite(motDa, LOW);
   digitalWrite(motDb, HIGH);
+  delay(tiempo);
 }
 
-void izquierda () {
+void izquierda(int tiempo) {
   digitalWrite(motIa, LOW);
   digitalWrite(motIb, HIGH);
   digitalWrite(motDa, HIGH);
   digitalWrite(motDb, LOW);
+  delay(tiempo);
 }
 
-void alto () {
+void alto(int tiempo) {
   digitalWrite(motIa, LOW);
   digitalWrite(motIb, LOW);
   digitalWrite(motDa, LOW);
   digitalWrite(motDb, LOW);
+  delay(tiempo);
+}
 }
