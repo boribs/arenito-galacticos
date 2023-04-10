@@ -6,6 +6,8 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
+i = 0
+
 def crea_lista(detecciones: processor.DetectionResult) -> str:
     """
     Crea una cadena con las detecciones:
@@ -24,35 +26,50 @@ def crea_lista(detecciones: processor.DetectionResult) -> str:
 
     return salida + "}"
 
+def detecta_latas(model: str, cap: cv2.VideoCapture) -> str:
+    """
+    Toma una foto y detecta latas.
 
-def detecta_latas():
-    cap = cv2.VideoCapture(0)
+    Regresa una cadena formateada con las detecciones de las latas.
+    """
 
-    while cap.isOpened():
-        ok, img = cap.read()
-        if not ok:
-            sys.exit("Error leyendo la cámara.")
+    global i
 
-        # Aquí las cosas de la detección
+    ok, img = cap.read()
+    if not ok:
+        sys.exit("Error leyendo la cámara.")
 
-        if cv2.waitKey(1) == 27:
-            break
+    base_options = core.BaseOptions(
+        file_name=model, use_coral=False, num_threads=4)
+    detection_options = processor.DetectionOptions(
+        max_results=3, score_threshold=0.3)
+    options = vision.ObjectDetectorOptions(
+        base_options=base_options, detection_options=detection_options)
+    detector = vision.ObjectDetector.create_from_options(options)
 
-    cap.release()
-    cv2.destroyAllWindows()
-    return None
+    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    input_tensor = vision.TensorImage.create_from_array(rgb_img)
+    detecciones = detector.detect(input_tensor)
 
+    img.save(f'det{i}.jpg')
+    i += 1
+
+    return crea_lista(detecciones)
 
 def main():
-    ser = serial.Serial(
-        "/dev/ttyUSB0", 115200, timeout=0.1
-    )  # Encontrar esto automáticamente?
+    # ser = serial.Serial(
+    #     "/dev/ttyUSB0", 115200, timeout=0.1
+    # )  # Encontrar esto automáticamente?
 
-    while True:
-        msg = ser.seradline().decode("utf-8")
-        if msg == "latas":
-            detecciones = detecta_latas()
-            ser.write(bytes(crea_lista(detecciones), "utf-8"))
+    cap = cv2.VideoCapture(0)
+
+    # while True:
+    #     msg = ser.seradline().decode("utf-8")
+    #     if msg == "latas":
+    #         detecciones = detecta_latas('latas.tflite', cap)
+    #         ser.write(bytes(crea_lista(detecciones), "utf-8"))
+
+    detecta_latas('latas.tflite', cap)
 
 
 if __name__ == '__main__':
