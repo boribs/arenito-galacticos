@@ -30,9 +30,11 @@ def detecta_latas(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str
         bbox = det.bounding_box
         a = (bbox.origin_x, bbox.origin_y)
         b = (a[0] + bbox.width, a[1] + bbox.height)
-        c = (a[0] + b[0] // 2, a[1] + b[1] // 2)
+        c = ((a[0] + b[0]) // 2, (a[1] + b[1]) // 2)
         dets.extend(c)
-        cv2.circle(img, c, radius=5, color=(255, 0, 0))
+
+        cv2.rectangle(img, a, b, thickness=4, color=(255, 0, 0))
+        cv2.circle(img, c, radius=5, thickness=4, color=(0, 0, 255))
 
     cv2.imwrite(f'det{time.process_time()}.jpg', img)
 
@@ -62,7 +64,7 @@ def main():
     #         detecciones = detecta_latas('latas.tflite', cap)
     #         ser.write(bytes(crea_lista(detecciones), "utf-8"))
 
-    detecta_latas(cap, detector)
+    print(detecta_latas(cap, detector))
 
 
 if __name__ == '__main__':
