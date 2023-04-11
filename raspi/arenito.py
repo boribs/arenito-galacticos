@@ -7,6 +7,9 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
+RES_X = 600
+RES_Y = 400
+
 def detecta_latas(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
     """
     Toma una foto y detecta latas.
@@ -41,6 +44,8 @@ def main():
     # )  # Encontrar esto automáticamente?
 
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RES_Y)
     model = 'latas.tflite'
 
     base_options = core.BaseOptions(
