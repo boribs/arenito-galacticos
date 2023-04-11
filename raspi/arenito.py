@@ -41,15 +41,15 @@ def detecta_latas(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str
     return '{' + ','.join(map(str, dets)) + ',}'
 
 def main():
-    # ser = serial.Serial(
-    #     "/dev/ttyUSB0", 115200, timeout=0.1
-    # )  # Encontrar esto automáticamente?
+    ser = serial.Serial(
+        "/dev/ttyUSB0", 115200, timeout=0.1
+    )  # Encontrar esto automáticamente?
 
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RES_Y)
-    model = 'latas.tflite'
 
+    model = 'latas.tflite'
     base_options = core.BaseOptions(
         file_name=model, use_coral=False, num_threads=4)
     detection_options = processor.DetectionOptions(
@@ -58,14 +58,15 @@ def main():
         base_options=base_options, detection_options=detection_options)
     detector = vision.ObjectDetector.create_from_options(options)
 
-    # while True:
-    #     msg = ser.seradline().decode("utf-8")
-    #     if msg == "latas":
-    #         detecciones = detecta_latas('latas.tflite', cap)
-    #         ser.write(bytes(crea_lista(detecciones), "utf-8"))
+    while cap.isOpened():
+        if cv2.waitKey(1) == 0: # Lee la documentación, por favor
+            break
 
-    print(detecta_latas(cap, detector))
-
+        msg = ser.readline().decode('utf-8').strip()
+        if msg == 'latas':
+            detecciones = detecta_latas(cap, detector)
+            print(detecciones)
+            ser.write(bytes(detecciones, 'utf-8'))
 
 if __name__ == '__main__':
     main()
