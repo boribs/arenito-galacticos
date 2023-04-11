@@ -24,6 +24,9 @@ def detecta_latas(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     input_tensor = vision.TensorImage.create_from_array(rgb_img)
     detecciones = detector.detect(input_tensor)
+    imgname = f'{time.process_time()}.jpg'
+
+    cv2.imwrite(imgname, img) # Guarda imagen limpia
 
     dets = []
     for det in detecciones.detections:
@@ -36,7 +39,7 @@ def detecta_latas(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str
         cv2.rectangle(img, a, b, thickness=4, color=(255, 0, 0))
         cv2.circle(img, c, radius=5, thickness=4, color=(0, 0, 255))
 
-    cv2.imwrite(f'det{time.process_time()}.jpg', img)
+    cv2.imwrite('det' + imgname, img) # Imagen con anotaciones de detecciones
 
     return '{' + ','.join(map(str, dets)) + ',}'
 
@@ -44,6 +47,7 @@ def main():
     ser = serial.Serial(
         "/dev/ttyUSB0", 115200, timeout=0.1
     )  # Encontrar esto automáticamente?
+       # Recuerda dmesg | grep "tty"
 
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
@@ -59,6 +63,7 @@ def main():
     detector = vision.ObjectDetector.create_from_options(options)
 
     while cap.isOpened():
+        cap.read() # Es necesario estar haciendo esto constantemente?
         if cv2.waitKey(1) == 0: # Lee la documentación, por favor
             break
 
