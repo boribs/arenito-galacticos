@@ -131,6 +131,8 @@ dmypy.json
 # OD stuff!
 *.jpg
 *.xml
+*.tflite
+*.zip
 
 # DS_Store???
 .DS_Store
