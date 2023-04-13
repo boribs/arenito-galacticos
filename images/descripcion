@@ -1,0 +1,10 @@
+Se tienen diferentes sets de imagenes organizadas por categoría:
+
+    full: todas las imagenes, con una sola clase.
+        - latas
+
+    axes: todas las imagenes tomadas, clasificadas según la
+          orientación.
+        - vert
+        - hort
+        - diag
