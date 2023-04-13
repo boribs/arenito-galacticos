@@ -2,9 +2,7 @@
 
 import cv2, uuid, argparse, time
 
-SCALE = 1 / 2
-
-def main():
+def main(scale: float):
     cap = cv2.VideoCapture(0)
 
     while cap.isOpened():
@@ -14,7 +12,7 @@ def main():
             print('Error comunicating with camera.')
             exit(1)
 
-        size = (int(frame.shape[1] * SCALE), int(frame.shape[0] * SCALE))
+        size = (int(frame.shape[1] * scale), int(frame.shape[0] * scale))
         frame = cv2.resize(frame, size)
 
         cv2.imshow('frame', frame)
@@ -30,7 +28,7 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
-def main_timed(timer: int): # timed?
+def main_timed(timer: int, scale: float): # timed?
     cap = cv2.VideoCapture(0)
 
     while cap.isOpened():
@@ -40,7 +38,7 @@ def main_timed(timer: int): # timed?
             print('Error comunicating with camera.')
             exit(1)
 
-        size = (int(frame.shape[1] * SCALE), int(frame.shape[0] * SCALE))
+        size = (int(frame.shape[1] * scale), int(frame.shape[0] * scale))
         frame = cv2.resize(frame, size)
 
         cv2.imshow('frame', frame)
@@ -65,10 +63,15 @@ if __name__ == '__main__':
         type=float,
         default=0,
     )
+    parser.add_argument(
+        '--scale',
+        type=float,
+        default=0,
+    )
 
     args = parser.parse_args()
 
     if args.timer == 0:
-        main()
+        main(args.scale)
     else:
-        main_timed(args.timer)
+        main_timed(args.timer, args.scale)
