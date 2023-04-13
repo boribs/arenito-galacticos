@@ -7,6 +7,8 @@ from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
 
+RES_X = 640
+RES_Y = 380
 CENTRO_INF = (RES_X // 2, RES_Y)
 MIN_PX_WATER = 50
 
