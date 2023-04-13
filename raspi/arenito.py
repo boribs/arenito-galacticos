@@ -32,11 +32,10 @@ def reachable(img: cv2.Mat, det: tuple[int]) -> bool:
 
     return white_px >= MIN_PX_WATER
 
-def detecta_latas(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
+def find_cans(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
     """
-    Toma una foto y detecta latas.
-
-    Regresa una cadena formateada con las detecciones de las latas.
+    Takes a picture when called and scans for cans.
+    Returns a formatted detection list.
     """
 
     ok, img = cap.read()
@@ -45,13 +44,13 @@ def detecta_latas(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str
 
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     input_tensor = vision.TensorImage.create_from_array(rgb_img)
-    detecciones = detector.detect(input_tensor)
+    detections = detector.detect(input_tensor)
     imgname = f'{time.process_time()}.jpg'
 
     cv2.imwrite(imgname, img) # Guarda imagen limpia
 
     dets = []
-    for det in detecciones.detections:
+    for det in detections.detections:
         bbox = det.bounding_box
         a = (bbox.origin_x, bbox.origin_y)
         b = (a[0] + bbox.width, a[1] + bbox.height)
@@ -98,9 +97,9 @@ def main():
 
         msg = ser.readline().decode('utf-8').strip()
         if msg == 'latas':
-            detecciones = detecta_latas(cap, detector)
-            print(detecciones)
-            ser.write(bytes(detecciones, 'utf-8'))
+            detections = find_cans(cap, detector)
+            print(detections)
+            ser.write(bytes(detections, 'utf-8'))
 
     cap.release()
 
