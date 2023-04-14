@@ -2,6 +2,7 @@ import serial
 import cv2
 import sys
 import time
+import argparse
 import numpy as np
 from tflite_support.task import core
 from tflite_support.task import processor
@@ -71,7 +72,7 @@ def find_cans(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
 
     return '{' + ','.join(map(str, dets)) + ',}'
 
-def main():
+def main(model: str, num_threads: int, max_results: int, score_threshold: float):
     ser = serial.Serial(
         "/dev/ttyUSB0", 115200, timeout=0.1
     )  # Encontrar esto automáticamente?
@@ -81,11 +82,10 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RES_Y)
 
-    model = 'latas.tflite'
     base_options = core.BaseOptions(
-        file_name=model, use_coral=False, num_threads=4)
+        file_name=model, use_coral=False, num_threads=num_threads)
     detection_options = processor.DetectionOptions(
-        max_results=3, score_threshold=0.3)
+        max_results=max_results, score_threshold=score_threshold)
     options = vision.ObjectDetectorOptions(
         base_options=base_options, detection_options=detection_options)
     detector = vision.ObjectDetector.create_from_options(options)
@@ -104,4 +104,27 @@ def main():
     cap.release()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser() # Termina de llenar esto
+    parser.add_argument(
+        '--model',
+        type=str,
+        default='latas.tflite',
+    )
+    parser.add_argument(
+        '--threads',
+        type=int,
+        default=4,
+    )
+    parser.add_argument(
+        '--max_results',
+        type=int,
+        default=5,
+    )
+    parser.add_argument(
+        '--score_threshold',
+        type=float,
+        default=0.6,
+    )
+    args = parser.parse_args()
+
+    main(args.model, args.threads, args.max_results, args.score_threshold)
