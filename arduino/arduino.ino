@@ -8,12 +8,12 @@ int motDb = 7;
 int motDa = 6;
 
 /*
- * Asume inicialmente una resolución de RES_XxRES_Ypx
+ * Asume inicialmente una resolución de RES_X,RES_Ypx
  * y un margen de MARGENpx.
  * El margen es para la alineación con la lata seleccionada.
  */
-const int RES_X = 600,
-          RES_Y = 400,
+const int RES_X = 640,
+          RES_Y = 380,
           MARGEN = 15, // Determinar margen
           CENTRO_X_MIN = (RES_X / 2) - MARGEN,
           CENTRO_X_MAX = (RES_X / 2) + MARGEN;
