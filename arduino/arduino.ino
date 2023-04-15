@@ -2,10 +2,10 @@
 avanza, izquierda, derecha, alto*/
 //Usando puentes H de los rojos
 
-int motIb = 9;
-int motIa = 8;
-int motDb = 7;
 int motDa = 6;
+int motDb = 7;
+int motIa = 8;
+int motIb = 9;
 
 /*
  * Asume inicialmente una resolución de RES_X,RES_Ypx
@@ -27,7 +27,7 @@ typedef struct lata {
 
 const int MAX_LATAS = 20;
 lata detectadas[MAX_LATAS] = { 0 };
-int eleigda = -1; // -1 = no se ha elegido ninguna
+int elegida = -1; // -1 = no se ha elegido ninguna
 
 float distAlCentro, t;
 int d;
@@ -40,20 +40,21 @@ void setup() {
 
   Serial.begin(115200);
   Serial.setTimeout(100); // hay que checar esto
+  Serial.print("latas"); // pide latas al iniciar
 }
 
 void loop() {
   if (Serial.available() > 0) {
     int n = descifraLatas();
 
-    // PARA EL CASO DE PRUEBA ESPECIFICO
-    // CUANDO ENCUENTRA SOLO UNA LATA
-    if (n == 1) {
-      Serial.print("Ok: ");
-      int d = detectadas[0].x;
+    if (n > 0) {
+      int d = detectadas[elegida].x;
+      eligeLata(n);
+
       // si la lata está centrada, camina hacia esta
       if (d >= CENTRO_X_MIN && d <= CENTRO_X_MAX) {
-        // avanza(pxAMs(detectadas[0].y));
+        t = (float)detectadas[elegida].y / RES_Y;
+        avanza(pxAMsA(t));
         alto(0);
       }
 
@@ -62,7 +63,7 @@ void loop() {
         distAlCentro = CENTRO_X - d;
         t = distAlCentro / CENTRO_X;
 
-        derecha(pxAMs(t));
+        derecha(pxAMsG(t));
         alto(0);
       }
 
@@ -71,9 +72,11 @@ void loop() {
         distAlCentro = d - CENTRO_X;
         t = distAlCentro / CENTRO_X;
 
-        izquierda(pxAMs(t));
+        izquierda(pxAMsG(t));
         alto(0);
       }
+
+      Serial.print("latas");
     }
   }
 }
@@ -159,19 +162,40 @@ void alto(int tiempo) {
 }
 
 /*
- * Pixel a MS.
+ * Pixel a MS(G - giro)
  * Se usa para determinar cuánto hay que girar
  * tomando en cuenta la distancia de la detección
  * al centro de la pantalla.
  *
  * minT y maxT son valores arbitrarios.
  */
-int pxAMs(float t) {
+int pxAMsG(float t) {
   const int minT = 200,
             maxT = 500;
   return lerp(minT, maxT, t);
 }
 
+/*
+ * Pixel A Ms (A - Avanza)
+ */
+int pxAMsA(float t) {
+  const int minT = 1000,
+            maxT = 2000;
+  return lerp(minT, maxT, t);
+}
+
 int lerp(int a, int b, float t) {
   return (int)(a + ((b - a) * t));
+}
+
+void eligeLata(int n) {
+  int minY = RES_Y;
+  elegida = -1;
+
+  for (int i = 0; i < n; ++i) {
+    if (detectadas[i].y < minY) {
+      minY = detectadas[i].y;
+      elegida = i;
+    }
+  }
 }
