@@ -72,10 +72,18 @@ def find_cans(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
 
     return '{' + ','.join(map(str, dets)) + ',}'
 
-def main(model: str, num_threads: int, max_results: int, score_threshold: float):
+def main(
+        port: str,
+        baudrate: int,
+        timeout: float,
+        model: str,
+        num_threads: int,
+        max_results: int,
+        score_threshold: float,
+    ):
     ser = serial.Serial(
-        "/dev/ttyUSB0", 115200, timeout=0.1
-    )  # Encontrar esto automáticamente?
+        port, baudrate, timeout=timeout
+    )  # Encontrar puerto automáticamente?
        # Recuerda dmesg | grep "tty"
 
     cap = cv2.VideoCapture(0)
@@ -106,6 +114,21 @@ def main(model: str, num_threads: int, max_results: int, score_threshold: float)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser() # Termina de llenar esto
     parser.add_argument(
+        '--port',
+        type=str,
+        default='/dev/ttyUSB0',
+    )
+    parser.add_argument(
+        '--baudrate',
+        type=int,
+        default=115200,
+    )
+    parser.add_argument(
+        '--timeout',
+        type=float,
+        default=0.1,
+    )
+    parser.add_argument(
         '--model',
         type=str,
         default='latas.tflite',
@@ -127,4 +150,12 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    main(args.model, args.threads, args.max_results, args.score_threshold)
+    main(
+        args.port,
+        args.baudrate,
+        args.timeout,
+        args.model,
+        args.threads,
+        args.max_results,
+        args.score_threshold
+    )
