@@ -131,7 +131,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model',
         type=str,
-        default='latas.tflite',
+        default='./modelos/latas.tflite',
     )
     parser.add_argument(
         '--threads',
