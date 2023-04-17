@@ -49,4 +49,5 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
+    # TODO: Poder tomar foto con este mismo script
     main(args.model, args.image)
