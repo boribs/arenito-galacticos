@@ -10,6 +10,8 @@ from tflite_support.task import vision
 
 RES_X = 640
 RES_Y = 380
+MARGEN_X = 15 # Aquí para no tener que
+              # modificarlo en más partes
 CENTRO_INF = (RES_X // 2, RES_Y)
 MIN_PX_WATER = 50
 
