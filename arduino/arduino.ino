@@ -41,7 +41,7 @@ void setup() {
   pinMode(motDb, OUTPUT);
 
   Serial.begin(115200);
-  Serial.setTimeout(100); // hay que checar esto
+  Serial.setTimeout(1000); // hay que checar esto
   Serial.print("latas"); // pide latas al iniciar
 }
 
@@ -190,6 +190,9 @@ int lerp(int a, int b, float t) {
   return (int)(a + ((b - a) * t));
 }
 
+/*
+ * Elige la lata más cercana al arenito (< y)
+ */
 void eligeLata(int n) {
   int minY = RES_Y;
   elegida = -1;
