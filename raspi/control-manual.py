@@ -1,5 +1,6 @@
 import serial
 import argparse
+from typing import Union
 
 # El movimiento del arduino depende de las detecciones.
 # Actualmente, si tiene una lata "en frente", avanza hacia adelante.
@@ -21,7 +22,7 @@ LIMITES = (CENTRO - MARGEN_X, CENTRO + MARGEN_X)
 def lerp(a: int, b: int, t: int):
     return int(a + ((b - a) * (t / 100)))
 
-def adelante(ser: serial.Serial, perc: int | None):
+def adelante(ser: serial.Serial, perc: Union[int, None]):
     if perc != None:
         ser.write(bytes(
             f'{{{CENTRO},{lerp(0, RES_Y, perc)},}}'
@@ -30,7 +31,7 @@ def adelante(ser: serial.Serial, perc: int | None):
     else:
         ser.write(bytes('{' + str(CENTRO) + ',200,}', 'utf-8'))
 
-def izquierda(ser: serial.Serial, perc: int | None):
+def izquierda(ser: serial.Serial, perc: Union[int, None]):
     if perc != None:
         ser.write(bytes(
             f'{{{LIMITES[0] - lerp(0, LIMITES[0], perc)},200,}}'
@@ -39,7 +40,7 @@ def izquierda(ser: serial.Serial, perc: int | None):
     else:
         ser.write(bytes('{0,200,}', 'utf-8'))
 
-def derecha(ser: serial.Serial, perc: int | None):
+def derecha(ser: serial.Serial, perc: Union[int, None]):
     if perc != None:
         ser.write(bytes(
             f'{{{lerp(LIMITES[1], RES_X, perc)},200,}}'

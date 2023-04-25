@@ -18,7 +18,7 @@ MIN_PX_WATER = 50
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([112, 255, 255], np.uint8)
 
-def reachable(img: cv2.Mat, det: tuple[int]) -> bool:
+def reachable(img: np.ndarray, det: tuple[int]) -> bool:
     """
     Determines if a detection is reachable.
     Returns true if possible, otherwise false.
