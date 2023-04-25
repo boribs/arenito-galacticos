@@ -145,4 +145,4 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    main(args.port, args.baudrate, args.timeout)
+    main(args.port, args.baudrate, args.timeout, args.camera_id)
