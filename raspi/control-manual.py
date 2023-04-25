@@ -1,5 +1,7 @@
 import serial
 import argparse
+import cv2
+import uuid
 from typing import Union
 
 # El movimiento del arduino depende de las detecciones.
@@ -49,9 +51,31 @@ def derecha(ser: serial.Serial, perc: Union[int, None]):
     else:
         ser.write(bytes('{' + str(RES_X) + ',200,}', 'utf-8'))
 
-def main(port: str, baudrate: int, timeout: float):
+def foto(camera_id: int):
+    try:
+        cam = cv2.VideoCapture(camera_id)
+        ok, frame = cam.read()
+        if not ok:
+            print('Error tomando foto')
+
+        imgname = f'{uuid.uuid1()}.jpg'
+        cv2.imwrite(str(imgname, frame))
+        print(f'Guardado {imgname}')
+
+    except Exception as e:
+        print(f'No se puede tomar foto:', e)
+
+
+def main(port: str, baudrate: int, timeout: float, camera_id: int):
     print('Iniciando control manual...')
     ser = serial.Serial(port, baudrate, timeout=timeout)
+    cam = True
+
+    try:
+        cv2.VideoCapture(camera_id)
+    except Exception:
+        print('No es posible comunicarse con la cámara.')
+        cam = False
 
     while True:
         try:
@@ -82,6 +106,11 @@ def main(port: str, baudrate: int, timeout: float):
                 izquierda(ser, perc)
             elif dire == 'd':
                 derecha(ser, perc)
+            elif dire == 'f':
+                if cam:
+                    foto(camera_id)
+                else:
+                    print('No hay comunicación con la cámara.')
             else:
                 raise Exception('Comando inválido.')
 
@@ -108,6 +137,11 @@ if __name__ == '__main__':
         '--timeout',
         type=float,
         default=0.1,
+    )
+    parser.add_argument(
+        '--camera_id',
+        type=int,
+        default=0,
     )
     args = parser.parse_args()
 
