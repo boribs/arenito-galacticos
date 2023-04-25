@@ -59,7 +59,7 @@ def foto(camera_id: int):
             print('Error tomando foto')
 
         imgname = f'{uuid.uuid1()}.jpg'
-        cv2.imwrite(str(imgname, frame))
+        cv2.imwrite(str(imgname), frame)
         print(f'Guardado {imgname}')
 
     except Exception as e:
