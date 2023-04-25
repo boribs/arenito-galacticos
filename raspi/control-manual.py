@@ -15,8 +15,14 @@ from typing import Union
 # se encuentren en el rango de RES_X / 2 ± MARGEN_X.
 # RES_X y MARGEN_X están definidos en arenito.py, con el objetivo de
 # reducir los archivos a modificar para realizar cambios
+#
+# Recuerda que puedes actualizar el código del arduino usando arduino-cli
+# https://arduino.github.io/arduino-cli/0.32/getting-started/
 
 from arenito import RES_X, RES_Y, MARGEN_X
+# RES_X = 640
+# RES_Y = 380
+# MARGEN_X = 15
 
 CENTRO = RES_X // 2
 LIMITES = (CENTRO - MARGEN_X, CENTRO + MARGEN_X)
@@ -26,28 +32,22 @@ def lerp(a: int, b: int, t: int):
 
 def adelante(ser: serial.Serial, perc: Union[int, None]):
     if perc != None:
-        ser.write(bytes(
-            f'{{{CENTRO},{lerp(0, RES_Y, perc)},}}'
-            'utf-8'
-        ))
+        s = f'{{{LIMITES[0] - lerp(0, LIMITES[0], perc)},200,}}'
+        ser.write(bytes(s, 'utf-8'))
     else:
         ser.write(bytes('{' + str(CENTRO) + ',200,}', 'utf-8'))
 
 def izquierda(ser: serial.Serial, perc: Union[int, None]):
     if perc != None:
-        ser.write(bytes(
-            f'{{{LIMITES[0] - lerp(0, LIMITES[0], perc)},200,}}'
-            'utf-8'
-        ))
+        s = f'{{{LIMITES[0] - lerp(0, LIMITES[0], perc)},200,}}'
+        ser.write(bytes(s, 'utf-8'))
     else:
         ser.write(bytes('{0,200,}', 'utf-8'))
 
 def derecha(ser: serial.Serial, perc: Union[int, None]):
     if perc != None:
-        ser.write(bytes(
-            f'{{{lerp(LIMITES[1], RES_X, perc)},200,}}'
-            'utf-8'
-        ))
+        s = f'{{{lerp(LIMITES[1], RES_X, perc)},200,}}'
+        ser.write(bytes(s, 'utf-8'))
     else:
         ser.write(bytes('{' + str(RES_X) + ',200,}', 'utf-8'))
 
