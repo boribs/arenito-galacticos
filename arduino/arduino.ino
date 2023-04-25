@@ -1,5 +1,7 @@
-/*Funciones básicas para el uso de los motores
-avanza, izquierda, derecha, alto*/
+/*
+ * Funciones básicas para el uso de los motores
+ * avanza, izquierda, derecha, alto
+ */
 //Usando puentes H de los rojos
 
 int motDa = 6;
