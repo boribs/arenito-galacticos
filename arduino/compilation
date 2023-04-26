@@ -1,0 +1,5 @@
+# Recuerda, esto es lo que necesitas para compilar y subir...
+# https://arduino.github.io/arduino-cli/0.32/getting-started/
+
+arduino-cli compile -p <port> --fqbn arduino:avr:mega ./arduino.ino
+arduino-cli upload -p <port> --fqbn arduino:avr:mega ./arduino.ino

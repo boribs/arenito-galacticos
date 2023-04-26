@@ -16,8 +16,6 @@ from typing import Union
 # RES_X y MARGEN_X están definidos en arenito.py, con el objetivo de
 # reducir los archivos a modificar para realizar cambios
 #
-# Recuerda que puedes actualizar el código del arduino usando arduino-cli
-# https://arduino.github.io/arduino-cli/0.32/getting-started/
 
 from arenito import RES_X, RES_Y, MARGEN_X
 # RES_X = 640
