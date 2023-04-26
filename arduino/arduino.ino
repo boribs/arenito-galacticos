@@ -9,6 +9,9 @@ int motDb = 7;
 int motIa = 8;
 int motIb = 9;
 
+// Para no estar creando a cada rato la variable
+int ms;
+
 /*
  * Asume inicialmente una resolución de RES_X,RES_Ypx
  * y un margen de MARGENpx.
@@ -56,7 +59,11 @@ void loop() {
       // si la lata está centrada, camina hacia esta
       if (d >= CENTRO_X_MIN && d <= CENTRO_X_MAX) {
         t = (float)detectadas[elegida].y / RES_Y;
-        avanza(pxAMsA(t));
+        ms = pxAMsA(t)
+
+        Serial.print("Avanzando: ");
+        Serial.println(ms);
+        avanza(ms);
         alto(0);
       }
 
@@ -64,8 +71,11 @@ void loop() {
       if (d < CENTRO_X_MIN) {
         distAlCentro = CENTRO_X - d;
         t = distAlCentro / CENTRO_X;
+        ms = pxAMsG(t);
 
-        derecha(pxAMsG(t));
+        Serial.print("Girando derecha: ");
+        Serial.println(ms);
+        derecha(ms);
         alto(0);
       }
 
@@ -73,8 +83,11 @@ void loop() {
       if (d > CENTRO_X_MAX) {
         distAlCentro = d - CENTRO_X;
         t = distAlCentro / CENTRO_X;
+        ms = pxAMsG(t);
 
-        izquierda(pxAMsG(t));
+        Serial.print("Girando izquierda: ");
+        Serial.print(ms);
+        izquierda(ms);
         alto(0);
       }
 
