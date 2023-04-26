@@ -22,7 +22,7 @@ from typing import Union
 from arenito import RES_X, RES_Y, MARGEN_X
 # RES_X = 640
 # RES_Y = 380
-# MARGEN_X = 15
+# MARGEN_X = 35
 
 CENTRO = RES_X // 2
 LIMITES = (CENTRO - MARGEN_X, CENTRO + MARGEN_X)
@@ -36,6 +36,9 @@ def adelante(ser: serial.Serial, perc: Union[int, None]):
         ser.write(bytes(s, 'utf-8'))
     else:
         ser.write(bytes('{' + str(CENTRO) + ',200,}', 'utf-8'))
+
+def atras(ser: serial.Serial):
+    ser.write(b'rr')
 
 def izquierda(ser: serial.Serial, perc: Union[int, None]):
     if perc != None:
@@ -99,9 +102,10 @@ def main(port: str, baudrate: int, timeout: float, camera_id: int):
             if dire in ('exit', 'q', 'quit', 'salir', 's', 'bye'):
                 raise KeyboardInterrupt
 
-            # TODO: Comando para tomar foto?
             if dire == 'a':
                 adelante(ser, perc)
+            elif dire == 'r':
+                atras(ser)
             elif dire == 'i':
                 izquierda(ser, perc)
             elif dire == 'd':
@@ -136,7 +140,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--timeout',
         type=float,
-        default=0.1,
+        default=1.0,
     )
     parser.add_argument(
         '--camera_id',
