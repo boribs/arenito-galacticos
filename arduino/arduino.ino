@@ -59,7 +59,7 @@ void loop() {
       // si la lata está centrada, camina hacia esta
       if (d >= CENTRO_X_MIN && d <= CENTRO_X_MAX) {
         t = (float)detectadas[elegida].y / RES_Y;
-        ms = pxAMsA(t)
+        ms = pxAMsA(t);
 
         Serial.print("Avanzando: ");
         Serial.println(ms);
