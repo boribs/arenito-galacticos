@@ -10,7 +10,7 @@ from tflite_support.task import vision
 
 RES_X = 640
 RES_Y = 380
-MARGEN_X = 15 # Aquí para no tener que
+MARGEN_X = 35 # Aquí para no tener que
               # modificarlo en más partes
 CENTRO_INF = (RES_X // 2, RES_Y)
 MIN_PX_WATER = 50
@@ -110,6 +110,8 @@ def main(
             detections = find_cans(cap, detector)
             print(detections)
             ser.write(bytes(detections, 'utf-8'))
+        else:
+            print(msg)
 
     cap.release()
 
@@ -128,7 +130,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--timeout',
         type=float,
-        default=0.1,
+        default=1.0,
     )
     parser.add_argument(
         '--model',
