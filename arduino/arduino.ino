@@ -51,7 +51,9 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    int n = descifraLatas();
+    String msg = Serial.readString();
+
+    int n = descifraLatas(msg);
 
     if (n > 0) {
       int d = detectadas[elegida].x;
@@ -93,6 +95,9 @@ void loop() {
       }
 
       Serial.print("latas");
+
+    } else if (msg == "rr") { // exclusivo para control manual
+      retrocede(500);
     }
   }
 }
@@ -111,8 +116,7 @@ void loop() {
  * Regresa el número de latas encontradas o -1 cuando
  * ocurrió algún error.
  */
-int descifraLatas() {
-  String msg = Serial.readString();
+int descifraLatas(String msg) {
   msg.trim();
   size_t msg_len = msg.length();
 
@@ -163,6 +167,14 @@ void avanza(int tiempo) {
   digitalWrite(motDb, LOW);
   delay(tiempo);
   apagaRodillo();
+}
+
+void retrocede(int tiempo) {
+  digitalWrite(motIa, LOW);
+  digitalWrite(motIb, HIGH);
+  digitalWrite(motDa, LOW);
+  digitalWrite(motDb, HIGH);
+  delay(tiempo);
 }
 
 void derecha(int tiempo) {
