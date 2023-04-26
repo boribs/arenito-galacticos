@@ -1,13 +1,12 @@
-/*
- * Funciones básicas para el uso de los motores
- * avanza, izquierda, derecha, alto
- */
-//Usando puentes H de los rojos
-
+// Usando puentes H de los rojos
 int motDa = 6;
 int motDb = 7;
 int motIa = 8;
 int motIb = 9;
+
+// Rodillo!
+int rodA = 4;
+int rodB = 3;
 
 // Para no estar creando a cada rato la variable
 int ms;
@@ -42,6 +41,8 @@ void setup() {
   pinMode(motIb, OUTPUT);
   pinMode(motDa, OUTPUT);
   pinMode(motDb, OUTPUT);
+  pinMode(rodA, OUTPUT);
+  pinMode(rodB, OUTPUT);
 
   Serial.begin(115200);
   Serial.setTimeout(1000); // hay que checar esto
@@ -144,12 +145,24 @@ int descifraLatas() {
   return num_latas;
 }
 
+void prendeRodillo() {
+  digitalWrite(rodA, HIGH);
+  digitalWrite(rodB, LOW);
+}
+
+void apagaRodillo() {
+  digitalWrite(rodA, LOW);
+  digitalWrite(rodB, LOW);
+}
+
 void avanza(int tiempo) {
+  prendeRodillo();
   digitalWrite(motIa, HIGH);
   digitalWrite(motIb, LOW);
   digitalWrite(motDa, HIGH);
   digitalWrite(motDb, LOW);
   delay(tiempo);
+  apagaRodillo();
 }
 
 void derecha(int tiempo) {
