@@ -98,6 +98,7 @@ void loop() {
 
     } else if (msg == "rr") { // exclusivo para control manual
       retrocede(500);
+      alto(0);
     }
   }
 }
