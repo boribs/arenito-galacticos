@@ -1,3 +1,6 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
 // Usando puentes H de los rojos
 int motDa = 6;
 int motDb = 7;
@@ -10,6 +13,9 @@ int rodB = 3;
 
 // Para no estar creando a cada rato la variable
 int ms;
+
+// Pantalla!
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 /*
  * Asume inicialmente una resolución de RES_X,RES_Ypx
@@ -47,6 +53,10 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(1000); // hay que checar esto
   Serial.print("latas"); // pide latas al iniciar
+
+  lcd.init();
+  lcd.backlight();
+  lcd.print('Hola mundo')
 }
 
 void loop() {
