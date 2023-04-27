@@ -107,12 +107,15 @@ def main(
             break
 
         msg = ser.readline().decode('utf-8').strip()
-        if msg == 'latas':
+        if msg:
+            print(msg)
+
+        if msg.endswith('latas'):
             detections = find_cans(cap, detector)
             print(detections)
             ser.write(bytes(detections, 'utf-8'))
         else:
-            print(msg)
+            ser.write(b'{}')
 
     cap.release()
 
