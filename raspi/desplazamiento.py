@@ -91,7 +91,10 @@ def main(
             break
 
         msg = ser.readline().decode('utf-8').strip()
-        if msg == 'latas':
+        if msg:
+            print(msg)
+
+        if msg.endswith('latas'):
             dest = select_destination(cap)
             print(dest)
             ser.write(bytes(dest, 'utf-8'))
