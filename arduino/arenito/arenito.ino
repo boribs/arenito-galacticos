@@ -56,7 +56,7 @@ void setup() {
 
   lcd.init();
   lcd.backlight();
-  lcd.print('Hola mundo')
+  lcd.print('Hola mundo');
 }
 
 void loop() {
