@@ -95,7 +95,7 @@ def main(
             print(dest)
             ser.write(bytes(dest, 'utf-8'))
         else:
-            ser.write('{}')
+            ser.write(b'{}')
 
     cap.release()
 
