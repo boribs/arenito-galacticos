@@ -4,9 +4,11 @@ import sys
 import time
 import argparse
 import numpy as np
+import desplazamiento as desp
 from tflite_support.task import core
 from tflite_support.task import processor
 from tflite_support.task import vision
+
 
 RES_X = 640
 RES_Y = 380
@@ -101,6 +103,7 @@ def main(
         base_options=base_options, detection_options=detection_options)
     detector = vision.ObjectDetector.create_from_options(options)
 
+    prev_rr = False
     while cap.isOpened():
         cap.read() # Es necesario estar haciendo esto constantemente?
         if cv2.waitKey(1) == 0: # Lee la documentación, por favor
@@ -112,7 +115,15 @@ def main(
 
         if msg.endswith('latas'):
             detections = find_cans(cap, detector)
-            print(detections)
+
+            print(detections, end='')
+
+            if detections == '{,}': # no encontró nada!
+                detections = desp.select_destination(cap, prev_rr)
+                prev_rr = detections == 'rr'
+                print(' No encontró latas', end='')
+            print()
+
             ser.write(bytes(detections, 'utf-8'))
         else:
             ser.write(b'{}')
