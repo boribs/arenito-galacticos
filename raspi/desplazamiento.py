@@ -67,10 +67,9 @@ def main(
         camera_id: int,
     ):
 
-    # ser = serial.Serial(
-    #     port, baudrate, timeout=timeout
-    # )
-    ser = None
+    ser = serial.Serial(
+        port, baudrate, timeout=timeout
+    )
 
     cap = cv2.VideoCapture(camera_id)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
@@ -81,15 +80,35 @@ def main(
         if cv2.waitKey(1) == 0:
             break
 
-        # msg = ser.readline().decode('utf-8').strip()
-        # if msg == 'latas':
-        dest = select_destination(cap)
-        print(dest)
-        break
-            # ser.write(bytes(dest, 'utf-8'))
-        # else:
+        msg = ser.readline().decode('utf-8').strip()
+        if msg == 'latas':
+            dest = select_destination(cap)
+            ser.write(bytes(dest, 'utf-8'))
 
     cap.release()
 
 if __name__ == '__main__':
-    main(0, 0, 0, 0)
+    parser = argparse.ArgumentParser() # Termina de llenar esto
+    parser.add_argument(
+        '--port',
+        type=str,
+        default='/dev/ttyUSB0',
+    )
+    parser.add_argument(
+        '--baudrate',
+        type=int,
+        default=115200,
+    )
+    parser.add_argument(
+        '--timeout',
+        type=float,
+        default=1.0,
+    )
+    parser.add_argument(
+        '--camera_id',
+        type=int,
+        default=0,
+    )
+    args = parser.parse_args()
+
+    main(args.port, args.baudrate, args.timeout, args.camera_id)
