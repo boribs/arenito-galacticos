@@ -68,7 +68,7 @@ def select_destination(cap: cv2.VideoCapture):
     #     (RES_X // 2 - 40, RES_Y - 30),
     # ]:
     #     if valid(img, det, 30):
-    return f'{{{y}, {x},}}'
+    return f'{{{x}, {y},}}'
 
 def main(
         port: str,
