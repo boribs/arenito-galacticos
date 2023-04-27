@@ -19,9 +19,9 @@ AZUL_LS = np.array([112, 255, 255], np.uint8)
 
 RECT_MARGIN_X = 60
 RECT_MARGIN_Y = 40
-RECT = (RECT_MARGIN_X, RECT_MARGIN_Y, RES_X - RECT_MARGIN_X, RES_Y - RECT_MARGIN_Y)
+RECT = (RECT_MARGIN_X, RECT_MARGIN_Y, RES_X - 2 * RECT_MARGIN_X, RES_Y - 2 * RECT_MARGIN_Y)
 
-def valid(img: np.ndarray, det: tuple[int]) -> bool:
+def valid(img: np.ndarray, det: tuple[int], radius: int) -> bool:
     """
     Determines if a given point is valid.
     Returns true if possible, otherwise false.
@@ -32,7 +32,7 @@ def valid(img: np.ndarray, det: tuple[int]) -> bool:
     cv2.imwrite('mask.jpg', mask)
 
     circle = np.zeros(shape=mask.shape, dtype=np.uint8)
-    cv2.circle(circle, det, radius=50, color=(255, 255, 255), thickness=-1)
+    cv2.circle(circle, det, radius=radius, color=(255, 255, 255), thickness=-1)
     cv2.imwrite('circle.jpg', circle)
 
     cross = cv2.bitwise_and(mask, circle)
@@ -45,7 +45,7 @@ def valid(img: np.ndarray, det: tuple[int]) -> bool:
 def select_destination(cap: cv2.VideoCapture):
     ok, img = cap.read()
 
-    cv2.rectangle(img, (RECT[0], RECT[1]), (RECT[2], RECT[3]), color=(255, 0, 0))
+    cv2.rectangle(img, (RECT[0], RECT[1]), (RECT[2], RECT[3]), color=(0, 0, 255))
     cv2.imwrite('dest.jpg', img)
 
     if not ok:
@@ -55,7 +55,7 @@ def select_destination(cap: cv2.VideoCapture):
         x = randint(RECT[0], RECT[2])
         y = randint(RECT[1], RECT[3])
 
-        if valid(img, (x, y)):
+        if valid(img, (x, y), 30):
             break
 
     return f'{{{x}, {y},}}'
