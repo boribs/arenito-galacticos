@@ -52,9 +52,14 @@ def select_destination(cap: cv2.VideoCapture):
 
     x = RES_X // 2
     y = RES_Y - 20
+    c = 0
     while valid(img, (x, y), 20):
         x = randint(RECT[0], RECT[2])
         y = randint(RECT[1], RECT[3])
+        c += 1
+
+        if c > 20: # retrocede después de muchos intentos
+            return 'rr'
 
     # for det in [
     #     (RES_X // 2, RES_Y - 30),
