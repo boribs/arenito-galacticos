@@ -33,6 +33,7 @@ def valid(img: np.ndarray, det: tuple[int], radius: int) -> bool:
 
     circle = np.zeros(shape=mask.shape, dtype=np.uint8)
     cv2.circle(circle, det, radius=radius, color=(255, 255, 255), thickness=-1)
+    cv2.line(circle, CENTRO_INF, det, (255, 255, 255), thickness=radius)
     cv2.imwrite('circle.jpg', circle)
 
     cross = cv2.bitwise_and(mask, circle)
