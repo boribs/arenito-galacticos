@@ -78,6 +78,7 @@ def main(
         port: str,
         baudrate: int,
         timeout: float,
+        camera_id: int,
         model: str,
         num_threads: int,
         max_results: int,
@@ -88,7 +89,7 @@ def main(
     )  # Encontrar puerto automáticamente?
        # Recuerda dmesg | grep "tty"
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(camera_id)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RES_Y)
 
@@ -133,6 +134,11 @@ if __name__ == '__main__':
         default=1.0,
     )
     parser.add_argument(
+        '--camera_id',
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
         '--model',
         type=str,
         default='./modelos/latas.tflite',
@@ -158,6 +164,7 @@ if __name__ == '__main__':
         args.port,
         args.baudrate,
         args.timeout,
+        args.camera_id,
         args.model,
         args.threads,
         args.max_results,
