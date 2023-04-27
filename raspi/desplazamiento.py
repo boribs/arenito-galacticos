@@ -43,7 +43,7 @@ def valid(img: np.ndarray, det: tuple[int], radius: int) -> bool:
 
     return white_px == 0
 
-def select_destination(cap: cv2.VideoCapture):
+def select_destination(cap: cv2.VideoCapture, prev_rr: bool):
     ok, img = cap.read()
 
     cv2.imwrite('dest.jpg', img)
@@ -51,9 +51,12 @@ def select_destination(cap: cv2.VideoCapture):
     if not ok:
         sys.exit('Error con la cámara.')
 
+    if prev_rr:
+        return '{0,100,}'
+
     r = RES_X // 2
     points = [
-        (r, 260),
+        (r, 200),
         (r + 40, 260),
         (r - 40, 260),
         (r + 80, 280),
@@ -65,22 +68,6 @@ def select_destination(cap: cv2.VideoCapture):
             return f'{{{point[0]}, {point[1]},}}'
 
     return 'rr'
-    # c = 0
-    # while not valid(img, (x, y), 20):
-    #     x = randint(RECT[0], RECT[2])
-    #     y = randint(RECT[1], RECT[3])
-    #     c += 1
-
-    #     if c > 20: # retrocede después de muchos intentos
-    #         return 'rr'
-
-    # for det in [
-    #     (RES_X // 2, RES_Y - 30),
-    #     (RES_X // 2 + 40, RES_Y - 30),
-    #     (RES_X // 2 - 40, RES_Y - 30),
-    # ]:
-    #     if valid(img, det, 30):
-    return f'{{{x}, {y},}}'
 
 def main(
         port: str,
@@ -97,6 +84,7 @@ def main(
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RES_Y)
 
+    prev_rr = False
     while cap.isOpened():
         cap.read()
         if cv2.waitKey(1) == 0:
@@ -107,8 +95,9 @@ def main(
             print(msg)
 
         if msg.endswith('latas'):
-            dest = select_destination(cap)
+            dest = select_destination(cap, prev_rr)
             print(dest)
+            prev_rr = dest == 'rr'
             ser.write(bytes(dest, 'utf-8'))
         else:
             ser.write(b'{}')
