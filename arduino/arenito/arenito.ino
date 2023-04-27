@@ -56,14 +56,28 @@ void setup() {
 
   lcd.init();
   lcd.backlight();
-  lcd.print('Hola mundo');
+  // lcd.print('Hola mundo');
 }
 
 void loop() {
   if (Serial.available() > 0) {
     String msg = Serial.readString();
 
-    int n = descifraLatas(msg);
+    char p;
+    int n = descifraLatas(msg, &p);
+
+    lcd.clear();
+    switch p {
+      case 'l':
+        lcd.print("Lata");
+        break;
+      case 'n':
+        lcd.print("Navegando");
+        break;
+      case 'a':
+        lcd.print("Agua");
+        break;
+    }
 
     if (n > 0) {
       int d = detectadas[elegida].x;
@@ -128,11 +142,13 @@ void loop() {
  * Regresa el número de latas encontradas o -1 cuando
  * ocurrió algún error.
  */
-int descifraLatas(String msg) {
+int descifraLatas(String msg, char *prefix) {
   msg.trim();
   size_t msg_len = msg.length();
 
-  if (msg[0] != '{' || msg[msg_len - 1] != '}') {
+  *prefix = msg[0];
+
+  if (msg[1] != '{' || msg[msg_len - 1] != '}') {
     // Los delimitadores son incorrectos:
     // no empieza con { ni termina con }
     return -1;

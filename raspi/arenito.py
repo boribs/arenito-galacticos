@@ -54,6 +54,11 @@ def find_cans(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
 
     cv2.imwrite(imgname, img) # Guarda imagen limpia
 
+
+    # l -> lata
+    # n -> nada
+    # a -> agua
+    prefix = 'l' if detections.detections else 'n'
     dets = []
     for det in detections.detections:
         bbox = det.bounding_box
@@ -66,6 +71,7 @@ def find_cans(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
             dets.extend(c)
             cv2.rectangle(img, a, b, thickness=4, color=(0, 0, 255))
             # circulo rojo cuando no es alcanzable
+            prefix = 'a'
         else:
             cv2.rectangle(img, a, b, thickness=4, color=(255, 0, 0))
             # circulo azul cuando es alcanzable
@@ -74,7 +80,7 @@ def find_cans(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
 
     cv2.imwrite('det' + imgname, img) # Imagen con anotaciones de detecciones
 
-    return '{' + ','.join(map(str, dets)) + ',}'
+    return prefix + '{' + ','.join(map(str, dets)) + ',}'
 
 def main(
         port: str,
