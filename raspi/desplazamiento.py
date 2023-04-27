@@ -45,26 +45,24 @@ def valid(img: np.ndarray, det: tuple[int], radius: int) -> bool:
 def select_destination(cap: cv2.VideoCapture):
     ok, img = cap.read()
 
-    cv2.rectangle(img, (RECT[0], RECT[1]), (RECT[2], RECT[3]), color=(0, 0, 255))
     cv2.imwrite('dest.jpg', img)
 
     if not ok:
         sys.exit('Error con la cámara.')
 
-    # while True:
-    #     x = randint(RECT[0], RECT[2])
-    #     y = randint(RECT[1], RECT[3])
+    x = RES_X // 2
+    y = RES_Y - 20
+    while valid(img, (x, y), 20):
+        x = randint(RECT[0], RECT[2])
+        y = randint(RECT[1], RECT[3])
 
-    #     if valid(img, (x, y), 30):
-    #         break
-
-    for det in [
-        (RES_X // 2, RES_Y - 30),
-        (RES_X // 2 + 40, RES_Y - 30),
-        (RES_X // 2 - 40, RES_Y - 30),
-    ]:
-        if valid(img, det, 30):
-            return f'{{{det[0]}, {det[1]},}}'
+    # for det in [
+    #     (RES_X // 2, RES_Y - 30),
+    #     (RES_X // 2 + 40, RES_Y - 30),
+    #     (RES_X // 2 - 40, RES_Y - 30),
+    # ]:
+    #     if valid(img, det, 30):
+    return f'{{{y}, {x},}}'
 
 def main(
         port: str,
@@ -90,6 +88,8 @@ def main(
         if msg == 'latas':
             dest = select_destination(cap)
             ser.write(bytes(dest, 'utf-8'))
+        else:
+            ser.write('{}')
 
     cap.release()
 
