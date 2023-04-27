@@ -52,7 +52,7 @@ def select_destination(cap: cv2.VideoCapture):
         sys.exit('Error con la cámara.')
 
     x = RES_X // 2
-    y = RES_Y - 20
+    y = 260
     c = 0
     while valid(img, (x, y), 20):
         x = randint(RECT[0], RECT[2])
