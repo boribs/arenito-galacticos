@@ -96,9 +96,10 @@ void loop() {
 
       Serial.print("latas");
 
-    } else if (msg == "rr") { // exclusivo para control manual
+    } else if (msg == "rr") { // exclusivo para control manual?
       retrocede(500);
       alto(0);
+      Serial.print("latas");
     }
   }
 }
