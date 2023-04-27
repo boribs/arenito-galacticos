@@ -17,6 +17,12 @@ for folder in sys.argv[1:]:
         if filename not in xmls:
             delete.append(os.path.join(folder, img))
 
+    for xml in xmls:
+        a, b = (xml[:xml.rfind('.')] + '.jpg', xml[:xml.rfind('.')] + '.JPG')
+
+        if a not in images and b not in images:
+            delete.append(os.path.join(folder, xml))
+
     if delete:
         cmd = f'rm ' + ' '.join(delete)
         os.system(cmd)
