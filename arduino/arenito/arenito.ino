@@ -67,7 +67,7 @@ void loop() {
     int n = descifraLatas(msg, &p);
 
     lcd.clear();
-    switch p {
+    switch (p) {
       case 'l':
         lcd.print("Lata");
         break;
