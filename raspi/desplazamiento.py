@@ -51,14 +51,20 @@ def select_destination(cap: cv2.VideoCapture):
     if not ok:
         sys.exit('Error con la cámara.')
 
-    while True:
-        x = randint(RECT[0], RECT[2])
-        y = randint(RECT[1], RECT[3])
+    # while True:
+    #     x = randint(RECT[0], RECT[2])
+    #     y = randint(RECT[1], RECT[3])
 
-        if valid(img, (x, y), 30):
-            break
+    #     if valid(img, (x, y), 30):
+    #         break
 
-    return f'{{{x}, {y},}}'
+    for det in [
+        (RES_X // 2, RES_Y - 30),
+        (RES_X // 2 + 40, RES_Y - 30),
+        (RES_X // 2 - 40, RES_Y - 30),
+    ]:
+        if valid(img, det, 30):
+            return f'{{{det[0]}, {det[1]},}}'
 
 def main(
         port: str,
