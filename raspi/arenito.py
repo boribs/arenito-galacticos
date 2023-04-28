@@ -12,16 +12,15 @@ MIN_PX_WATER = 50
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
 
-def reachable(img: np.ndarray, det: tuple[int]) -> bool:
+def reachable(img_hsv: np.ndarray, det: tuple[int]) -> bool:
     """
     Determines if a detection is reachable.
     Returns true if possible, otherwise false.
     """
 
-    RES_Y, RES_X, _ = img.shape
+    RES_Y, RES_X, _ = img_hsv.shape
     CENTRO_INF = (RES_X // 2, RES_Y)
 
-    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(img_hsv, AZUL_LI, AZUL_LS)
 
     line = np.zeros(shape=mask.shape, dtype=np.uint8)
@@ -36,7 +35,25 @@ def reachable(img: np.ndarray, det: tuple[int]) -> bool:
 
     return white_px < MIN_PX_WATER
 
-def find_blobs(img: np.ndarray) -> np.ndarray:
+def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
+    lower = np.array([0, 0, 69])
+    upper = np.array([175, 255, 255])
+
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, lower, upper)
+
+    keypoints = detector.detect(mask)
+    im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    for k in keypoints:
+        det = tuple(map(int, k.pt))
+        if reachable(hsv, det):
+            cv2.circle(im_with_keypoints, det, 10, (255,0,0), 10)
+
+    return im_with_keypoints
+
+def main():
+    cap = cv2.VideoCapture(0)
     params = cv2.SimpleBlobDetector_Params()
     params.filterByArea = True
     params.minArea = 500
@@ -44,26 +61,7 @@ def find_blobs(img: np.ndarray) -> np.ndarray:
     params.filterByCircularity = False
     params.filterByConvexity = False
     params.filterByInertia = False
-
-    lower = np.array([0, 0, 69])
-    upper = np.array([175, 255, 255])
-
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower, upper)
-
     detector = cv2.SimpleBlobDetector_create(params)
-    keypoints = detector.detect(mask)
-    im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-    for k in keypoints:
-        det = tuple(map(int, k.pt))
-        if reachable(img, det):
-            cv2.circle(im_with_keypoints, det, 10, (255,0,0), 10)
-
-    return im_with_keypoints
-
-def main():
-    cap = cv2.VideoCapture(0)
 
     while True:
         ok, frame = cap.read()
@@ -75,8 +73,10 @@ def main():
         if cv2.waitKey(1) == 27:
             break
 
-        mask = process_img(frame)
-        frame = find_blobs(mask)
+        frame = find_blobs(frame, detector)
         cv2.imshow('asdf', frame)
+
+    # frame = cv2.imread('e.jpg')
+    # cv2.imwrite('asdf.jpg', frame)
 
 main()
