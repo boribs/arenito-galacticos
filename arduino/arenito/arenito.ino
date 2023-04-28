@@ -1,6 +1,3 @@
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
 // Usando puentes H de los rojos
 int motDa = 6;
 int motDb = 7;
@@ -11,36 +8,6 @@ int motIb = 9;
 int rodA = 4;
 int rodB = 3;
 
-// Para no estar creando a cada rato la variable
-int ms;
-
-// Pantalla!
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-/*
- * Asume inicialmente una resolución de RES_X,RES_Ypx
- * y un margen de MARGENpx.
- * El margen es para la alineación con la lata seleccionada.
- */
-const int RES_X = 640,
-          RES_Y = 380,
-          MARGEN = 15, // Determinar margen
-          CENTRO_X_MIN = (RES_X / 2) - MARGEN,
-          CENTRO_X_MAX = (RES_X / 2) + MARGEN;
-
-const float CENTRO_X = RES_X / 2;
-
-typedef struct lata {
-  int x;
-  int y;
-} lata;
-
-const int MAX_LATAS = 20;
-lata detectadas[MAX_LATAS] = { 0 };
-int elegida = -1; // -1 = no se ha elegido ninguna
-
-float distAlCentro, t;
-int d;
 
 void setup() {
   pinMode(motIa, OUTPUT);
@@ -52,129 +19,31 @@ void setup() {
 
   Serial.begin(115200);
   Serial.setTimeout(1000); // hay que checar esto
-  Serial.print("latas"); // pide latas al iniciar
-
-  lcd.init();
-  lcd.backlight();
-  // lcd.print('Hola mundo');
 }
 
 void loop() {
-  if (Serial.available() > 0) {
+  if (Serial.available()) {
+
+    // recuerda sobreponer el sensor ultrasónico
+
     String msg = Serial.readString();
+    char c = msg[0];
 
-    char p;
-    int n = descifraLatas(msg, &p);
-
-    lcd.clear();
-    switch (p) {
-      case 'l':
-        lcd.print("Lata");
-        break;
-      case 'n':
-        lcd.print("Navegando");
-        break;
+    switch (c) {
       case 'a':
-        lcd.print("Agua");
+        avanza(10);
+        break;
+      case 'i':
+        izquierda(10);
+        break;
+      case 'd':
+        derecha(10);
+        break;
+      case 'r':
+        retrocede(10);
         break;
     }
-
-    if (n > 0) {
-      int d = detectadas[elegida].x;
-      eligeLata(n);
-
-      // si la lata está centrada, camina hacia esta
-      if (d >= CENTRO_X_MIN && d <= CENTRO_X_MAX) {
-        t = (float)detectadas[elegida].y / RES_Y;
-        ms = pxAMsA(t);
-
-        Serial.print("Avanzando: ");
-        Serial.println(ms);
-        avanza(ms);
-        alto(0);
-      }
-
-      // si la lata está a la izquierda del margen, gira derecha
-      if (d < CENTRO_X_MIN) {
-        distAlCentro = CENTRO_X - d;
-        t = distAlCentro / CENTRO_X;
-        ms = pxAMsG(t);
-
-        Serial.print("Girando derecha: ");
-        Serial.println(ms);
-        derecha(ms);
-        alto(0);
-      }
-
-      // si la lata está a la derecha del margen, gira izquierda
-      if (d > CENTRO_X_MAX) {
-        distAlCentro = d - CENTRO_X;
-        t = distAlCentro / CENTRO_X;
-        ms = pxAMsG(t);
-
-        Serial.print("Girando izquierda: ");
-        Serial.print(ms);
-        izquierda(ms);
-        alto(0);
-      }
-
-      Serial.print("latas");
-
-    } else if (msg == "rr") { // exclusivo para control manual?
-      retrocede(500);
-      alto(0);
-      Serial.print("latas");
-    }
   }
-}
-
-/*
- * Decodifica el mensaje enviado por el puerto serial
- * que contiene los puntos medios de las detecciones
- * de las latas.
- *
- * Ejemplo: {x1,y1,x2,y2,...,}
- *
- * Todos los valores son enteros positivos separados
- * por comas. El último valor también debe llevar una
- * coma al final (antes de }).
- *
- * Regresa el número de latas encontradas o -1 cuando
- * ocurrió algún error.
- */
-int descifraLatas(String msg, char *prefix) {
-  msg.trim();
-  size_t msg_len = msg.length();
-
-  *prefix = msg[0];
-
-  if (msg[1] != '{' || msg[msg_len - 1] != '}') {
-    // Los delimitadores son incorrectos:
-    // no empieza con { ni termina con }
-    return -1;
-  }
-
-  int num_latas = 0;
-  String num = "";
-  bool set_x = false;
-
-  for (int i = 0; i < msg_len - 1; ++i) {
-    if (isDigit(msg[i])) {
-      num += msg[i];
-    } else if (msg[i] == ',') {
-      if (!set_x) {
-        detectadas[num_latas].x = num.toInt();
-        num = "";
-      } else {
-        detectadas[num_latas].y = num.toInt();
-        num = "";
-        num_latas++;
-      }
-      set_x = !set_x;
-    }
-  }
-
-  return num_latas;
 }
 
 void prendeRodillo() {
@@ -254,19 +123,4 @@ int pxAMsA(float t) {
 
 int lerp(int a, int b, float t) {
   return (int)(a + ((b - a) * t));
-}
-
-/*
- * Elige la lata más cercana al arenito (< y)
- */
-void eligeLata(int n) {
-  int minY = RES_Y;
-  elegida = -1;
-
-  for (int i = 0; i < n; ++i) {
-    if (detectadas[i].y < minY) {
-      minY = detectadas[i].y;
-      elegida = i;
-    }
-  }
 }
