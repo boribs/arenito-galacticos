@@ -72,15 +72,7 @@ def reachable(
     cross = cv2.bitwise_and(mask_azul, line)
     white_px = np.count_nonzero(cross)
 
-    mask_rojo = cv2.inRange(img_hsv, ROJO_LI, ROJO_LS)
-
-    line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
-    cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=thickness)
-
-    cross = cv2.bitwise_and(mask_azul, line)
-    white_px += np.count_nonzero(cross)
-
-    # cv2.imwrite('w.jpg', mask)
+    # cv2.imwrite('w.jpg', mask_rojo)
     # cv2.imwrite('x.jpg', line)
     # cv2.imwrite('y.jpg', cross)
 
