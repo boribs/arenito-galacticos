@@ -23,10 +23,11 @@ void setup() {
 }
 
 void loop() {
+  prendeRodillo();
+
   if (Serial.available() > 0) {
 
     // recuerda sobreponer el sensor ultrasónico
-
     char c = Serial.read();
     switch (c) {
       case 'a':
