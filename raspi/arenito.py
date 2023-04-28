@@ -61,10 +61,12 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
     lower = np.array([0, 0, 69])
     upper = np.array([175, 255, 255])
 
+    # Este borde es necesario porque sino no detecta las latas cerca
+    # de las esquinas de la imagen:)
+    img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
+
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower, upper)
-
-    # cv2.imwrite('mask.jpg', mask)
 
     keypoints = detector.detect(mask)
     im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
