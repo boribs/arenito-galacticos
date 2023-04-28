@@ -7,8 +7,8 @@ import numpy as np
 import math
 from enum import Enum, auto
 
-RES_X = None
-RES_Y = None
+RES_X = 640
+RES_Y = 380
 
 # Centro inferior de la imagen
 CENTRO_INF = None
@@ -164,9 +164,6 @@ def main():
 
     # Cálculos relativos a la resolución de la imagen
     # solo se realizan una vez, al mero inicio
-    _, frame = cap.read()
-    RES_Y, RES_X, _ = frame.shape
-
     CENTRO_INF = (RES_X // 2, RES_Y)
 
     R_DOT = (RES_X // 2, RES_Y // 2 + WATER_TOLERANCE)
@@ -177,6 +174,7 @@ def main():
 
     while True:
         ok, frame = cap.read()
+        frame = cv2.resize(frame, (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
         if not ok:
             print('error')
