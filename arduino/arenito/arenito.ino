@@ -1,12 +1,20 @@
 // Usando puentes H de los rojos
-int motDa = 6;
-int motDb = 7;
-int motIa = 8;
-int motIb = 9;
+const int motDa = 6;
+const int motDb = 7;
+const int motIa = 8;
+const int motIb = 9;
 
 // Rodillo!
-int rodA = 4;
-int rodB = 3;
+const int rodA = 4;
+const int rodB = 3;
+
+// sensores ultrasónicos
+const int t1 = 10;
+const int e1 = 11;
+const int t2 = 12;
+const int e2 = 13;
+const int t3 = 26;
+const int e3 = 27;
 
 
 void setup() {
@@ -14,8 +22,16 @@ void setup() {
   pinMode(motIb, OUTPUT);
   pinMode(motDa, OUTPUT);
   pinMode(motDb, OUTPUT);
+
   pinMode(rodA, OUTPUT);
   pinMode(rodB, OUTPUT);
+
+  pinMode(t1, OUTPUT);
+  pinMode(t2, OUTPUT);
+  pinMode(t3, OUTPUT);
+  pinMode(e1, INPUT);
+  pinMode(e2, INPUT);
+  pinMode(e3, INPUT);
 
   Serial.begin(115200);
   Serial.setTimeout(100); // hay que checar esto
@@ -98,31 +114,4 @@ void alto(int tiempo) {
   digitalWrite(motDa, LOW);
   digitalWrite(motDb, LOW);
   delay(tiempo);
-}
-
-/*
- * Pixel a MS(G - giro)
- * Se usa para determinar cuánto hay que girar
- * tomando en cuenta la distancia de la detección
- * al centro de la pantalla.
- *
- * minT y maxT son valores arbitrarios.
- */
-int pxAMsG(float t) {
-  const int minT = 200,
-            maxT = 500;
-  return lerp(minT, maxT, t);
-}
-
-/*
- * Pixel A Ms (A - Avanza)
- */
-int pxAMsA(float t) {
-  const int minT = 1000,
-            maxT = 2000;
-  return lerp(minT, maxT, t);
-}
-
-int lerp(int a, int b, float t) {
-  return (int)(a + ((b - a) * t));
 }
