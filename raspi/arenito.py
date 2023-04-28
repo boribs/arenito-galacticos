@@ -23,11 +23,14 @@ CENTRO_X_MIN = None
 CENTRO_X_MAX = None
 MARGEN_X = None
 
-WATER_TOLERANCE = 130
+WATER_TOLERANCE = 120
 
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
 MIN_PX_WATER = 50
+
+ROJO_LI = np.array([0, 0, 4], np.uint8)
+ROJO_LS = np.array([149, 196, 255], np.uint8)
 
 class Instruction(Enum):
     FORWARD = auto()
@@ -48,19 +51,31 @@ def _dist(det: tuple[int]):
 
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-def reachable(img_hsv: np.ndarray, det: tuple[int], thickness: int = 10) -> bool:
+def reachable(
+        img_hsv: np.ndarray,
+        det: tuple[int],
+        thickness: int = 10,
+    ) -> bool:
     """
     Determines if a detection is reachable.
     Returns true if possible, otherwise false.
     """
 
-    mask = cv2.inRange(img_hsv, AZUL_LI, AZUL_LS)
+    mask_azul = cv2.inRange(img_hsv, AZUL_LI, AZUL_LS)
 
-    line = np.zeros(shape=mask.shape, dtype=np.uint8)
+    line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
     cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=thickness)
 
-    cross = cv2.bitwise_and(mask, line)
+    cross = cv2.bitwise_and(mask_azul, line)
     white_px = np.count_nonzero(cross)
+
+    mask_rojo = cv2.inRange(img_hsv, ROJO_LI, ROJO_LS)
+
+    line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
+    cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=thickness)
+
+    cross = cv2.bitwise_and(mask_azul, line)
+    white_px += np.count_nonzero(cross)
 
     # cv2.imwrite('w.jpg', mask)
     # cv2.imwrite('x.jpg', line)
