@@ -49,6 +49,8 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower, upper)
 
+    # cv2.imwrite('mask.jpg', mask)
+
     keypoints = detector.detect(mask)
     im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
@@ -59,7 +61,7 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
             detections.append(det)
             cv2.circle(im_with_keypoints, det, 10, (255,0,0), 10)
 
-    return im_with_keypoints, detections
+    return im_with_keypoints, sorted(detections, key=_dist)
 
 def main():
     global RES_X, RES_Y, CENTRO_INF, R_DOT
