@@ -16,7 +16,7 @@ const int e2 = 13;
 const int t3 = 26;
 const int e3 = 27;
 
-const int MIN_DIST = 60;
+const int MIN_DIST = 30;
 
 void setup() {
   pinMode(motIa, OUTPUT);
@@ -46,9 +46,9 @@ void loop() {
 
     char c = Serial.read();
 
-    if (leeUS(t1, e1) < MIN_DIST ||
-        leeUS(t2, e2) < MIN_DIST ||
-        leeUS(t3, e3) < MIN_DIST
+    if (leeUS(t1, e1) < MIN_DIST
+        // leeUS(t2, e2) < MIN_DIST ||
+        // leeUS(t3, e3) < MIN_DIST
     ) {
       retrocede(1000);
       derecha(2000);
@@ -68,7 +68,11 @@ void loop() {
       case 'r':
         retrocede(100);
         break;
+      case 'l':
+        derecha(800);
+        break;
     }
+
     Serial.print('k');
   }
 }
