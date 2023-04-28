@@ -16,6 +16,11 @@ AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
 MIN_PX_WATER = 50
 
+def _dist(det: tuple[int]):
+    x1, y1 = CENTRO_INF
+    x2, y2 = det
+
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 def reachable(img_hsv: np.ndarray, det: tuple[int], thickness: int = 10) -> bool:
     """
