@@ -185,7 +185,7 @@ def main(port: str):
 
     R_DOT = (RES_X // 2, RES_Y // 2 + WATER_TOLERANCE)
 
-    MARGEN_X = int(RES_X * 0.12)
+    MARGEN_X = int(RES_X * 0.2)
     CENTRO_X_MIN = RES_X // 2 - MARGEN_X
     CENTRO_X_MAX = RES_X // 2 + MARGEN_X
 
