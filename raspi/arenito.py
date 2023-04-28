@@ -4,6 +4,8 @@ import sys
 import time
 import argparse
 import numpy as np
+import math
+from enum import Enum, auto
 
 MARGEN_X = 35 # Aquí para no tener que
               # modificarlo en más partes
@@ -15,6 +17,19 @@ R_DOT = None
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
 MIN_PX_WATER = 50
+
+class Instruction(Enum):
+    FORWARD = auto()
+    LEFT = auto()
+    RIGHT = auto()
+    BACK = auto()
+
+INSTRUCTION_MAP = {
+    Instruction.FORWARD: 'a',
+    Instruction.LEFT: 'i',
+    Instruction.RIGHT: 'd',
+    Instruction.BACK: 'r',
+}
 
 def _dist(det: tuple[int]):
     x1, y1 = CENTRO_INF
@@ -63,6 +78,33 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
 
     return im_with_keypoints, sorted(detections, key=_dist)
 
+def _send_serial_instr(ser: serial.Serial, instr: Instruction):
+    """
+    Function that converts the instruction type to a
+    stream of characters, readable by the Arduino board.
+    """
+    p = ser.read()
+    if p:
+        print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
+        ser.write(bytes(
+            INSTRUCTION_MAP[instr],
+            'utf-8'
+        ))
+
+def send_move_instruction(ser: serial.Serial, det: tuple[int]):
+    pass
+
+def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
+    """
+    Function strictly responsible for determining movement
+    when no can detections are made.
+    """
+
+    if reachable(hsv_frame, R_DOT):                   # si puede, avanza
+        _send_serial_instr(ser, Instruction.FORWARD)
+    else:                                             # si no, gira
+        _send_serial_instr(ser, Instruction.RIGHT)
+
 def main():
     global RES_X, RES_Y, CENTRO_INF, R_DOT
 
@@ -70,12 +112,17 @@ def main():
     params = cv2.SimpleBlobDetector_Params()
     params.filterByArea = True
     params.minArea = 500
-    params.maxArea = 30000
+    params.maxArea = 300000
     params.filterByCircularity = False
     params.filterByConvexity = False
     params.filterByInertia = False
     detector = cv2.SimpleBlobDetector_create(params)
 
+    ser = serial.Serial(
+        port='/dev/cu.usbmodem142101',
+        baudrate=115200,
+        timeout=0.1,
+    )
 
     _, frame = cap.read()
     RES_Y, RES_X, _ = frame.shape
@@ -92,11 +139,20 @@ def main():
         if cv2.waitKey(1) == 27:
             break
 
-        frame, detections = find_blobs(frame, detector)
-        cv2.imshow('asdf', frame)
-        print(detections)
+        det_img, detections = find_blobs(frame, detector)
+        # cv2.circle(frame, , radius=100, color=(0,255,0), thickness=-1)
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        cv2.imshow('asdf', det_img)
 
-    # frame = cv2.imread('e.jpg')
+        if detections:
+            det = detections[0]
+            send_move_instruction(ser, det)
+        else:
+            send_roam_instruction(ser, hsv_frame)
+
+        # time.sleep(0.1)
+    # frame = cv2.imread(sys.argv[1])
+    # frame, _ = find_blobs(frame, detector)
     # cv2.imwrite('asdf.jpg', frame)
 
 main()
