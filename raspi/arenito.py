@@ -45,12 +45,14 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
     keypoints = detector.detect(mask)
     im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
+    detections = []
     for k in keypoints:
         det = tuple(map(int, k.pt))
         if reachable(hsv, det):
+            detections.append(det)
             cv2.circle(im_with_keypoints, det, 10, (255,0,0), 10)
 
-    return im_with_keypoints
+    return im_with_keypoints, detections
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -73,8 +75,9 @@ def main():
         if cv2.waitKey(1) == 27:
             break
 
-        frame = find_blobs(frame, detector)
+        frame, detections = find_blobs(frame, detector)
         cv2.imshow('asdf', frame)
+        print(detections)
 
     # frame = cv2.imread('e.jpg')
     # cv2.imwrite('asdf.jpg', frame)
