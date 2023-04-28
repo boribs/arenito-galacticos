@@ -28,20 +28,24 @@ AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
 MIN_PX_WATER = 50
 
-ROJO_LI = np.array([0, 0, 4], np.uint8)
-ROJO_LS = np.array([149, 196, 255], np.uint8)
+# Cuenta cuantas instrucciones lleva
+# buscando latas
+lr_count = 0
+LR_COUNT_MAX = 20
 
 class Instruction(Enum):
     FORWARD = auto()
     LEFT = auto()
     RIGHT = auto()
     BACK = auto()
+    LONG_RIGHT = auto()
 
 INSTRUCTION_MAP = {
     Instruction.FORWARD: 'a',
     Instruction.LEFT: 'i',
     Instruction.RIGHT: 'd',
     Instruction.BACK: 'r',
+    Instruction.LONG_RIGHT: 'l',
 }
 
 def _dist(det: tuple[int]):
@@ -119,6 +123,8 @@ def _send_serial_instr(ser: serial.Serial, instr: Instruction):
         ))
 
 def send_move_instruction(ser: serial.Serial, det: tuple[int]):
+    global lr_count
+
     x, _ = det
 
     if CENTRO_X_MAX <= x:
@@ -128,16 +134,24 @@ def send_move_instruction(ser: serial.Serial, det: tuple[int]):
     else:
         _send_serial_instr(ser, Instruction.FORWARD) # está centrado, avanza
 
+    lr_count = 0
+
 def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
     """
     Function strictly responsible for determining movement
     when no can detections are made.
     """
+    global lr_count
 
     if reachable(hsv_frame, R_DOT):                   # si puede, avanza
         _send_serial_instr(ser, Instruction.FORWARD)
     else:                                             # si no, gira
         _send_serial_instr(ser, Instruction.RIGHT)
+
+    lr_count += 1
+
+    if lr_count == LR_COUNT_MAX:
+        _send_serial_instr(ser, Instruction.LONG_RIGHT)
 
 def find_port() -> str:
     out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
