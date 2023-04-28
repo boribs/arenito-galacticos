@@ -18,31 +18,32 @@ void setup() {
   pinMode(rodB, OUTPUT);
 
   Serial.begin(115200);
-  Serial.setTimeout(1000); // hay que checar esto
+  Serial.setTimeout(100); // hay que checar esto
+  Serial.print("ok");
 }
 
 void loop() {
-  if (Serial.available()) {
+  if (Serial.available() > 0) {
 
     // recuerda sobreponer el sensor ultrasónico
 
-    String msg = Serial.readString();
-    char c = msg[0];
-
+    char c = Serial.read();
     switch (c) {
       case 'a':
-        avanza(10);
+        avanza(100);
         break;
       case 'i':
-        izquierda(10);
+        izquierda(100);
         break;
       case 'd':
-        derecha(10);
+        derecha(100);
         break;
       case 'r':
-        retrocede(10);
+        retrocede(100);
         break;
     }
+
+    Serial.print("k");
   }
 }
 
