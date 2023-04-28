@@ -7,12 +7,23 @@ import numpy as np
 import math
 from enum import Enum, auto
 
-MARGEN_X = 35 # Aquí para no tener que
-              # modificarlo en más partes
 RES_X = None
 RES_Y = None
+
+# Centro inferior de la imagen
 CENTRO_INF = None
+
+# Posición del punto máximo para la tolerancia al agua
 R_DOT = None
+
+
+# Límites centrales para determinar si una lata está
+# "en el centro"
+CENTRO_X_MIN = None
+CENTRO_X_MAX = None
+MARGEN_X = None
+
+WATER_TOLERANCE = 130
 
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
@@ -94,7 +105,14 @@ def _send_serial_instr(ser: serial.Serial, instr: Instruction):
         ))
 
 def send_move_instruction(ser: serial.Serial, det: tuple[int]):
-    pass
+    x, _ = det
+
+    if CENTRO_X_MAX <= x:
+        _send_serial_instr(ser, Instruction.LEFT)
+    elif CENTRO_X_MIN >= x:
+        _send_serial_instr(ser, Instruction.RIGHT)
+    else:
+        _send_serial_instr(ser, Instruction.FORWARD) # está centrado, avanza
 
 def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
     """
@@ -108,7 +126,7 @@ def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
         _send_serial_instr(ser, Instruction.RIGHT)
 
 def main():
-    global RES_X, RES_Y, CENTRO_INF, R_DOT
+    global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
     cap = cv2.VideoCapture(0)
     params = cv2.SimpleBlobDetector_Params()
@@ -117,19 +135,30 @@ def main():
     params.maxArea = 300000
     params.filterByCircularity = False
     params.filterByConvexity = False
-    params.filterByInertia = False
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.01
+    params.maxInertiaRatio = 0.7
+
     detector = cv2.SimpleBlobDetector_create(params)
 
     ser = serial.Serial(
-        port='/dev/cu.usbmodem142101',
+        port='/dev/cu.usbmodem142201',
         baudrate=115200,
         timeout=0.1,
     )
 
+    # Cálculos relativos a la resolución de la imagen
+    # solo se realizan una vez, al mero inicio
     _, frame = cap.read()
     RES_Y, RES_X, _ = frame.shape
+
     CENTRO_INF = (RES_X // 2, RES_Y)
-    R_DOT = (RES_X // 2, RES_Y // 2)
+
+    R_DOT = (RES_X // 2, RES_Y // 2 + WATER_TOLERANCE)
+
+    MARGEN_X = int(RES_X * 0.12)
+    CENTRO_X_MIN = RES_X // 2 - MARGEN_X
+    CENTRO_X_MAX = RES_X // 2 + MARGEN_X
 
     while True:
         ok, frame = cap.read()
@@ -142,7 +171,27 @@ def main():
             break
 
         det_img, detections = find_blobs(frame, detector)
-        # cv2.circle(frame, , radius=100, color=(0,255,0), thickness=-1)
+        cv2.line(
+            det_img,
+            CENTRO_INF,
+            R_DOT,
+            (255, 255, 255),
+            thickness=10
+        )
+        cv2.line(
+            det_img,
+            (CENTRO_X_MIN, 0),
+            (CENTRO_X_MIN, RES_Y),
+            color=(255,0,0),
+            thickness=2,
+        )
+        cv2.line(
+            det_img,
+            (CENTRO_X_MAX, 0),
+            (CENTRO_X_MAX, RES_Y),
+            color=(255,0,0),
+            thickness=2,
+        )
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         cv2.imshow('asdf', det_img)
 
