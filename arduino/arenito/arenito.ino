@@ -16,6 +16,7 @@ const int e2 = 13;
 const int t3 = 26;
 const int e3 = 27;
 
+const int MIN_DIST = 60;
 
 void setup() {
   pinMode(motIa, OUTPUT);
@@ -43,8 +44,17 @@ void loop() {
 
   if (Serial.available() > 0) {
 
-    // recuerda sobreponer el sensor ultrasónico
     char c = Serial.read();
+
+    if (leeUS(t1, e1) < MIN_DIST ||
+        leeUS(t2, e2) < MIN_DIST ||
+        leeUS(t3, e3) < MIN_DIST
+    ) {
+      retrocede(1000);
+      derecha(2000);
+      c = '/';
+    }
+
     switch (c) {
       case 'a':
         avanza(100);
@@ -59,9 +69,23 @@ void loop() {
         retrocede(100);
         break;
     }
-
-    Serial.print("k");
+    Serial.print('k');
   }
+}
+
+int ms2cm(long microsegundos) {
+  return (int)(microsegundos / 29 / 2);
+}
+
+int leeUS(int trigger, int echo) {
+  digitalWrite(trigger, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger, LOW);
+
+  long duration = pulseIn(echo, HIGH);
+  return ms2cm(duration);
 }
 
 void prendeRodillo() {
