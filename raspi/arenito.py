@@ -1,8 +1,7 @@
 import serial
 import cv2
 import sys
-import time
-import argparse
+import subprocess
 import numpy as np
 import math
 from enum import Enum, auto
