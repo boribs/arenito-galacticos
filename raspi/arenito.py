@@ -57,7 +57,7 @@ def _dist(det: tuple[int]):
 def reachable(
         img_hsv: np.ndarray,
         det: tuple[int],
-        thickness: int = 10,
+        thickness: int = 140,
     ) -> bool:
     """
     Determines if a detection is reachable.
