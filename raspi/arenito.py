@@ -31,7 +31,7 @@ MIN_PX_WATER = 50
 # Cuenta cuantas instrucciones lleva
 # buscando latas
 lr_count = 0
-LR_COUNT_MAX = 20
+LR_COUNT_MAX = 10
 
 class Instruction(Enum):
     FORWARD = auto()
@@ -144,6 +144,7 @@ def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
 
     if lr_count == LR_COUNT_MAX:
         _send_serial_instr(ser, Instruction.LONG_RIGHT)
+        lr_count = 0
 
 def find_port() -> str:
     out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
