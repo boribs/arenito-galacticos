@@ -7,7 +7,10 @@ import numpy as np
 
 MARGEN_X = 35 # Aquí para no tener que
               # modificarlo en más partes
-MIN_PX_WATER = 50
+RES_X = None
+RES_Y = None
+CENTRO_INF = None
+R_DOT = None
 
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
@@ -55,6 +58,8 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
     return im_with_keypoints, detections
 
 def main():
+    global RES_X, RES_Y, CENTRO_INF, R_DOT
+
     cap = cv2.VideoCapture(0)
     params = cv2.SimpleBlobDetector_Params()
     params.filterByArea = True
@@ -64,6 +69,12 @@ def main():
     params.filterByConvexity = False
     params.filterByInertia = False
     detector = cv2.SimpleBlobDetector_create(params)
+
+
+    _, frame = cap.read()
+    RES_Y, RES_X, _ = frame.shape
+    CENTRO_INF = (RES_X // 2, RES_Y)
+    R_DOT = (RES_X // 2, RES_Y // 2)
 
     while True:
         ok, frame = cap.read()
