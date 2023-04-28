@@ -139,7 +139,19 @@ def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
     else:                                             # si no, gira
         _send_serial_instr(ser, Instruction.RIGHT)
 
-def main():
+def find_port() -> str:
+    out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
+    ports = []
+    for line in out.stdout.split('\n')[1:]:
+        if line:
+            line = list(map(lambda n: n.strip(), line.split()))
+            if 'Unknown' not in line:
+                ports.append(line)
+
+    return ports[0][0]
+
+
+def main(port: str):
     global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
     cap = cv2.VideoCapture(0)
@@ -156,7 +168,7 @@ def main():
     detector = cv2.SimpleBlobDetector_create(params)
 
     ser = serial.Serial(
-        port='/dev/cu.usbmodem142201',
+        port=port,
         baudrate=115200,
         timeout=0.1,
     )
@@ -218,4 +230,10 @@ def main():
     # frame, _ = find_blobs(frame, detector)
     # cv2.imwrite('asdf.jpg', frame)
 
-main()
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        port = find_port()
+    else:
+        port = sys.argv[1]
+
+    main(port)
