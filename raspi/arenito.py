@@ -22,7 +22,7 @@ CENTRO_X_MIN = None
 CENTRO_X_MAX = None
 MARGEN_X = None
 
-WATER_TOLERANCE = 120
+WATER_TOLERANCE = 90
 
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
@@ -206,7 +206,7 @@ def main(port: str):
             CENTRO_INF,
             R_DOT,
             (255, 255, 255),
-            thickness=10
+            thickness=140
         )
         cv2.line(
             det_img,
@@ -230,11 +230,6 @@ def main(port: str):
             send_move_instruction(ser, det)
         else:
             send_roam_instruction(ser, hsv_frame)
-
-        # time.sleep(0.1)
-    # frame = cv2.imread(sys.argv[1])
-    # frame, _ = find_blobs(frame, detector)
-    # cv2.imwrite('asdf.jpg', frame)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
