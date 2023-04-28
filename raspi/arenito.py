@@ -14,27 +14,26 @@ R_DOT = None
 
 AZUL_LI = np.array([75, 160, 88], np.uint8)
 AZUL_LS = np.array([179, 255, 255], np.uint8)
+MIN_PX_WATER = 50
 
-def reachable(img_hsv: np.ndarray, det: tuple[int]) -> bool:
+
+def reachable(img_hsv: np.ndarray, det: tuple[int], thickness: int = 10) -> bool:
     """
     Determines if a detection is reachable.
     Returns true if possible, otherwise false.
     """
 
-    RES_Y, RES_X, _ = img_hsv.shape
-    CENTRO_INF = (RES_X // 2, RES_Y)
-
     mask = cv2.inRange(img_hsv, AZUL_LI, AZUL_LS)
 
     line = np.zeros(shape=mask.shape, dtype=np.uint8)
-    cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=10)
+    cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=thickness)
 
     cross = cv2.bitwise_and(mask, line)
     white_px = np.count_nonzero(cross)
 
-    cv2.imwrite('w.jpg', mask)
-    cv2.imwrite('x.jpg', line)
-    cv2.imwrite('y.jpg', cross)
+    # cv2.imwrite('w.jpg', mask)
+    # cv2.imwrite('x.jpg', line)
+    # cv2.imwrite('y.jpg', cross)
 
     return white_px < MIN_PX_WATER
 
