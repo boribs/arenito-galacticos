@@ -31,32 +31,22 @@ void loop() {
   prendeRodillo();
 
   if (Serial.available() > 0) {
-
     char c = Serial.read();
-
-    if (leeUS(t1, e1) < MIN_DIST
-        // leeUS(t2, e2) < MIN_DIST ||
-        // leeUS(t3, e3) < MIN_DIST
-    ) {
-      retrocede(1000);
-      derecha(2000);
-      c = '/';
-    }
 
     switch (c) {
       case 'a':
         avanza(100);
         break;
       case 'i':
-        izquierda(100);
+        izquierda(50);
         break;
       case 'd':
-        derecha(100);
+        derecha(50);
         break;
       case 'r':
         retrocede(100);
         break;
-      case 'l':
+      case 'l': // desuso
         derecha(800);
         break;
     }
@@ -82,13 +72,11 @@ void apagaRodillo() {
 }
 
 void avanza(int tiempo) {
-  prendeRodillo();
   digitalWrite(motIa, HIGH);
   digitalWrite(motIb, LOW);
   digitalWrite(motDa, HIGH);
   digitalWrite(motDb, LOW);
   delay(tiempo);
-  apagaRodillo();
 }
 
 void retrocede(int tiempo) {
