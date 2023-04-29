@@ -31,7 +31,7 @@ MIN_PX_WATER = 50
 # Cuenta cuantas instrucciones lleva
 # buscando latas
 lr_count = 0
-LR_COUNT_MAX = 10
+LR_COUNT_MAX = 20
 
 class Instruction(Enum):
     FORWARD = auto()
@@ -68,13 +68,12 @@ def reachable(
 
     line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
     cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=thickness)
+    cv2.line(line, (0, RES_Y), (RES_X, RES_Y), (255, 255, 255), thickness=40)
 
     cross = cv2.bitwise_and(mask_azul, line)
     white_px = np.count_nonzero(cross)
 
-    # cv2.imwrite('w.jpg', mask_rojo)
-    # cv2.imwrite('x.jpg', line)
-    # cv2.imwrite('y.jpg', cross)
+    # cv2.imshow('aaaa', mask_azul)
 
     return white_px < MIN_PX_WATER
 
@@ -208,6 +207,7 @@ def main(port: str):
             (255, 255, 255),
             thickness=140
         )
+        cv2.line(det_img, (0, RES_Y), (RES_X, RES_Y), (255, 255, 255), thickness=40)
         cv2.line(
             det_img,
             (CENTRO_X_MIN, 0),
