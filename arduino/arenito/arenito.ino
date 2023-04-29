@@ -8,15 +8,8 @@ const int motIb = 9;
 const int rodA = 4;
 const int rodB = 3;
 
-// sensores ultrasónicos
-const int t1 = 10;
-const int e1 = 11;
-const int t2 = 12;
-const int e2 = 13;
-const int t3 = 26;
-const int e3 = 27;
-
-const int MIN_DIST = 30;
+// sensor de proximidad, gracias Jaliscos
+const int lr = 14;
 
 void setup() {
   pinMode(motIa, OUTPUT);
@@ -27,12 +20,7 @@ void setup() {
   pinMode(rodA, OUTPUT);
   pinMode(rodB, OUTPUT);
 
-  pinMode(t1, OUTPUT);
-  pinMode(t2, OUTPUT);
-  pinMode(t3, OUTPUT);
-  pinMode(e1, INPUT);
-  pinMode(e2, INPUT);
-  pinMode(e3, INPUT);
+  pinMode(lr, INPUT);
 
   Serial.begin(115200);
   Serial.setTimeout(50); // hay que checar esto
@@ -74,22 +62,13 @@ void loop() {
     }
 
     Serial.print('k');
+
+    // if (leeUS(t1, e1) < MIN_DIST || leeUS(t2, e2) < MIN_DIST) {
+    if (digitalRead(lr) == 0) {
+      retrocede(1000);
+      derecha(2000);
+    }
   }
-}
-
-int ms2cm(long microsegundos) {
-  return (int)(microsegundos / 29 / 2);
-}
-
-int leeUS(int trigger, int echo) {
-  digitalWrite(trigger, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigger, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigger, LOW);
-
-  long duration = pulseIn(echo, HIGH);
-  return ms2cm(duration);
 }
 
 void prendeRodillo() {
