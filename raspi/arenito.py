@@ -157,7 +157,6 @@ def find_port() -> str:
 
     return ports[0][0]
 
-
 def main(port: str):
     global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
@@ -177,7 +176,7 @@ def main(port: str):
     ser = serial.Serial(
         port=port,
         baudrate=115200,
-        timeout=0.1,
+        timeout=0.05,
     )
 
     # Cálculos relativos a la resolución de la imagen
