@@ -35,7 +35,7 @@ void setup() {
   pinMode(e3, INPUT);
 
   Serial.begin(115200);
-  Serial.setTimeout(100); // hay que checar esto
+  Serial.setTimeout(50); // hay que checar esto
   Serial.print("ok");
 }
 
