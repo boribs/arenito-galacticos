@@ -46,8 +46,12 @@ void loop() {
       case 'r':
         retrocede(100);
         break;
-      case 'l': // desuso
-        derecha(800);
+      case 'l':
+        if (random(5) > 2) {
+          derecha(800);
+        } else {
+          izquierda(800);
+        }
         break;
     }
 
@@ -56,7 +60,12 @@ void loop() {
     // if (leeUS(t1, e1) < MIN_DIST || leeUS(t2, e2) < MIN_DIST) {
     if (digitalRead(lr) == 0) {
       retrocede(1000);
-      derecha(2000);
+
+      if (random(5) > 2) {
+        derecha(1700);
+      } else {
+        izquierda(1700);
+      }
     }
   }
 }
