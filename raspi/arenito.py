@@ -1,192 +1,240 @@
 import serial
 import cv2
 import sys
-import time
-import argparse
+import subprocess
 import numpy as np
-import desplazamiento as desp
-from tflite_support.task import core
-from tflite_support.task import processor
-from tflite_support.task import vision
-
+import math
+from enum import Enum, auto
 
 RES_X = 640
 RES_Y = 380
-MARGEN_X = 35 # Aquí para no tener que
-              # modificarlo en más partes
-CENTRO_INF = (RES_X // 2, RES_Y)
-MIN_PX_WATER = 50
+
+# Centro inferior de la imagen
+CENTRO_INF = None
+
+# Posición del punto máximo para la tolerancia al agua
+R_DOT = None
+
+
+# Límites centrales para determinar si una lata está
+# "en el centro"
+CENTRO_X_MIN = None
+CENTRO_X_MAX = None
+MARGEN_X = None
+
+WATER_TOLERANCE = 90
 
 AZUL_LI = np.array([75, 160, 88], np.uint8)
-AZUL_LS = np.array([112, 255, 255], np.uint8)
+AZUL_LS = np.array([179, 255, 255], np.uint8)
+MIN_PX_WATER = 50
 
-def reachable(img: np.ndarray, det: tuple[int]) -> bool:
+# Cuenta cuantas instrucciones lleva
+# buscando latas
+lr_count = 0
+LR_COUNT_MAX = 20
+
+class Instruction(Enum):
+    FORWARD = auto()
+    LEFT = auto()
+    RIGHT = auto()
+    BACK = auto()
+    LONG_RIGHT = auto()
+
+INSTRUCTION_MAP = {
+    Instruction.FORWARD: 'a',
+    Instruction.LEFT: 'i',
+    Instruction.RIGHT: 'd',
+    Instruction.BACK: 'r',
+    Instruction.LONG_RIGHT: 'l',
+}
+
+def _dist(det: tuple[int]):
+    x1, y1 = CENTRO_INF
+    x2, y2 = det
+
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def reachable(
+        img_hsv: np.ndarray,
+        det: tuple[int],
+        thickness: int = 140,
+    ) -> bool:
     """
     Determines if a detection is reachable.
     Returns true if possible, otherwise false.
     """
 
-    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(img_hsv, AZUL_LI, AZUL_LS)
+    mask_azul = cv2.inRange(img_hsv, AZUL_LI, AZUL_LS)
 
-    line = np.zeros(shape=mask.shape, dtype=np.uint8)
-    cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=10)
+    line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
+    cv2.line(line, CENTRO_INF, det, (255, 255, 255), thickness=thickness)
+    cv2.line(line, (0, RES_Y), (RES_X, RES_Y), (255, 255, 255), thickness=40)
 
-    cross = cv2.bitwise_and(mask, line)
+    cross = cv2.bitwise_and(mask_azul, line)
     white_px = np.count_nonzero(cross)
 
-    return white_px >= MIN_PX_WATER
+    # cv2.imshow('aaaa', mask_azul)
 
-def find_cans(cap: cv2.VideoCapture, detector: vision.ObjectDetector) -> str:
+    return white_px < MIN_PX_WATER
+
+def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
+    lower = np.array([0, 0, 69])
+    upper = np.array([175, 255, 255])
+
+    # Este borde es necesario porque sino no detecta las latas cerca
+    # de las esquinas de la imagen:)
+    img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
+
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsv, lower, upper)
+
+    keypoints = detector.detect(mask)
+    im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    detections = []
+    for k in keypoints:
+        det = tuple(map(int, k.pt))
+        if reachable(hsv, det):
+            detections.append(det)
+            cv2.circle(im_with_keypoints, det, 10, (255,0,0), 10)
+
+    return im_with_keypoints, sorted(detections, key=_dist)
+
+def _send_serial_instr(ser: serial.Serial, instr: Instruction):
     """
-    Takes a picture when called and scans for cans.
-    Returns a formatted detection list.
+    Function that converts the instruction type to a
+    stream of characters, readable by the Arduino board.
     """
+    p = ser.read()
+    if p:
+        print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
+        ser.write(bytes(
+            INSTRUCTION_MAP[instr],
+            'utf-8'
+        ))
 
-    ok, img = cap.read()
-    if not ok:
-        sys.exit("Error leyendo la cámara.")
+def send_move_instruction(ser: serial.Serial, det: tuple[int]):
+    global lr_count
 
-    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    input_tensor = vision.TensorImage.create_from_array(rgb_img)
-    detections = detector.detect(input_tensor)
-    imgname = f'{time.process_time()}.jpg'
+    x, _ = det
 
-    cv2.imwrite(imgname, img) # Guarda imagen limpia
+    if CENTRO_X_MAX <= x:
+        _send_serial_instr(ser, Instruction.LEFT)
+    elif CENTRO_X_MIN >= x:
+        _send_serial_instr(ser, Instruction.RIGHT)
+    else:
+        _send_serial_instr(ser, Instruction.FORWARD) # está centrado, avanza
 
+    lr_count = 0
 
-    # l -> lata
-    # n -> nada
-    # a -> agua
-    prefix = 'l' if detections.detections else 'n'
-    dets = []
-    for det in detections.detections:
-        bbox = det.bounding_box
-        a = (bbox.origin_x, bbox.origin_y)
-        b = (a[0] + bbox.width, a[1] + bbox.height)
-        c = ((a[0] + b[0]) // 2, a[1]) # Solo se centra en X
-                                       # para evitar problemas con la detección
-                                       # del agua
-        if reachable(img, c):
-            dets.extend(c)
-            cv2.rectangle(img, a, b, thickness=4, color=(0, 0, 255))
-            # circulo rojo cuando no es alcanzable
-            prefix = 'a'
-        else:
-            cv2.rectangle(img, a, b, thickness=4, color=(255, 0, 0))
-            # circulo azul cuando es alcanzable
+def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
+    """
+    Function strictly responsible for determining movement
+    when no can detections are made.
+    """
+    global lr_count
 
-        cv2.circle(img, c, radius=5, thickness=4, color=(0, 0, 255))
+    if reachable(hsv_frame, R_DOT):                   # si puede, avanza
+        _send_serial_instr(ser, Instruction.FORWARD)
+    else:                                             # si no, gira
+        _send_serial_instr(ser, Instruction.RIGHT)
 
-    cv2.imwrite('det' + imgname, img) # Imagen con anotaciones de detecciones
+    lr_count += 1
 
-    return prefix + '{' + ','.join(map(str, dets)) + ',}'
+    if lr_count == LR_COUNT_MAX:
+        _send_serial_instr(ser, Instruction.LONG_RIGHT)
+        lr_count = 0
 
-def main(
-        port: str,
-        baudrate: int,
-        timeout: float,
-        camera_id: int,
-        model: str,
-        num_threads: int,
-        max_results: int,
-        score_threshold: float,
-    ):
+def find_port() -> str:
+    out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
+    ports = []
+    for line in out.stdout.split('\n')[1:]:
+        if line:
+            line = list(map(lambda n: n.strip(), line.split()))
+            if 'Unknown' not in line:
+                ports.append(line)
+
+    return ports[0][0]
+
+def main(port: str):
+    global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
+
+    cap = cv2.VideoCapture(0)
+    params = cv2.SimpleBlobDetector_Params()
+    params.filterByArea = True
+    params.minArea = 500
+    params.maxArea = 300000
+    params.filterByCircularity = False
+    params.filterByConvexity = False
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.01
+    params.maxInertiaRatio = 0.7
+
+    detector = cv2.SimpleBlobDetector_create(params)
+
     ser = serial.Serial(
-        port, baudrate, timeout=timeout
-    )  # Encontrar puerto automáticamente?
-       # Recuerda dmesg | grep "tty"
+        port=port,
+        baudrate=115200,
+        timeout=0.05,
+    )
 
-    cap = cv2.VideoCapture(camera_id)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, RES_X)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RES_Y)
+    # Cálculos relativos a la resolución de la imagen
+    # solo se realizan una vez, al mero inicio
+    CENTRO_INF = (RES_X // 2, RES_Y)
 
-    base_options = core.BaseOptions(
-        file_name=model, use_coral=False, num_threads=num_threads)
-    detection_options = processor.DetectionOptions(
-        max_results=max_results, score_threshold=score_threshold)
-    options = vision.ObjectDetectorOptions(
-        base_options=base_options, detection_options=detection_options)
-    detector = vision.ObjectDetector.create_from_options(options)
+    R_DOT = (RES_X // 2, RES_Y // 2 + WATER_TOLERANCE)
 
-    prev_rr = False
-    while cap.isOpened():
-        cap.read() # Es necesario estar haciendo esto constantemente?
-        if cv2.waitKey(1) == 0: # Lee la documentación, por favor
+    MARGEN_X = int(RES_X * 0.2)
+    CENTRO_X_MIN = RES_X // 2 - MARGEN_X
+    CENTRO_X_MAX = RES_X // 2 + MARGEN_X
+
+    while True:
+        ok, frame = cap.read()
+        frame = cv2.resize(frame, (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
+
+        if not ok:
+            print('error')
             break
 
-        msg = ser.readline().decode('utf-8').strip()
-        if msg:
-            print(msg)
+        if cv2.waitKey(1) == 27:
+            break
 
-        if msg.endswith('latas'):
-            detections = find_cans(cap, detector)
+        det_img, detections = find_blobs(frame, detector)
+        cv2.line(
+            det_img,
+            CENTRO_INF,
+            R_DOT,
+            (255, 255, 255),
+            thickness=140
+        )
+        cv2.line(det_img, (0, RES_Y), (RES_X, RES_Y), (255, 255, 255), thickness=40)
+        cv2.line(
+            det_img,
+            (CENTRO_X_MIN, 0),
+            (CENTRO_X_MIN, RES_Y),
+            color=(255,0,0),
+            thickness=2,
+        )
+        cv2.line(
+            det_img,
+            (CENTRO_X_MAX, 0),
+            (CENTRO_X_MAX, RES_Y),
+            color=(255,0,0),
+            thickness=2,
+        )
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        cv2.imshow('asdf', det_img)
 
-            print(detections, end='')
-
-            if detections == '{,}': # no encontró nada!
-                detections = desp.select_destination(cap, prev_rr)
-                prev_rr = detections == 'rr'
-                print(' No encontró latas', end='')
-            print()
-
-            ser.write(bytes(detections, 'utf-8'))
+        if detections:
+            det = detections[0]
+            send_move_instruction(ser, det)
         else:
-            ser.write(b'{}')
-
-    cap.release()
+            send_roam_instruction(ser, hsv_frame)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser() # Termina de llenar esto
-    parser.add_argument(
-        '--port',
-        type=str,
-        default='/dev/ttyUSB0',
-    )
-    parser.add_argument(
-        '--baudrate',
-        type=int,
-        default=115200,
-    )
-    parser.add_argument(
-        '--timeout',
-        type=float,
-        default=1.0,
-    )
-    parser.add_argument(
-        '--camera_id',
-        type=int,
-        default=0,
-    )
-    parser.add_argument(
-        '--model',
-        type=str,
-        default='./modelos/latas.tflite',
-    )
-    parser.add_argument(
-        '--threads',
-        type=int,
-        default=4,
-    )
-    parser.add_argument(
-        '--max_results',
-        type=int,
-        default=5,
-    )
-    parser.add_argument(
-        '--score_threshold',
-        type=float,
-        default=0.6,
-    )
-    args = parser.parse_args()
+    if len(sys.argv) != 2:
+        port = find_port()
+    else:
+        port = sys.argv[1]
 
-    main(
-        args.port,
-        args.baudrate,
-        args.timeout,
-        args.camera_id,
-        args.model,
-        args.threads,
-        args.max_results,
-        args.score_threshold
-    )
+    main(port)

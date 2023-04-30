@@ -1,180 +1,73 @@
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
 // Usando puentes H de los rojos
-int motDa = 6;
-int motDb = 7;
-int motIa = 8;
-int motIb = 9;
+const int motDa = 6;
+const int motDb = 7;
+const int motIa = 8;
+const int motIb = 9;
 
 // Rodillo!
-int rodA = 4;
-int rodB = 3;
+const int rodA = 4;
+const int rodB = 3;
 
-// Para no estar creando a cada rato la variable
-int ms;
-
-// Pantalla!
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-/*
- * Asume inicialmente una resolución de RES_X,RES_Ypx
- * y un margen de MARGENpx.
- * El margen es para la alineación con la lata seleccionada.
- */
-const int RES_X = 640,
-          RES_Y = 380,
-          MARGEN = 15, // Determinar margen
-          CENTRO_X_MIN = (RES_X / 2) - MARGEN,
-          CENTRO_X_MAX = (RES_X / 2) + MARGEN;
-
-const float CENTRO_X = RES_X / 2;
-
-typedef struct lata {
-  int x;
-  int y;
-} lata;
-
-const int MAX_LATAS = 20;
-lata detectadas[MAX_LATAS] = { 0 };
-int elegida = -1; // -1 = no se ha elegido ninguna
-
-float distAlCentro, t;
-int d;
+// sensor de proximidad, gracias Jaliscos
+const int lr = 14;
 
 void setup() {
   pinMode(motIa, OUTPUT);
   pinMode(motIb, OUTPUT);
   pinMode(motDa, OUTPUT);
   pinMode(motDb, OUTPUT);
+
   pinMode(rodA, OUTPUT);
   pinMode(rodB, OUTPUT);
 
-  Serial.begin(115200);
-  Serial.setTimeout(1000); // hay que checar esto
-  Serial.print("latas"); // pide latas al iniciar
+  pinMode(lr, INPUT);
 
-  lcd.init();
-  lcd.backlight();
-  // lcd.print('Hola mundo');
+  Serial.begin(115200);
+  Serial.setTimeout(50); // hay que checar esto
+  Serial.print("ok");
 }
 
 void loop() {
+  prendeRodillo();
+
   if (Serial.available() > 0) {
-    String msg = Serial.readString();
+    char c = Serial.read();
 
-    char p;
-    int n = descifraLatas(msg, &p);
-
-    lcd.clear();
-    switch (p) {
-      case 'l':
-        lcd.print("Lata");
-        break;
-      case 'n':
-        lcd.print("Navegando");
-        break;
+    switch (c) {
       case 'a':
-        lcd.print("Agua");
+        avanza(100);
+        break;
+      case 'i':
+        izquierda(50);
+        break;
+      case 'd':
+        derecha(50);
+        break;
+      case 'r':
+        retrocede(100);
+        break;
+      case 'l':
+        if (random(5) > 2) {
+          derecha(800);
+        } else {
+          izquierda(800);
+        }
         break;
     }
 
-    if (n > 0) {
-      int d = detectadas[elegida].x;
-      eligeLata(n);
+    Serial.print('k');
 
-      // si la lata está centrada, camina hacia esta
-      if (d >= CENTRO_X_MIN && d <= CENTRO_X_MAX) {
-        t = (float)detectadas[elegida].y / RES_Y;
-        ms = pxAMsA(t);
+    // if (leeUS(t1, e1) < MIN_DIST || leeUS(t2, e2) < MIN_DIST) {
+    if (digitalRead(lr) == 0) {
+      retrocede(1000);
 
-        Serial.print("Avanzando: ");
-        Serial.println(ms);
-        avanza(ms);
-        alto(0);
-      }
-
-      // si la lata está a la izquierda del margen, gira derecha
-      if (d < CENTRO_X_MIN) {
-        distAlCentro = CENTRO_X - d;
-        t = distAlCentro / CENTRO_X;
-        ms = pxAMsG(t);
-
-        Serial.print("Girando derecha: ");
-        Serial.println(ms);
-        derecha(ms);
-        alto(0);
-      }
-
-      // si la lata está a la derecha del margen, gira izquierda
-      if (d > CENTRO_X_MAX) {
-        distAlCentro = d - CENTRO_X;
-        t = distAlCentro / CENTRO_X;
-        ms = pxAMsG(t);
-
-        Serial.print("Girando izquierda: ");
-        Serial.print(ms);
-        izquierda(ms);
-        alto(0);
-      }
-
-      Serial.print("latas");
-
-    } else if (msg == "rr") { // exclusivo para control manual?
-      retrocede(500);
-      alto(0);
-      Serial.print("latas");
-    }
-  }
-}
-
-/*
- * Decodifica el mensaje enviado por el puerto serial
- * que contiene los puntos medios de las detecciones
- * de las latas.
- *
- * Ejemplo: {x1,y1,x2,y2,...,}
- *
- * Todos los valores son enteros positivos separados
- * por comas. El último valor también debe llevar una
- * coma al final (antes de }).
- *
- * Regresa el número de latas encontradas o -1 cuando
- * ocurrió algún error.
- */
-int descifraLatas(String msg, char *prefix) {
-  msg.trim();
-  size_t msg_len = msg.length();
-
-  *prefix = msg[0];
-
-  if (msg[1] != '{' || msg[msg_len - 1] != '}') {
-    // Los delimitadores son incorrectos:
-    // no empieza con { ni termina con }
-    return -1;
-  }
-
-  int num_latas = 0;
-  String num = "";
-  bool set_x = false;
-
-  for (int i = 0; i < msg_len - 1; ++i) {
-    if (isDigit(msg[i])) {
-      num += msg[i];
-    } else if (msg[i] == ',') {
-      if (!set_x) {
-        detectadas[num_latas].x = num.toInt();
-        num = "";
+      if (random(5) > 2) {
+        derecha(1700);
       } else {
-        detectadas[num_latas].y = num.toInt();
-        num = "";
-        num_latas++;
+        izquierda(1700);
       }
-      set_x = !set_x;
     }
   }
-
-  return num_latas;
 }
 
 void prendeRodillo() {
@@ -188,13 +81,11 @@ void apagaRodillo() {
 }
 
 void avanza(int tiempo) {
-  prendeRodillo();
   digitalWrite(motIa, HIGH);
   digitalWrite(motIb, LOW);
   digitalWrite(motDa, HIGH);
   digitalWrite(motDb, LOW);
   delay(tiempo);
-  apagaRodillo();
 }
 
 void retrocede(int tiempo) {
@@ -227,46 +118,4 @@ void alto(int tiempo) {
   digitalWrite(motDa, LOW);
   digitalWrite(motDb, LOW);
   delay(tiempo);
-}
-
-/*
- * Pixel a MS(G - giro)
- * Se usa para determinar cuánto hay que girar
- * tomando en cuenta la distancia de la detección
- * al centro de la pantalla.
- *
- * minT y maxT son valores arbitrarios.
- */
-int pxAMsG(float t) {
-  const int minT = 200,
-            maxT = 500;
-  return lerp(minT, maxT, t);
-}
-
-/*
- * Pixel A Ms (A - Avanza)
- */
-int pxAMsA(float t) {
-  const int minT = 1000,
-            maxT = 2000;
-  return lerp(minT, maxT, t);
-}
-
-int lerp(int a, int b, float t) {
-  return (int)(a + ((b - a) * t));
-}
-
-/*
- * Elige la lata más cercana al arenito (< y)
- */
-void eligeLata(int n) {
-  int minY = RES_Y;
-  elegida = -1;
-
-  for (int i = 0; i < n; ++i) {
-    if (detectadas[i].y < minY) {
-      minY = detectadas[i].y;
-      elegida = i;
-    }
-  }
 }
