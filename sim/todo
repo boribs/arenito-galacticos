@@ -1,0 +1,27 @@
+Ambiente gráfico:
+    ###############################################
+    # Panel A              # Panel B              #
+    #                      #                      #
+    #                      #                      #
+    #  Simulación bonita   #   Mapeo del camino   #
+    #  e interactiva:      #   recorrido e info   #
+    #  ajuste de sensores, # recordada (barreras, #
+    #   latas y depósito   #   agua, depósito)    #
+    #                      #                      #
+    ###############################################
+
+    ☐ Visualización del mapa y del Arenito
+        El mapa consiste de una superficie no uniforme (arena)
+        rodeada de un plano azul (agua)
+        ☐ Visualización con texturas
+        ☐ Visualización de alambres
+            O hilos? Solo las aristas de los polígonos, pues
+    ☐ Movimiento de la cámara: rotación click n' drag
+    ☐ Movimiento de las ruedas del Arenito
+
+Simluación de movimiento:
+    ☐ Físicas de movimiento: aceleración
+    ☐ Rotación del robot según la posición de las llantas respecto a la arena
+
+Simulación de sensores:
+    ☐ Determinar cómo calcular
