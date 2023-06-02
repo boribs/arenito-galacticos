@@ -29,6 +29,10 @@ phMin = psMin = pvMin = phMax = psMax = pvMax = 0
 waitTime = 33
 
 def image_loop(path: str):
+    global hMin, sMin, vMin, hMax, sMax, vMax
+    global phMin, psMin, pvMin, phMax, psMax, pvMax
+
+
     img = cv2.imread(path)
 
     while True:
@@ -57,7 +61,7 @@ def image_loop(path: str):
             (phMax != hMax) |
             (psMax != sMax) |
             (pvMax != vMax)):
-            print("(hMin = %d , sMin = %d, vMin = %d), (hMax = %d , sMax = %d, vMax = %d)" % (hMin , sMin , vMin, hMax, sMax , vMax))
+            print("(hMin = %d, sMin = %d, vMin = %d), (hMax = %d, sMax = %d, vMax = %d)" % (hMin, sMin, vMin, hMax, sMax, vMax))
             phMin = hMin
             psMin = sMin
             pvMin = vMin
@@ -73,6 +77,9 @@ def image_loop(path: str):
     cv2.destroyAllWindows()
 
 def video_loop(cam: int):
+    global hMin, sMin, vMin, hMax, sMax, vMax
+    global phMin, psMin, pvMin, phMax, psMax, pvMax
+
     cap = cv2.VideoCapture(cam)
 
     while True:
@@ -107,7 +114,7 @@ def video_loop(cam: int):
             (phMax != hMax) |
             (psMax != sMax) |
             (pvMax != vMax)):
-            print("(hMin = %d , sMin = %d, vMin = %d), (hMax = %d , sMax = %d, vMax = %d)" % (hMin , sMin , vMin, hMax, sMax , vMax))
+            print("(hMin = %d, sMin = %d, vMin = %d), (hMax = %d, sMax = %d, vMax = %d)" % (hMin, sMin, vMin, hMax, sMax, vMax))
             phMin = hMin
             psMin = sMin
             pvMin = vMin
