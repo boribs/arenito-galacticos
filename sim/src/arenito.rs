@@ -21,6 +21,45 @@ impl Arenito {
         }
     }
 
+    // Spawns Arenito into the scene
+    pub fn spawn(
+        &self,
+        mut commands: Commands,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+        asset_server: Res<AssetServer>
+    ) {
+        commands.spawn(PbrBundle {
+            mesh: asset_server.load("arenito.obj"),
+            material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+            transform: Transform::from_xyz(0.0, 0.5, 0.0),
+            ..default()
+        });
+        commands.spawn(PbrBundle {
+            mesh: asset_server.load("rueda.obj"),
+            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+            transform: Transform::from_xyz(0.5, 0.5, 0.85),
+            ..default()
+        });
+        commands.spawn(PbrBundle {
+            mesh: asset_server.load("rueda.obj"),
+            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+            transform: Transform::from_xyz(-0.5, 0.5, 0.85),
+            ..default()
+        });
+        commands.spawn(PbrBundle {
+            mesh: asset_server.load("rueda.obj"),
+            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+            transform: Transform::from_xyz(0.5, 0.5, -0.85),
+            ..default()
+        });
+        commands.spawn(PbrBundle {
+            mesh: asset_server.load("rueda.obj"),
+            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+            transform: Transform::from_xyz(-0.5, 0.5, -0.85),
+            ..default()
+        });
+    }
+
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
         todo!("forward movement");
