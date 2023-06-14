@@ -1,7 +1,12 @@
 use bevy::prelude::*;
 
-const ROTATION_SPEED: f32 = 1.0; // rad x sec
-const MOVEMENT_ACCEL: f32 = 1.0; // units x sec
+#[derive(Component)]
+pub struct BodyPart;
+
+// #[derive(Component)]
+// pub struct LeftWheel;
+// #[derive(Component)]
+// pub struct RightWheel;
 
 #[derive(Resource)]
 pub struct Arenito {
@@ -14,8 +19,8 @@ pub struct Arenito {
 impl Arenito {
     pub fn new() -> Self {
         Arenito {
-            center: Vec3::new(0.0, 0.5, 0.0),
-            vel: Vec3::ZERO,
+            center: Vec3::new(-3.0, 0.5, 0.0),
+            vel: Vec3::new(0.2, 0.0, 0.1),
             acc: Vec3::ZERO,
             look_angle: 0.0,
         }
@@ -26,44 +31,59 @@ impl Arenito {
         &self,
         mut commands: Commands,
         mut materials: ResMut<Assets<StandardMaterial>>,
-        asset_server: Res<AssetServer>
+        asset_server: Res<AssetServer>,
     ) {
-        commands.spawn(PbrBundle {
-            mesh: asset_server.load("arenito.obj"),
-            material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-            transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
-            ..default()
-        });
+        commands.spawn((
+            PbrBundle {
+                mesh: asset_server.load("arenito.obj"),
+                material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+                transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
+                ..default()
+            },
+            BodyPart,
+        ));
 
         let t = self.center + Vec3::new(0.5, 0.0, 0.85);
-        commands.spawn(PbrBundle {
-            mesh: asset_server.load("rueda.obj"),
-            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(t.x, t.y, t.z),
-            ..default()
-        });
+        commands.spawn((
+            PbrBundle {
+                mesh: asset_server.load("rueda.obj"),
+                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                transform: Transform::from_xyz(t.x, t.y, t.z),
+                ..default()
+            },
+            BodyPart,
+        ));
 
         let t = self.center + Vec3::new(-0.5, 0.0, 0.85);
-        commands.spawn(PbrBundle {
-            mesh: asset_server.load("rueda.obj"),
-            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(t.x, t.y, t.z),
-            ..default()
-        });
+        commands.spawn((
+            PbrBundle {
+                mesh: asset_server.load("rueda.obj"),
+                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                transform: Transform::from_xyz(t.x, t.y, t.z),
+                ..default()
+            },
+            BodyPart,
+        ));
         let t = self.center + Vec3::new(0.5, 0.0, -0.85);
-        commands.spawn(PbrBundle {
-            mesh: asset_server.load("rueda.obj"),
-            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(t.x, t.y, t.z),
-            ..default()
-        });
+        commands.spawn((
+            PbrBundle {
+                mesh: asset_server.load("rueda.obj"),
+                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                transform: Transform::from_xyz(t.x, t.y, t.z),
+                ..default()
+            },
+            BodyPart,
+        ));
         let t = self.center + Vec3::new(-0.5, 0.0, -0.85);
-        commands.spawn(PbrBundle {
-            mesh: asset_server.load("rueda.obj"),
-            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(t.x, t.y, t.z),
-            ..default()
-        });
+        commands.spawn((
+            PbrBundle {
+                mesh: asset_server.load("rueda.obj"),
+                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                transform: Transform::from_xyz(t.x, t.y, t.z),
+                ..default()
+            },
+            BodyPart,
+        ));
     }
 
     /// Sets the acceleration to "advance acceleration".
@@ -78,7 +98,25 @@ impl Arenito {
     }
 
     /// Applies the movement given some delta time.
-    pub fn update(&mut self, delta_time: u32) {
-        todo!("movement updates!");
+    pub fn update(
+        &mut self,
+        delta_ms: u128,
+        mut body_part_query: Query<&mut Transform, With<BodyPart>>,
+    ) {
+        let delta: f32 = delta_ms as f32 / 1000.0;
+        let (vx, vy, vz) = (self.vel.x * delta, self.vel.y * delta, self.vel.z * delta);
+
+        for mut body_part in &mut body_part_query {
+            body_part.translation.x += vx;
+            body_part.translation.y += vy;
+            body_part.translation.z += vz;
+        }
+
+        self.center.x += vx;
+        self.center.y += vy;
+        self.center.z += vz;
+
+        //TODO: Update speed based on acceleration
+        //TODO: Consider rotation update!
     }
 }

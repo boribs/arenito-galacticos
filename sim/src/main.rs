@@ -11,14 +11,23 @@ fn main() {
         .insert_resource(Arenito::new())
         .add_startup_system(setup)
         .add_startup_system(arenito_spawner)
+        .add_system(arenito_mover)
         .run();
+}
+
+fn arenito_mover(
+    body_part_query: Query<&mut Transform, With<BodyPart>>,
+    mut arenito: ResMut<Arenito>,
+    time: Res<Time>,
+) {
+    arenito.update(time.delta().as_millis(), body_part_query);
 }
 
 fn arenito_spawner(
     commands: Commands,
     materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
-    arenito: Res<Arenito>
+    arenito: Res<Arenito>,
 ) {
     arenito.spawn(commands, materials, asset_server);
 }
@@ -47,7 +56,7 @@ fn setup(
     // camera
     commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(-8.0, 5.0, 0.0)
-                        .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
         ..default()
     });
 }
