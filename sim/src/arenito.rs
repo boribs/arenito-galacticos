@@ -104,21 +104,13 @@ impl Arenito {
         mut body_part_query: Query<&mut Transform, With<BodyPart>>,
     ) {
         let delta: f32 = delta_ms as f32 / 1000.0;
-        let (dx, dy, dz) = (
-            self.vel.x * delta,
-            self.vel.y * delta,
-            self.vel.z * delta
-        );
+        let d = self.vel * delta;
 
         for mut body_part in &mut body_part_query {
-            body_part.translation.x += dx;
-            body_part.translation.y += dy;
-            body_part.translation.z += dz;
+            body_part.translation += d;
         }
 
-        self.center.x += dx;
-        self.center.y += dy;
-        self.center.z += dz;
+        self.center += d;
 
         //TODO: Update speed based on acceleration
         //TODO: Consider rotation update!
