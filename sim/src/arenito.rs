@@ -14,7 +14,7 @@ pub struct Arenito {
 impl Arenito {
     pub fn new() -> Self {
         Arenito {
-            center: Vec3::ZERO,
+            center: Vec3::new(0.0, 0.5, 0.0),
             vel: Vec3::ZERO,
             acc: Vec3::ZERO,
             look_angle: 0.0,
@@ -31,31 +31,37 @@ impl Arenito {
         commands.spawn(PbrBundle {
             mesh: asset_server.load("arenito.obj"),
             material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-            transform: Transform::from_xyz(0.0, 0.5, 0.0),
+            transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
             ..default()
         });
+
+        let t = self.center + Vec3::new(0.5, 0.0, 0.85);
         commands.spawn(PbrBundle {
             mesh: asset_server.load("rueda.obj"),
             material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(0.5, 0.5, 0.85),
+            transform: Transform::from_xyz(t.x, t.y, t.z),
             ..default()
         });
+
+        let t = self.center + Vec3::new(-0.5, 0.0, 0.85);
         commands.spawn(PbrBundle {
             mesh: asset_server.load("rueda.obj"),
             material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(-0.5, 0.5, 0.85),
+            transform: Transform::from_xyz(t.x, t.y, t.z),
             ..default()
         });
+        let t = self.center + Vec3::new(0.5, 0.0, -0.85);
         commands.spawn(PbrBundle {
             mesh: asset_server.load("rueda.obj"),
             material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(0.5, 0.5, -0.85),
+            transform: Transform::from_xyz(t.x, t.y, t.z),
             ..default()
         });
+        let t = self.center + Vec3::new(-0.5, 0.0, -0.85);
         commands.spawn(PbrBundle {
             mesh: asset_server.load("rueda.obj"),
             material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-            transform: Transform::from_xyz(-0.5, 0.5, -0.85),
+            transform: Transform::from_xyz(t.x, t.y, t.z),
             ..default()
         });
     }
