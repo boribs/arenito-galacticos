@@ -11,8 +11,8 @@ pub struct BodyPart;
 #[derive(Resource)]
 pub struct Arenito {
     center: Vec3,
-    vel: Vec3,
-    acc: Vec3,
+    pub vel: Vec3,
+    pub acc: Vec3,
     look_angle: f32, // on the y axis
 }
 
@@ -104,17 +104,21 @@ impl Arenito {
         mut body_part_query: Query<&mut Transform, With<BodyPart>>,
     ) {
         let delta: f32 = delta_ms as f32 / 1000.0;
-        let (vx, vy, vz) = (self.vel.x * delta, self.vel.y * delta, self.vel.z * delta);
+        let (dx, dy, dz) = (
+            self.vel.x * delta,
+            self.vel.y * delta,
+            self.vel.z * delta
+        );
 
         for mut body_part in &mut body_part_query {
-            body_part.translation.x += vx;
-            body_part.translation.y += vy;
-            body_part.translation.z += vz;
+            body_part.translation.x += dx;
+            body_part.translation.y += dy;
+            body_part.translation.z += dz;
         }
 
-        self.center.x += vx;
-        self.center.y += vy;
-        self.center.z += vz;
+        self.center.x += dx;
+        self.center.y += dy;
+        self.center.z += dz;
 
         //TODO: Update speed based on acceleration
         //TODO: Consider rotation update!
