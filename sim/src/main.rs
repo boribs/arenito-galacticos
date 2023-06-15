@@ -19,8 +19,14 @@ fn arenito_mover(
     body_part_query: Query<&mut Transform, With<BodyPart>>,
     mut arenito: ResMut<Arenito>,
     time: Res<Time>,
+    keyboard_input: Res<Input<KeyCode>>,
 ) {
+    if keyboard_input.pressed(KeyCode::Space) {
+        arenito.forward();
+    }
+
     arenito.update(time.delta().as_millis(), body_part_query);
+    println!("vel: {:?} - accel: {:?}", arenito.vel, arenito.acc);
 }
 
 fn arenito_spawner(
