@@ -1,5 +1,8 @@
 use bevy::prelude::*;
 
+const ACCEL_SPEED: f32 = 4.0;
+const FRIC_K: f32 = 0.3;
+
 #[derive(Component)]
 pub struct BodyPart;
 
@@ -20,8 +23,8 @@ impl Arenito {
     pub fn new() -> Self {
         Arenito {
             center: Vec3::new(-3.0, 0.5, 0.0),
-            vel: Vec3::new(0.2, 0.0, 0.1),
-            acc: Vec3::ZERO,
+            vel: Vec3::new(0.0, 0.0, 0.0),
+            acc: Vec3::new(0.0, 0.0, 0.0),
             look_angle: 0.0,
         }
     }
@@ -104,15 +107,25 @@ impl Arenito {
         mut body_part_query: Query<&mut Transform, With<BodyPart>>,
     ) {
         let delta: f32 = delta_ms as f32 / 1000.0;
-        let d = self.vel * delta;
 
+        let fric_nor = self.acc.normalize_or_zero() * -1.0;
+        let fric = fric_nor * FRIC_K;
+
+        self.acc += fric; // ya está invertido
+        self.vel = (self.acc * delta) + self.vel;
+
+        // println!("nve: {:?} - {:?}", self.vel.normalize_or_zero(), fric_nor);
+        if self.vel.normalize_or_zero() == fric_nor {
+            self.vel = Vec3::ZERO;
+            self.acc = Vec3::ZERO;
+        }
+
+        let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
+        self.center += d;
         for mut body_part in &mut body_part_query {
             body_part.translation += d;
         }
 
-        self.center += d;
-
-        //TODO: Update speed based on acceleration
         //TODO: Consider rotation update!
     }
 }
