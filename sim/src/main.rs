@@ -26,7 +26,6 @@ fn arenito_mover(
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);
-    println!("vel: {:?} - accel: {:?}", arenito.vel, arenito.acc);
 }
 
 fn arenito_spawner(
