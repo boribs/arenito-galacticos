@@ -16,7 +16,7 @@ fn main() {
 }
 
 fn arenito_mover(
-    body_part_query: Query<&mut Transform, With<BodyPart>>,
+    body_part_query: Query<&mut Transform, With<Body>>,
     mut arenito: ResMut<Arenito>,
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,

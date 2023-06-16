@@ -6,6 +6,8 @@ const ROT_SPEED: f32 = 1.5;
 const FRIC_K: f32 = 0.3;
 
 #[derive(Component)]
+pub struct Body;
+
 pub struct BodyPart;
 
 // #[derive(Component)]
@@ -50,57 +52,50 @@ impl Arenito {
         mut materials: ResMut<Assets<StandardMaterial>>,
         asset_server: Res<AssetServer>,
     ) {
-        commands.spawn((
-            PbrBundle {
-                mesh: asset_server.load("arenito.obj"),
-                material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-                transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
-                ..default()
-            },
-            BodyPart,
-        ));
-
-        let t = self.center + Vec3::new(0.5, 0.0, 0.85);
-        commands.spawn((
-            PbrBundle {
-                mesh: asset_server.load("rueda.obj"),
-                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                transform: Transform::from_xyz(t.x, t.y, t.z),
-                ..default()
-            },
-            BodyPart,
-        ));
-
-        let t = self.center + Vec3::new(-0.5, 0.0, 0.85);
-        commands.spawn((
-            PbrBundle {
-                mesh: asset_server.load("rueda.obj"),
-                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                transform: Transform::from_xyz(t.x, t.y, t.z),
-                ..default()
-            },
-            BodyPart,
-        ));
-        let t = self.center + Vec3::new(0.5, 0.0, -0.85);
-        commands.spawn((
-            PbrBundle {
-                mesh: asset_server.load("rueda.obj"),
-                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                transform: Transform::from_xyz(t.x, t.y, t.z),
-                ..default()
-            },
-            BodyPart,
-        ));
-        let t = self.center + Vec3::new(-0.5, 0.0, -0.85);
-        commands.spawn((
-            PbrBundle {
-                mesh: asset_server.load("rueda.obj"),
-                material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                transform: Transform::from_xyz(t.x, t.y, t.z),
-                ..default()
-            },
-            BodyPart,
-        ));
+        commands
+            .spawn((
+                PbrBundle {
+                    mesh: asset_server.load("arenito.obj"),
+                    material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+                    transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
+                    ..default()
+                },
+                Body
+            ))
+            .with_children(|parent| {
+                let t = self.center + Vec3::new(0.5, 0.0, 0.85);
+                parent.spawn((
+                    PbrBundle {
+                        mesh: asset_server.load("rueda.obj"),
+                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                        transform: Transform::from_xyz(t.x, t.y, t.z),
+                        ..default()
+                    },
+                ));
+                let t = self.center + Vec3::new(-0.5, 0.0, 0.85);
+                parent.spawn((
+                    PbrBundle {
+                        mesh: asset_server.load("rueda.obj"),
+                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                        transform: Transform::from_xyz(t.x, t.y, t.z),
+                        ..default()
+                    },
+                ));
+                let t = self.center + Vec3::new(0.5, 0.0, -0.85);
+                parent.spawn((PbrBundle {
+                    mesh: asset_server.load("rueda.obj"),
+                    material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                    transform: Transform::from_xyz(t.x, t.y, t.z),
+                    ..default()
+                },));
+                let t = self.center + Vec3::new(-0.5, 0.0, -0.85);
+                parent.spawn((PbrBundle {
+                    mesh: asset_server.load("rueda.obj"),
+                    material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                    transform: Transform::from_xyz(t.x, t.y, t.z),
+                    ..default()
+                },));
+            });
     }
 
     /// Sets the acceleration to "advance acceleration".
@@ -135,7 +130,7 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
-        mut body_part_query: Query<&mut Transform, With<BodyPart>>,
+        mut body_part_query: Query<&mut Transform, With<Body>>,
     ) {
         if self.reset {
             self.reset = false;
