@@ -15,10 +15,11 @@ pub struct BodyPart;
 // pub struct RightWheel;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum RotationDirection {
+pub enum ArenitoDirection {
     LEFT = -1,
     RIGHT = 1,
-    NONE,
+    FORWARD,
+    STILL,
 }
 
 #[derive(Resource)]
@@ -27,7 +28,7 @@ pub struct Arenito {
     pub vel: Vec3,
     pub acc: Vec3,
     look_angle: f32, // on the y axis
-    rotation: RotationDirection,
+    rotation: ArenitoDirection,
 }
 
 impl Arenito {
@@ -37,7 +38,7 @@ impl Arenito {
             vel: Vec3::new(0.0, 0.0, 0.0),
             acc: Vec3::new(0.0, 0.0, 0.0),
             look_angle: 0.0,
-            rotation: RotationDirection::NONE,
+            rotation: ArenitoDirection::STILL,
         }
     }
 
@@ -103,19 +104,20 @@ impl Arenito {
 
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
-        if self.rotation != RotationDirection::NONE {
+        if self.rotation != ArenitoDirection::STILL &&
+           self.rotation != ArenitoDirection::FORWARD {
             return;
         }
 
         let (sin, cos) = self.look_angle.sin_cos();
         self.acc = Vec3::new(cos, 0.0, sin) * ACCEL_SPEED;
-        self.rotation = RotationDirection::NONE;
+        self.rotation = ArenitoDirection::FORWARD;
     }
 
     /// Sets Arenito in "rotation mode" - sets the rotation acceleration
     /// to the correct values.
-    pub fn rotate(&mut self, dir: RotationDirection) {
-        if self.rotation != RotationDirection::NONE &&
+    pub fn rotate(&mut self, dir: ArenitoDirection) {
+        if self.rotation != ArenitoDirection::STILL &&
            self.rotation != dir {
             return;
         }
@@ -141,12 +143,12 @@ impl Arenito {
         if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
-            self.rotation = RotationDirection::NONE;
+            self.rotation = ArenitoDirection::STILL;
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
 
-        if self.rotation == RotationDirection::NONE {
+        if self.rotation == ArenitoDirection::FORWARD {
             self.center += d;
             for mut body_part in &mut body_part_query {
                 body_part.translation += d;

@@ -24,9 +24,9 @@ fn arenito_mover(
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
     } else if keyboard_input.pressed(KeyCode::A) {
-        arenito.rotate(RotationDirection::LEFT);
+        arenito.rotate(ArenitoDirection::LEFT);
     } else if keyboard_input.pressed(KeyCode::D) {
-        arenito.rotate(RotationDirection::RIGHT);
+        arenito.rotate(ArenitoDirection::RIGHT);
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);
