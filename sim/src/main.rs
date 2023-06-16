@@ -30,6 +30,7 @@ fn arenito_mover(
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);
+    println!("{}", arenito.log());
 }
 
 fn arenito_spawner(

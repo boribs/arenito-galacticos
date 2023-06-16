@@ -145,13 +145,6 @@ impl Arenito {
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
-        println!(
-            "v: {} a: {} º: {} - {:?}",
-            self.vel,
-            self.acc,
-            self.look_angle,
-            self.rotation
-        );
 
         if self.rotation == RotationDirection::NONE {
             self.center += d;
@@ -168,5 +161,16 @@ impl Arenito {
                 body_part.translation += self.center;
             }
         }
+    }
+
+    pub fn log(&self) -> String {
+        format!(
+            "c: {} acc: {} vel: {} º: {} - {:?}",
+            self.center,
+            self.acc,
+            self.vel,
+            self.look_angle,
+            self.rotation
+        )
     }
 }
