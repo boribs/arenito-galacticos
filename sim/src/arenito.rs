@@ -28,7 +28,7 @@ pub struct Arenito {
     pub vel: Vec3,
     pub acc: Vec3,
     look_angle: f32, // on the y axis
-    rotation: ArenitoDirection,
+    direction: ArenitoDirection,
 }
 
 impl Arenito {
@@ -38,7 +38,7 @@ impl Arenito {
             vel: Vec3::new(0.0, 0.0, 0.0),
             acc: Vec3::new(0.0, 0.0, 0.0),
             look_angle: 0.0,
-            rotation: ArenitoDirection::STILL,
+            direction: ArenitoDirection::STILL,
         }
     }
 
@@ -104,26 +104,26 @@ impl Arenito {
 
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
-        if self.rotation != ArenitoDirection::STILL &&
-           self.rotation != ArenitoDirection::FORWARD {
+        if self.direction != ArenitoDirection::STILL &&
+           self.direction != ArenitoDirection::FORWARD {
             return;
         }
 
         let (sin, cos) = self.look_angle.sin_cos();
         self.acc = Vec3::new(cos, 0.0, sin) * ACCEL_SPEED;
-        self.rotation = ArenitoDirection::FORWARD;
+        self.direction = ArenitoDirection::FORWARD;
     }
 
-    /// Sets Arenito in "rotation mode" - sets the rotation acceleration
+    /// Sets Arenito in "direction mode" - sets the direction acceleration
     /// to the correct values.
     pub fn rotate(&mut self, dir: ArenitoDirection) {
-        if self.rotation != ArenitoDirection::STILL &&
-           self.rotation != dir {
+        if self.direction != ArenitoDirection::STILL &&
+           self.direction != dir {
             return;
         }
 
         self.acc = Vec3::ONE * ROT_SPEED;
-        self.rotation = dir;
+        self.direction = dir;
     }
 
     /// Applies the movement given some delta time.
@@ -143,18 +143,18 @@ impl Arenito {
         if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
-            self.rotation = ArenitoDirection::STILL;
+            self.direction = ArenitoDirection::STILL;
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
 
-        if self.rotation == ArenitoDirection::FORWARD {
+        if self.direction == ArenitoDirection::FORWARD {
             self.center += d;
             for mut body_part in &mut body_part_query {
                 body_part.translation += d;
             }
         } else {
-            let theta = d.length() * self.rotation as isize as f32;
+            let theta = d.length() * self.direction as isize as f32;
             self.look_angle = (self.look_angle + theta) % TAU;
 
             for mut body_part in &mut body_part_query {
@@ -172,7 +172,7 @@ impl Arenito {
             self.acc,
             self.vel,
             self.look_angle,
-            self.rotation
+            self.direction
         )
     }
 }
