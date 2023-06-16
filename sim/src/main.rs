@@ -23,6 +23,8 @@ fn arenito_mover(
 ) {
     if keyboard_input.pressed(KeyCode::Space) {
         arenito.forward();
+    } else if keyboard_input.pressed(KeyCode::R) {
+        arenito.rotate();
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);

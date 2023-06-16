@@ -17,6 +17,7 @@ pub struct Arenito {
     pub vel: Vec3,
     pub acc: Vec3,
     look_angle: f32, // on the y axis
+    rotating: bool,
 }
 
 impl Arenito {
@@ -26,6 +27,7 @@ impl Arenito {
             vel: Vec3::new(0.0, 0.0, 0.0),
             acc: Vec3::new(0.0, 0.0, 0.0),
             look_angle: 0.0,
+            rotating: false,
         }
     }
 
@@ -98,7 +100,8 @@ impl Arenito {
     /// Sets Arenito in "rotation mode" - sets the rotation acceleration
     /// to the correct values.
     pub fn rotate(&mut self) {
-        todo!("rotation (tank controls)");
+        self.acc = Vec3::ONE * ACCEL_SPEED;
+        self.rotating = true;
     }
 
     /// Applies the movement given some delta time.
@@ -118,14 +121,18 @@ impl Arenito {
         if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
+            self.rotating = false;
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
-        self.center += d;
-        for mut body_part in &mut body_part_query {
-            body_part.translation += d;
-        }
 
-        //TODO: Consider rotation update!
+        if !self.rotating {
+            self.center += d;
+            for mut body_part in &mut body_part_query {
+                body_part.translation += d;
+            }
+        } else {
+            self.look_angle += d.length();
+        }
     }
 }
