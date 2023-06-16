@@ -14,13 +14,20 @@ pub struct BodyPart;
 // #[derive(Component)]
 // pub struct RightWheel;
 
+#[derive(PartialEq, Debug)]
+pub enum RotationDirection {
+    LEFT = -1,
+    RIGHT = 1,
+    NONE,
+}
+
 #[derive(Resource)]
 pub struct Arenito {
     center: Vec3,
     pub vel: Vec3,
     pub acc: Vec3,
     look_angle: f32, // on the y axis
-    rotating: bool,
+    rotation: RotationDirection,
 }
 
 impl Arenito {
@@ -30,7 +37,7 @@ impl Arenito {
             vel: Vec3::new(0.0, 0.0, 0.0),
             acc: Vec3::new(0.0, 0.0, 0.0),
             look_angle: 0.0,
-            rotating: false,
+            rotation: RotationDirection::NONE,
         }
     }
 
@@ -98,14 +105,14 @@ impl Arenito {
     pub fn forward(&mut self) {
         let (sin, cos) = self.look_angle.sin_cos();
         self.acc = Vec3::new(cos, 0.0, sin) * ACCEL_SPEED;
-        self.rotating = false;
+        self.rotation = RotationDirection::NONE;
     }
 
     /// Sets Arenito in "rotation mode" - sets the rotation acceleration
     /// to the correct values.
-    pub fn rotate(&mut self) {
+    pub fn rotate(&mut self, dir: RotationDirection) {
         self.acc = Vec3::ONE * ROT_SPEED;
-        self.rotating = true;
+        self.rotation = dir;
     }
 
     /// Applies the movement given some delta time.
@@ -125,19 +132,19 @@ impl Arenito {
         if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
-            self.rotating = false;
+            self.rotation = RotationDirection::NONE;
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
         println!(
-            "v: {} a: {} º: {} - {}",
+            "v: {} a: {} º: {} - {:?}",
             self.vel,
             self.acc,
             self.look_angle,
-            self.rotating
+            self.rotation
         );
 
-        if !self.rotating {
+        if self.rotation == RotationDirection::NONE {
             self.center += d;
             for mut body_part in &mut body_part_query {
                 body_part.translation += d;
