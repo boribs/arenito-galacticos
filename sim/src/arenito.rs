@@ -91,11 +91,8 @@ impl Arenito {
 
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
-        self.acc = Vec3::new(
-            self.look_angle.cos(),
-            0.0,
-            self.look_angle.sin()
-        ) * ACCEL_SPEED;
+        let (sin, cos) = self.look_angle.sin_cos();
+        self.acc = Vec3::new(cos, 0.0, sin) * ACCEL_SPEED;
     }
 
     /// Sets Arenito in "rotation mode" - sets the rotation acceleration
