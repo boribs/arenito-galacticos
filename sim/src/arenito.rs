@@ -118,8 +118,7 @@ impl Arenito {
         self.acc += fric; // ya está invertido
         self.vel = (self.acc * delta) + self.vel;
 
-        // println!("nve: {:?} - {:?}", self.vel.normalize_or_zero(), fric_nor);
-        if self.vel.normalize_or_zero() == fric_nor {
+        if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
         }
