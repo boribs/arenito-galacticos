@@ -115,6 +115,11 @@ impl Arenito {
     /// Sets Arenito in "rotation mode" - sets the rotation acceleration
     /// to the correct values.
     pub fn rotate(&mut self, dir: RotationDirection) {
+        if self.rotation != RotationDirection::NONE &&
+           self.rotation != dir {
+            return;
+        }
+
         self.acc = Vec3::ONE * ROT_SPEED;
         self.rotation = dir;
     }
