@@ -1,6 +1,9 @@
 use bevy::prelude::*;
+use std::f32::consts::TAU;
+
 
 const ACCEL_SPEED: f32 = 4.0;
+const ROT_SPEED: f32 = 1.5;
 const FRIC_K: f32 = 0.3;
 
 #[derive(Component)]
@@ -95,12 +98,13 @@ impl Arenito {
     pub fn forward(&mut self) {
         let (sin, cos) = self.look_angle.sin_cos();
         self.acc = Vec3::new(cos, 0.0, sin) * ACCEL_SPEED;
+        self.rotating = false;
     }
 
     /// Sets Arenito in "rotation mode" - sets the rotation acceleration
     /// to the correct values.
     pub fn rotate(&mut self) {
-        self.acc = Vec3::ONE * ACCEL_SPEED;
+        self.acc = Vec3::ONE * ROT_SPEED;
         self.rotating = true;
     }
 
@@ -125,6 +129,13 @@ impl Arenito {
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
+        println!(
+            "v: {} a: {} º: {} - {}",
+            self.vel,
+            self.acc,
+            self.look_angle,
+            self.rotating
+        );
 
         if !self.rotating {
             self.center += d;
@@ -132,7 +143,14 @@ impl Arenito {
                 body_part.translation += d;
             }
         } else {
-            self.look_angle += d.length();
+            let theta = d.length();
+            self.look_angle = (self.look_angle + theta) % TAU;
+
+            for mut body_part in &mut body_part_query {
+                body_part.translation -= self.center;
+                body_part.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
+                body_part.translation += self.center;
+            }
         }
     }
 }
