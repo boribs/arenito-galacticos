@@ -28,7 +28,7 @@ pub struct Arenito {
     pub acc: Vec3,
     pub direction: ArenitoDirection,
     pub look_angle: f32, // on the y axis
-    reset: bool
+    reset: bool,
 }
 
 impl Arenito {
@@ -105,8 +105,8 @@ impl Arenito {
 
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
-        if self.direction != ArenitoDirection::STILL &&
-           self.direction != ArenitoDirection::FORWARD {
+        if self.direction != ArenitoDirection::STILL && self.direction != ArenitoDirection::FORWARD
+        {
             return;
         }
 
@@ -118,13 +118,17 @@ impl Arenito {
     /// Sets Arenito in "direction mode" - sets the direction acceleration
     /// to the correct values.
     pub fn rotate(&mut self, dir: ArenitoDirection) {
-        if self.direction != ArenitoDirection::STILL &&
-           self.direction != dir {
+        if self.direction != ArenitoDirection::STILL && self.direction != dir {
             return;
         }
 
         self.acc = Vec3::ONE * ROT_SPEED;
         self.direction = dir;
+    }
+
+    /// Sets the state to reset on the next call to Arenito::update().
+    pub fn reset(&mut self) {
+        self.reset = true;
     }
 
     /// Applies the movement given some delta time.
@@ -189,20 +193,11 @@ impl Arenito {
         }
     }
 
-    /// Sets the state to reset on the next call to Arenito::update().
-    pub fn reset(&mut self) {
-        self.reset = true;
-    }
-
     /// Prints the current stats of Arenito.
     pub fn log(&self) -> String {
         format!(
             "c: {} acc: {} vel: {} º: {} - {:?}",
-            self.center,
-            self.acc,
-            self.vel,
-            self.look_angle,
-            self.direction
+            self.center, self.acc, self.vel, self.look_angle, self.direction
         )
     }
 }
