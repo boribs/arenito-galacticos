@@ -21,10 +21,12 @@ fn arenito_mover(
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
-    if keyboard_input.pressed(KeyCode::Space) {
+    if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
-    } else if keyboard_input.pressed(KeyCode::R) {
-        arenito.rotate();
+    } else if keyboard_input.pressed(KeyCode::A) {
+        arenito.rotate(RotationDirection::LEFT);
+    } else if keyboard_input.pressed(KeyCode::D) {
+        arenito.rotate(RotationDirection::RIGHT);
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);

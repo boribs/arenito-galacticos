@@ -14,7 +14,7 @@ pub struct BodyPart;
 // #[derive(Component)]
 // pub struct RightWheel;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub enum RotationDirection {
     LEFT = -1,
     RIGHT = 1,
@@ -150,7 +150,7 @@ impl Arenito {
                 body_part.translation += d;
             }
         } else {
-            let theta = d.length();
+            let theta = d.length() * self.rotation as isize as f32;
             self.look_angle = (self.look_angle + theta) % TAU;
 
             for mut body_part in &mut body_part_query {
