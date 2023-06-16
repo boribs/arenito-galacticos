@@ -133,9 +133,7 @@ impl Arenito {
         mut body_part_query: Query<&mut Transform, With<BodyPart>>,
     ) {
         let delta: f32 = delta_ms as f32 / 1000.0;
-
-        let fric_nor = self.acc.normalize_or_zero() * -1.0;
-        let fric = fric_nor * FRIC_K;
+        let fric = self.acc.normalize_or_zero() * -1.0 * FRIC_K;
 
         self.acc += fric; // ya está invertido
         self.vel = (self.acc * delta) + self.vel;
