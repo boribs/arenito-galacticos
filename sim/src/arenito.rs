@@ -182,6 +182,14 @@ impl Arenito {
         if self.direction == ArenitoDirection::FORWARD {
             self.center += d;
             body_part.translation += d;
+
+            // wheel visual rotation
+            for mut wheel in &mut left_wheel_query {
+                wheel.0.rotate_local_z(-dl);
+            }
+            for mut wheel in &mut right_wheel_query {
+                wheel.0.rotate_local_z(-dl);
+            }
         } else {
             let theta = dl * self.direction as isize as f32;
             self.look_angle = (self.look_angle + theta) % TAU;
@@ -189,13 +197,13 @@ impl Arenito {
             body_part.translation -= self.center;
             body_part.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
             body_part.translation += self.center;
-        }
 
-        for mut wheel in &mut left_wheel_query {
-            wheel.0.rotate_local_z(-dl);
-        }
-        for mut wheel in &mut right_wheel_query {
-            wheel.0.rotate_local_z(-dl);
+            for mut wheel in &mut left_wheel_query {
+                wheel.0.rotate_local_z(-theta);
+            }
+            for mut wheel in &mut right_wheel_query {
+                wheel.0.rotate_local_z(theta);
+            }
         }
     }
 
