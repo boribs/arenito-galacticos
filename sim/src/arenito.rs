@@ -7,13 +7,10 @@ const FRIC_K: f32 = 0.3;
 
 #[derive(Component)]
 pub struct Body;
-
-pub struct BodyPart;
-
-// #[derive(Component)]
-// pub struct LeftWheel;
-// #[derive(Component)]
-// pub struct RightWheel;
+#[derive(Component)]
+pub struct LeftWheel;
+#[derive(Component)]
+pub struct RightWheel;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum ArenitoDirection {
@@ -60,7 +57,7 @@ impl Arenito {
                     transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
                     ..default()
                 },
-                Body
+                Body,
             ))
             .with_children(|parent| {
                 let t = self.center + Vec3::new(0.5, -0.5, 0.85);
@@ -71,6 +68,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
+                    RightWheel,
                 ));
                 let t = self.center + Vec3::new(-0.5, -0.5, 0.85);
                 parent.spawn((
@@ -80,21 +78,28 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
+                    RightWheel,
                 ));
                 let t = self.center + Vec3::new(0.5, -0.5, -0.85);
-                parent.spawn((PbrBundle {
-                    mesh: asset_server.load("rueda.obj"),
-                    material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                    transform: Transform::from_xyz(t.x, t.y, t.z),
-                    ..default()
-                },));
+                parent.spawn((
+                    PbrBundle {
+                        mesh: asset_server.load("rueda.obj"),
+                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                        transform: Transform::from_xyz(t.x, t.y, t.z),
+                        ..default()
+                    },
+                    LeftWheel,
+                ));
                 let t = self.center + Vec3::new(-0.5, -0.5, -0.85);
-                parent.spawn((PbrBundle {
-                    mesh: asset_server.load("rueda.obj"),
-                    material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                    transform: Transform::from_xyz(t.x, t.y, t.z),
-                    ..default()
-                },));
+                parent.spawn((
+                    PbrBundle {
+                        mesh: asset_server.load("rueda.obj"),
+                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                        transform: Transform::from_xyz(t.x, t.y, t.z),
+                        ..default()
+                    },
+                    LeftWheel,
+                ));
             });
     }
 
@@ -131,9 +136,16 @@ impl Arenito {
         &mut self,
         delta_ms: u128,
         mut body_part_query: Query<&mut Transform, With<Body>>,
+        mut left_wheel_query: Query<(&mut Transform, With<LeftWheel>, Without<Body>)>,
+        mut right_wheel_query: Query<(
+            &mut Transform,
+            With<RightWheel>,
+            Without<Body>,
+            Without<LeftWheel>,
+        )>,
     ) {
         let mut body_part = body_part_query.single_mut();
-        
+
         if self.reset {
             self.reset = false;
 
@@ -165,17 +177,25 @@ impl Arenito {
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
+        let dl = d.length();
 
         if self.direction == ArenitoDirection::FORWARD {
             self.center += d;
             body_part.translation += d;
         } else {
-            let theta = d.length() * self.direction as isize as f32;
+            let theta = dl * self.direction as isize as f32;
             self.look_angle = (self.look_angle + theta) % TAU;
 
             body_part.translation -= self.center;
             body_part.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
             body_part.translation += self.center;
+        }
+
+        for mut wheel in &mut left_wheel_query {
+            wheel.0.rotate_local_z(-dl);
+        }
+        for mut wheel in &mut right_wheel_query {
+            wheel.0.rotate_local_z(-dl);
         }
     }
 
