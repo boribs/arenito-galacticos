@@ -132,15 +132,15 @@ impl Arenito {
         delta_ms: u128,
         mut body_part_query: Query<&mut Transform, With<Body>>,
     ) {
+        let mut body_part = body_part_query.single_mut();
+        
         if self.reset {
             self.reset = false;
 
             // move Arenito's body parts to their position relative to the origin
-            for mut body_part in &mut body_part_query {
-                body_part.translation -= self.center;
-                let r = body_part.rotation.inverse();
-                body_part.rotate_around(Vec3::ZERO, r);
-            }
+            body_part.translation = self.center;
+            let r = body_part.rotation.inverse();
+            body_part.rotate_around(Vec3::ZERO, r);
 
             // resets attributes
             self.center = Vec3::new(0.0, 0.5, 0.0);
@@ -148,11 +148,6 @@ impl Arenito {
             self.vel = Vec3::ZERO;
             self.direction = ArenitoDirection::STILL;
             self.look_angle = 0.0;
-
-            // Arenito's center is not the origin, so move every part to the center
-            for mut body_part in &mut body_part_query {
-                body_part.translation += self.center;
-            }
 
             return;
         }
@@ -173,18 +168,14 @@ impl Arenito {
 
         if self.direction == ArenitoDirection::FORWARD {
             self.center += d;
-            for mut body_part in &mut body_part_query {
-                body_part.translation += d;
-            }
+            body_part.translation += d;
         } else {
             let theta = d.length() * self.direction as isize as f32;
             self.look_angle = (self.look_angle + theta) % TAU;
 
-            for mut body_part in &mut body_part_query {
-                body_part.translation -= self.center;
-                body_part.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
-                body_part.translation += self.center;
-            }
+            body_part.translation -= self.center;
+            body_part.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
+            body_part.translation += self.center;
         }
     }
 
