@@ -1,8 +1,11 @@
+pub mod arenito;
+pub mod wire;
+
 use bevy::prelude::*;
 use bevy_obj::*;
 
-mod arenito;
 use arenito::*;
+use wire::*;
 
 fn main() {
     App::new()
@@ -12,7 +15,17 @@ fn main() {
         .add_startup_system(setup)
         .add_startup_system(arenito_spawner)
         .add_system(arenito_mover)
+        .add_system(wire_mover)
         .run();
+}
+
+fn wire_mover(
+    mut query: Query<(&Handle<Mesh>, &mut Wire)>,
+    mut assets: ResMut<Assets<Mesh>>,
+    arenito: Res<Arenito>,
+) {
+    let (handle, mut wire) = query.single_mut();
+    wire.point(arenito.center, assets.get_mut(handle).unwrap());
 }
 
 fn arenito_mover(
@@ -67,6 +80,16 @@ fn setup(
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
+
+    let w = Wire::new(Vec3::new(0.0, 0.5, 0.0), Vec3::new(0., 2., 0.));
+    commands.spawn((
+        PbrBundle {
+            mesh: meshes.add(w.into()),
+            material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+            ..default()
+        },
+        w,
+    ));
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {
