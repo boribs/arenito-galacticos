@@ -1,4 +1,5 @@
 pub mod arenito;
+pub mod sensor;
 pub mod wire;
 
 use bevy::prelude::*;
@@ -44,9 +45,9 @@ fn arenito_mover(
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
     } else if keyboard_input.pressed(KeyCode::A) {
-        arenito.rotate(ArenitoDirection::LEFT);
+        arenito.rotate(ArenitoState::LEFT);
     } else if keyboard_input.pressed(KeyCode::D) {
-        arenito.rotate(ArenitoDirection::RIGHT);
+        arenito.rotate(ArenitoState::RIGHT);
     } else if keyboard_input.pressed(KeyCode::R) {
         arenito.reset();
     }

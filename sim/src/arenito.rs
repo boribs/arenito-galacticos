@@ -3,7 +3,7 @@ use std::f32::consts::TAU;
 
 const ACCEL_SPEED: f32 = 4.0;
 const ROT_SPEED: f32 = 1.5;
-const FRIC_K: f32 = 0.3;
+const FRIC_K: f32 = 0.5;
 
 #[derive(Component)]
 pub struct Body;
