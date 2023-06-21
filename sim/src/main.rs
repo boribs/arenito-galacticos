@@ -30,14 +30,7 @@ fn wire_mover(
 }
 
 fn arenito_mover(
-    body_part_query: Query<&mut Transform, With<Body>>,
-    left_wheel_query: Query<(&mut Transform, With<LeftWheel>, Without<Body>)>,
-    right_wheel_query: Query<(
-        &mut Transform,
-        With<RightWheel>,
-        Without<Body>,
-        Without<LeftWheel>,
-    )>,
+    body_part_query: Query<(&mut Transform, &BodyPart, With<BodyPart>)>,
     mut arenito: ResMut<Arenito>,
     time: Res<Time>,
     keyboard_input: Res<Input<KeyCode>>,
@@ -52,12 +45,7 @@ fn arenito_mover(
         arenito.reset();
     }
 
-    arenito.update(
-        time.delta().as_millis(),
-        body_part_query,
-        left_wheel_query,
-        right_wheel_query,
-    );
+    arenito.update(time.delta().as_millis(), body_part_query);
     println!("{}", arenito.log());
 }
 

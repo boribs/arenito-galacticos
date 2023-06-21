@@ -6,11 +6,11 @@ const ROT_SPEED: f32 = 1.5;
 const FRIC_K: f32 = 0.5;
 
 #[derive(Component)]
-pub struct Body;
-#[derive(Component)]
-pub struct LeftWheel;
-#[derive(Component)]
-pub struct RightWheel;
+pub enum BodyPart {
+    Frame,
+    LeftWheel,
+    RightWheel,
+}
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum ArenitoState {
@@ -57,7 +57,7 @@ impl Arenito {
                     transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
                     ..default()
                 },
-                Body,
+                BodyPart::Frame,
             ))
             .with_children(|parent| {
                 let t = self.center + Vec3::new(0.5, -0.5, 0.85);
@@ -68,7 +68,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    RightWheel,
+                    BodyPart::RightWheel,
                 ));
                 let t = self.center + Vec3::new(-0.5, -0.5, 0.85);
                 parent.spawn((
@@ -78,7 +78,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    RightWheel,
+                    BodyPart::RightWheel,
                 ));
                 let t = self.center + Vec3::new(0.5, -0.5, -0.85);
                 parent.spawn((
@@ -88,7 +88,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    LeftWheel,
+                    BodyPart::LeftWheel,
                 ));
                 let t = self.center + Vec3::new(-0.5, -0.5, -0.85);
                 parent.spawn((
@@ -98,7 +98,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    LeftWheel,
+                    BodyPart::LeftWheel,
                 ));
             });
     }
