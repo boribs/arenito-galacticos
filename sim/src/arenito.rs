@@ -13,7 +13,7 @@ pub struct LeftWheel;
 pub struct RightWheel;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum ArenitoDirection {
+pub enum ArenitoState {
     LEFT = -1,
     RIGHT = 1,
     FORWARD,
@@ -25,7 +25,7 @@ pub struct Arenito {
     pub center: Vec3,
     pub vel: Vec3,
     pub acc: Vec3,
-    pub direction: ArenitoDirection,
+    pub state: ArenitoState,
     pub look_angle: f32, // on the y axis
     reset: bool,
 }
@@ -37,12 +37,12 @@ impl Arenito {
             vel: Vec3::ZERO,
             acc: Vec3::ZERO,
             look_angle: 0.0,
-            direction: ArenitoDirection::STILL,
+            state: ArenitoState::STILL,
             reset: false,
         }
     }
 
-    // Spawns Arenito into the scene
+    /// Spawns Arenito into the scene
     pub fn spawn(
         &self,
         mut commands: Commands,
@@ -105,25 +105,25 @@ impl Arenito {
 
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
-        if self.direction != ArenitoDirection::STILL && self.direction != ArenitoDirection::FORWARD
+        if self.state != ArenitoState::STILL && self.state != ArenitoState::FORWARD
         {
             return;
         }
 
         let (sin, cos) = self.look_angle.sin_cos();
         self.acc = Vec3::new(cos, 0.0, sin) * ACCEL_SPEED;
-        self.direction = ArenitoDirection::FORWARD;
+        self.state = ArenitoState::FORWARD;
     }
 
-    /// Sets Arenito in "direction mode" - sets the direction acceleration
+    /// Sets Arenito in "rotation mode" - sets the acceleration
     /// to the correct values.
-    pub fn rotate(&mut self, dir: ArenitoDirection) {
-        if self.direction != ArenitoDirection::STILL && self.direction != dir {
+    pub fn rotate(&mut self, dir: ArenitoState) {
+        if self.state != ArenitoState::STILL && self.state != dir {
             return;
         }
 
         self.acc = Vec3::ONE * ROT_SPEED;
-        self.direction = dir;
+        self.state = dir;
     }
 
     /// Sets the state to reset on the next call to Arenito::update().
@@ -158,7 +158,7 @@ impl Arenito {
             self.center = Vec3::new(0.0, 0.5, 0.0);
             self.acc = Vec3::ZERO;
             self.vel = Vec3::ZERO;
-            self.direction = ArenitoDirection::STILL;
+            self.state = ArenitoState::STILL;
             self.look_angle = 0.0;
 
             return;
@@ -173,13 +173,13 @@ impl Arenito {
         if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
-            self.direction = ArenitoDirection::STILL;
+            self.state = ArenitoState::STILL;
         }
 
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
         let dl = d.length();
 
-        if self.direction == ArenitoDirection::FORWARD {
+        if self.state == ArenitoState::FORWARD {
             self.center += d;
             body_part.translation += d;
 
@@ -191,7 +191,7 @@ impl Arenito {
                 wheel.0.rotate_local_z(-dl);
             }
         } else {
-            let theta = dl * self.direction as isize as f32;
+            let theta = dl * self.state as isize as f32;
             self.look_angle = (self.look_angle + theta) % TAU;
 
             body_part.translation -= self.center;
@@ -211,7 +211,7 @@ impl Arenito {
     pub fn log(&self) -> String {
         format!(
             "c: {} acc: {} vel: {} º: {} - {:?}",
-            self.center, self.acc, self.vel, self.look_angle, self.direction
+            self.center, self.acc, self.vel, self.look_angle, self.state
         )
     }
 }
