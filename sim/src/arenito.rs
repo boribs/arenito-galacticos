@@ -135,24 +135,35 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
-        mut body_part_query: Query<&mut Transform, With<Body>>,
-        mut left_wheel_query: Query<(&mut Transform, With<LeftWheel>, Without<Body>)>,
-        mut right_wheel_query: Query<(
-            &mut Transform,
-            With<RightWheel>,
-            Without<Body>,
-            Without<LeftWheel>,
-        )>,
+        mut body_part_query: Query<(&mut Transform, &BodyPart, With<BodyPart>)>,
     ) {
-        let mut body_part = body_part_query.single_mut();
+        let mut body = Vec::<Mut<'_, Transform>>::with_capacity(1);
+        let mut left_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
+        let mut right_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
+
+        for body_part in &mut body_part_query {
+            match body_part.1 {
+                BodyPart::LeftWheel => {
+                    left_wheels.push(body_part.0);
+                }
+                BodyPart::RightWheel => {
+                    right_wheels.push(body_part.0);
+                }
+                BodyPart::Frame => {
+                    body.push(body_part.0);
+                }
+            }
+        }
+
+        let body = &mut body[0];
 
         if self.reset {
             self.reset = false;
 
             // move Arenito's body parts to their position relative to the origin
-            body_part.translation = self.center;
-            let r = body_part.rotation.inverse();
-            body_part.rotate_around(Vec3::ZERO, r);
+            body.translation = self.center;
+            let r = body.rotation.inverse();
+            body.rotate_around(Vec3::ZERO, r);
 
             // resets attributes
             self.center = Vec3::new(0.0, 0.5, 0.0);
@@ -181,28 +192,28 @@ impl Arenito {
 
         if self.state == ArenitoState::FORWARD {
             self.center += d;
-            body_part.translation += d;
+            body.translation += d;
 
             // wheel visual rotation
-            for mut wheel in &mut left_wheel_query {
-                wheel.0.rotate_local_z(-dl);
+            for wheel in &mut left_wheels {
+                wheel.rotate_local_z(-dl);
             }
-            for mut wheel in &mut right_wheel_query {
-                wheel.0.rotate_local_z(-dl);
+            for wheel in &mut right_wheels {
+                wheel.rotate_local_z(-dl);
             }
         } else {
             let theta = dl * self.state as isize as f32;
             self.look_angle = (self.look_angle + theta) % TAU;
 
-            body_part.translation -= self.center;
-            body_part.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
-            body_part.translation += self.center;
+            body.translation -= self.center;
+            body.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
+            body.translation += self.center;
 
-            for mut wheel in &mut left_wheel_query {
-                wheel.0.rotate_local_z(-theta);
+            for wheel in &mut left_wheels {
+                wheel.rotate_local_z(-theta);
             }
-            for mut wheel in &mut right_wheel_query {
-                wheel.0.rotate_local_z(theta);
+            for wheel in &mut right_wheels {
+                wheel.rotate_local_z(theta);
             }
         }
     }
