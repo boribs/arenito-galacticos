@@ -27,7 +27,6 @@ pub struct Arenito {
     pub acc: Vec3,
     pub state: ArenitoState,
     pub look_angle: f32, // on the y axis
-    reset: bool,
 }
 
 impl Arenito {
@@ -38,7 +37,6 @@ impl Arenito {
             acc: Vec3::ZERO,
             look_angle: 0.0,
             state: ArenitoState::STILL,
-            reset: false,
         }
     }
 
@@ -105,8 +103,7 @@ impl Arenito {
 
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
-        if self.state != ArenitoState::STILL && self.state != ArenitoState::FORWARD
-        {
+        if self.state != ArenitoState::STILL && self.state != ArenitoState::FORWARD {
             return;
         }
 
@@ -126,16 +123,33 @@ impl Arenito {
         self.state = dir;
     }
 
-    /// Sets the state to reset on the next call to Arenito::update().
-    pub fn reset(&mut self) {
-        self.reset = true;
+    /// Resets the state of Arenito.
+    /// This includes despawning and spawning the models.
+    pub fn reset(
+        &mut self,
+        mut commands: Commands,
+        asset_server: Res<AssetServer>,
+        materials: ResMut<Assets<StandardMaterial>>,
+        body_part_query: &Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
+    ) {
+        self.center = Vec3::new(0.0, 0.5, 0.0);
+        self.acc = Vec3::ZERO;
+        self.vel = Vec3::ZERO;
+        self.state = ArenitoState::STILL;
+        self.look_angle = 0.0;
+
+        body_part_query.for_each(|e| {
+            commands.entity(e.2).despawn();
+        });
+
+        self.spawn(commands, materials, asset_server);
     }
 
     /// Applies the movement given some delta time.
     pub fn update(
         &mut self,
         delta_ms: u128,
-        mut body_part_query: Query<(&mut Transform, &BodyPart, With<BodyPart>)>,
+        mut body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
     ) {
         let mut body = Vec::<Mut<'_, Transform>>::with_capacity(1);
         let mut left_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
@@ -155,25 +169,8 @@ impl Arenito {
             }
         }
 
+        // Out of vector!
         let body = &mut body[0];
-
-        if self.reset {
-            self.reset = false;
-
-            // move Arenito's body parts to their position relative to the origin
-            body.translation = self.center;
-            let r = body.rotation.inverse();
-            body.rotate_around(Vec3::ZERO, r);
-
-            // resets attributes
-            self.center = Vec3::new(0.0, 0.5, 0.0);
-            self.acc = Vec3::ZERO;
-            self.vel = Vec3::ZERO;
-            self.state = ArenitoState::STILL;
-            self.look_angle = 0.0;
-
-            return;
-        }
 
         let delta: f32 = delta_ms as f32 / 1000.0;
         let fric = self.acc.normalize_or_zero() * -1.0 * FRIC_K;

@@ -30,10 +30,13 @@ fn wire_mover(
 }
 
 fn arenito_mover(
-    body_part_query: Query<(&mut Transform, &BodyPart, With<BodyPart>)>,
-    mut arenito: ResMut<Arenito>,
     time: Res<Time>,
+    commands: Commands,
+    asset_server: Res<AssetServer>,
     keyboard_input: Res<Input<KeyCode>>,
+    materials: ResMut<Assets<StandardMaterial>>,
+    mut arenito: ResMut<Arenito>,
+    body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
 ) {
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
@@ -42,7 +45,7 @@ fn arenito_mover(
     } else if keyboard_input.pressed(KeyCode::D) {
         arenito.rotate(ArenitoState::RIGHT);
     } else if keyboard_input.pressed(KeyCode::R) {
-        arenito.reset();
+        arenito.reset(commands, asset_server, materials, &body_part_query);
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);
