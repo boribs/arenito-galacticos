@@ -10,17 +10,17 @@ Ambiente gráfico:
     #                      #                      #
     ###############################################
 
-    ☐ Visualización del mapa y del Arenito
+    ✔ Visualización del mapa y del Arenito @done(23-06-21 18:48)
         El mapa consiste de una superficie no uniforme (arena)
         rodeada de un plano azul (agua)
-        ☐ Visualización con texturas
-        ☐ Visualización de alambres
+        ✔ Visualización con texturas @done(23-06-21 18:48)
+        ✔ Visualización de alambres @done(23-06-21 18:48)
             O hilos? Solo las aristas de los polígonos, pues
     ☐ Movimiento de la cámara: rotación click n' drag
-    ☐ Movimiento de las ruedas del Arenito
+    ✔ Movimiento de las ruedas del Arenito @done(23-06-21 18:48)
 
 Simluación de movimiento:
-    ☐ Físicas de movimiento: aceleración
+    ✔ Físicas de movimiento: aceleración @done(23-06-21 18:48)
     ☐ Rotación del robot según la posición de las llantas respecto a la arena
 
 Simulación de sensores:
