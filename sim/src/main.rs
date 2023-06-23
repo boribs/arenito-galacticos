@@ -7,6 +7,7 @@ use bevy_obj::*;
 
 use arenito::*;
 use wire::*;
+use sensor::*;
 
 fn main() {
     App::new()
@@ -16,17 +17,14 @@ fn main() {
         .add_startup_system(setup)
         .add_startup_system(arenito_spawner)
         .add_system(arenito_mover)
-        .add_system(wire_mover)
+        .add_system(sensor_reader)
         .run();
 }
 
-fn wire_mover(
-    mut query: Query<(&Handle<Mesh>, &mut Wire)>,
-    mut assets: ResMut<Assets<Mesh>>,
-    arenito: Res<Arenito>,
-) {
-    let (handle, mut wire) = query.single_mut();
-    wire.point(arenito.center, assets.get_mut(handle).unwrap());
+fn sensor_reader(arenito: Res<Arenito>) {
+    let _accel_read = Sensor::read_acc(&arenito);
+    // missing implementation of gyroscope
+    // use gyroscope and accelerometer to determine position
 }
 
 fn arenito_mover(
@@ -73,15 +71,15 @@ fn setup(
         ..default()
     });
 
-    let w = Wire::new(Vec3::new(0.0, 0.5, 0.0), Vec3::new(0., 2., 0.));
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(w.into()),
-            material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
-            ..default()
-        },
-        w,
-    ));
+    // let w = Wire::new(Vec3::new(0.0, 0.5, 0.0), Vec3::new(0., 2., 0.));
+    // commands.spawn((
+    //     PbrBundle {
+    //         mesh: meshes.add(w.into()),
+    //         material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+    //         ..default()
+    //     },
+    //     w,
+    // ));
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {
