@@ -5,6 +5,8 @@ const ACCEL_SPEED: f32 = 4.0;
 const ROT_SPEED: f32 = 1.5;
 const FRIC_K: f32 = 0.5;
 
+/// Component used as an identifier for the different
+/// body parts in Arenito.
 #[derive(Component)]
 pub enum BodyPart {
     Frame,
@@ -12,6 +14,7 @@ pub enum BodyPart {
     RightWheel,
 }
 
+/// Describes Arenito's state.
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum ArenitoState {
     LEFT = -1,
@@ -20,6 +23,11 @@ pub enum ArenitoState {
     STILL,
 }
 
+/// Arenito is the main component of this simulation.
+///
+/// It's responsible of both visual and "logical" updates of position,
+/// velocity, acceleration and rotation.
+/// Those attributes will be important when simulating the sensors.
 #[derive(Resource)]
 pub struct Arenito {
     pub center: Vec3,
@@ -30,6 +38,7 @@ pub struct Arenito {
 }
 
 impl Arenito {
+    /// Returns an empty, non-spawned Arenito.
     pub fn new() -> Self {
         Arenito {
             center: Vec3::new(0.0, 0.5, 0.0),
@@ -40,7 +49,12 @@ impl Arenito {
         }
     }
 
-    /// Spawns Arenito into the scene
+    /// Spawns Arenito (body cube and wheels) into the scene.
+    ///
+    /// Arenito's model is a cube (parent) with four wheels (children).
+    /// This is to preserve positional rotation (not having to manually
+    /// rotate each wheel), facilitating significantly rotating the wheels
+    /// on the z axis when moving forward or rotating.
     pub fn spawn(
         &self,
         mut commands: Commands,
@@ -124,7 +138,8 @@ impl Arenito {
     }
 
     /// Resets the state of Arenito.
-    /// This includes despawning and spawning the models.
+    /// This includes despawning and spawning the models. It was easier than
+    /// resetting everything to it's original state.
     pub fn reset(
         &mut self,
         mut commands: Commands,
@@ -146,11 +161,24 @@ impl Arenito {
     }
 
     /// Applies the movement given some delta time.
+    /// This is both in "logical units" (the real units Arenito is actually at)
+    /// and visually (whatever Bevy's renderer needs to update what we see).
+    ///
+    /// This big method considers Arenito's state, updating both the main body's
+    /// position (the cube) and the wheels' rotation (the direction changes depending
+    /// on whether it's advancing forward or rotating).
+    ///
+    /// It also updates Arenito's velocity and acceleration.
+    ///
+    /// * `delta_ms` - time delta between this and the last frame this was called.
+    /// * `body_part_query` - Bevy's way of finding elements.
     pub fn update(
         &mut self,
         delta_ms: u128,
         mut body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
     ) {
+        // Saving different body parts to their own variable.
+        // Each body part behaves differently.
         let mut body = Vec::<Mut<'_, Transform>>::with_capacity(1);
         let mut left_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
         let mut right_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
@@ -169,15 +197,21 @@ impl Arenito {
             }
         }
 
-        // Out of vector!
+        // Since body is only one element, shadow it out of the vector!
         let body = &mut body[0];
 
         let delta: f32 = delta_ms as f32 / 1000.0;
+
+        // Friction needs to be calculated every frame, because is a vector
+        // that directly opposes movement.
         let fric = self.acc.normalize_or_zero() * -1.0 * FRIC_K;
 
-        self.acc += fric; // ya está invertido
+        self.acc += fric; // Sum it because it's already inverted
         self.vel = (self.acc * delta) + self.vel;
 
+        // If the force of friction is bigger than Arenito's forward acceleration
+        // and the computation continues as is, Arenito will move backwards!
+        // If Arenito is unable to overpower friction, then it should stop.
         if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
@@ -191,7 +225,7 @@ impl Arenito {
             self.center += d;
             body.translation += d;
 
-            // wheel visual rotation
+            // Rotate (visibly) wheel
             for wheel in &mut left_wheels {
                 wheel.rotate_local_z(-dl);
             }
