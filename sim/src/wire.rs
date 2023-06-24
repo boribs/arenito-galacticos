@@ -22,15 +22,32 @@ impl Wire {
 
     pub fn point(&mut self, end: Vec3, mesh: &mut Mesh) {
         self.end = end;
-
         let points = vec![self.start, self.end];
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
+    }
+
+    pub fn spawn(
+        start: Vec3,
+        end: Vec3,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) {
+        let w = Wire::new(start, end);
+        commands.spawn((
+            PbrBundle {
+                mesh: meshes.add(w.into()),
+                material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+                ..default()
+            },
+            w,
+        ));
     }
 }
 
 impl From<Wire> for Mesh {
     fn from(wire: Wire) -> Self {
-        let Wire { start, end, .. } = wire;
+        let Wire { start, end } = wire;
 
         let positions = vec![start, end];
         let normals = vec![[1.0, 1.0, 1.0]; 2];
@@ -43,3 +60,5 @@ impl From<Wire> for Mesh {
         mesh
     }
 }
+
+// TODO: Implement arrows

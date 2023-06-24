@@ -6,8 +6,8 @@ use bevy::prelude::*;
 use bevy_obj::*;
 
 use arenito::*;
-use wire::*;
 use sensor::*;
+use wire::*;
 
 fn main() {
     App::new()
@@ -71,15 +71,7 @@ fn setup(
         ..default()
     });
 
-    // let w = Wire::new(Vec3::new(0.0, 0.5, 0.0), Vec3::new(0., 2., 0.));
-    // commands.spawn((
-    //     PbrBundle {
-    //         mesh: meshes.add(w.into()),
-    //         material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
-    //         ..default()
-    //     },
-    //     w,
-    // ));
+    // Wire::spawn(Vec3::ZERO, Vec3::ONE, &mut commands, &mut meshes, &mut materials);
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {
