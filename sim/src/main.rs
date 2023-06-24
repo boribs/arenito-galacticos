@@ -29,10 +29,10 @@ fn sensor_reader(arenito: Res<Arenito>) {
 
 fn arenito_mover(
     time: Res<Time>,
-    commands: Commands,
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
     keyboard_input: Res<Input<KeyCode>>,
-    materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     mut arenito: ResMut<Arenito>,
     body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
 ) {
@@ -43,7 +43,7 @@ fn arenito_mover(
     } else if keyboard_input.pressed(KeyCode::D) {
         arenito.rotate(ArenitoState::RIGHT);
     } else if keyboard_input.pressed(KeyCode::R) {
-        arenito.reset(commands, asset_server, materials, &body_part_query);
+        arenito.reset(&mut commands, &asset_server, &mut materials, &body_part_query);
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);
@@ -51,12 +51,12 @@ fn arenito_mover(
 }
 
 fn arenito_spawner(
-    commands: Commands,
-    materials: ResMut<Assets<StandardMaterial>>,
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
 ) {
-    arenito.spawn(commands, materials, asset_server);
+    arenito.spawn(&mut commands, &mut materials, &asset_server);
 }
 
 /// set up a simple 3D scene

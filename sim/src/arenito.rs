@@ -57,9 +57,9 @@ impl Arenito {
     /// on the z axis when moving forward or rotating.
     pub fn spawn(
         &self,
-        mut commands: Commands,
-        mut materials: ResMut<Assets<StandardMaterial>>,
-        asset_server: Res<AssetServer>,
+        commands: &mut Commands,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+        asset_server: &Res<AssetServer>,
     ) {
         commands
             .spawn((
@@ -142,9 +142,9 @@ impl Arenito {
     /// resetting everything to it's original state.
     pub fn reset(
         &mut self,
-        mut commands: Commands,
-        asset_server: Res<AssetServer>,
-        materials: ResMut<Assets<StandardMaterial>>,
+        commands: &mut Commands,
+        asset_server: &Res<AssetServer>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
         body_part_query: &Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
@@ -208,6 +208,7 @@ impl Arenito {
 
         self.acc += fric; // Sum it because it's already inverted
         self.vel = (self.acc * delta) + self.vel;
+        // TODO: Cap top speed
 
         // If the force of friction is bigger than Arenito's forward acceleration
         // and the computation continues as is, Arenito will move backwards!
