@@ -26,6 +26,9 @@ impl SensorError {
 pub struct Sensor;
 
 impl Sensor {
+    // This is the upper bound for the accelerometer readings.
+    // Depends entirely on the hardware.
+    // Acceleration reads CAN NOT be higher than this.
     const ACCELERATION_MAX: f32 = 9.8; // 1g!
 
     /// Gets Arenito's "real" acceleration and converts it
@@ -33,9 +36,6 @@ impl Sensor {
     /// A value between 0 and 1024 that represents the magnitude
     /// of the acceleration on each axis.
     pub fn read_acc(arenito: &Arenito) -> Vec3 {
-        // This is the upper bound for the accelerometer readings.
-        // Depends entirely on the hardware.
-
         // get acceleration value
         // convert to absolute value
         let mut acc = arenito.acc.abs();
@@ -45,9 +45,9 @@ impl Sensor {
 
         // interpolate each value between [0, 1024],
         // considering that Sensor::ACCELERATION_MAX maps to 1024.
-        acc.x = 1024.0 * (acc.x / Sensor::ACCELERATION_MAX);
-        acc.y = 1024.0 * (acc.y / Sensor::ACCELERATION_MAX);
-        acc.z = 1024.0 * (acc.z / Sensor::ACCELERATION_MAX);
+        acc.abs() * 1024.0 / Sensor::ACCELERATION_MAX
+    }
+}
 
         acc
     }
