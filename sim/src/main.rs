@@ -43,7 +43,12 @@ fn arenito_mover(
     } else if keyboard_input.pressed(KeyCode::D) {
         arenito.rotate(ArenitoState::RIGHT);
     } else if keyboard_input.pressed(KeyCode::R) {
-        arenito.reset(&mut commands, &asset_server, &mut materials, &body_part_query);
+        arenito.reset(
+            &mut commands,
+            &asset_server,
+            &mut materials,
+            &body_part_query,
+        );
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);

@@ -175,6 +175,67 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
+        body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
+    ) {
+        let vec = self.update_pos(delta_ms);
+        self.update_model(vec, body_part_query);
+    }
+
+    /// Updates Arenito's position given some time in ms (`delta_ms`).
+    /// This method is suposed to be called every frame, where delta_ms
+    /// is the time between this frame's render and the previous one.
+    ///
+    /// Depending on Arenito's state it will:
+    ///   - Move forward
+    ///   - Rotate
+    fn update_pos(&mut self, delta_ms: u128) -> (Vec3, f32) {
+        let delta: f32 = delta_ms as f32 / 1000.0;
+
+        // Friction needs to be calculated every frame, because its a vector
+        // that directly opposes movement.
+        let fric = self.acc.normalize_or_zero() * -1.0 * FRIC_K;
+
+        self.acc += fric; // Sum it because it's already inverted
+        self.vel = (self.acc * delta) + self.vel;
+        // TODO: Cap top speed
+
+        // If the force of friction is bigger than Arenito's forward acceleration
+        // and the computation continues as is, Arenito will move backwards!
+        // If Arenito is unable to overpower friction, then it should stop.
+        if self.acc.length() < FRIC_K {
+            self.vel = Vec3::ZERO;
+            self.acc = Vec3::ZERO;
+            self.state = ArenitoState::STILL;
+        }
+
+        // Highschool physics: Distance = v_0 * t + (0.5 * a * t^2)
+        // This is also valid when velocity (v_0) and acceleratoin (a)
+        // are both vectors.
+        let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
+        let dl = d.length();
+
+        if self.state == ArenitoState::FORWARD {
+            self.center += d;
+
+            return (d, dl);
+        } else {
+            let theta = dl * self.state as isize as f32;
+            self.look_angle = (self.look_angle + theta) % TAU;
+
+            return (d, theta);
+        }
+    }
+
+    /// Updates Arenito's rendered model.
+    /// That's the main cube and the wheels. They are moved according to the values inside
+    /// `vec` tuple:
+    ///   * `Vec3` is the distance vector: how much has moved since the last frame.
+    ///   * `f32` is either the length of the vector (if Arenito moved forward) or
+    ///           the rotation delta (how much arenito rotated since the last frame).
+    ///           This value is to rotate the wheels.
+    fn update_model(
+        &self,
+        vec: (Vec3, f32),
         mut body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
     ) {
         // Saving different body parts to their own variable.
@@ -199,54 +260,32 @@ impl Arenito {
 
         // Since body is only one element, shadow it out of the vector!
         let body = &mut body[0];
+        let (d, l) = vec;
 
-        let delta: f32 = delta_ms as f32 / 1000.0;
+        match self.state {
+            ArenitoState::FORWARD => {
+                body.translation += d;
 
-        // Friction needs to be calculated every frame, because is a vector
-        // that directly opposes movement.
-        let fric = self.acc.normalize_or_zero() * -1.0 * FRIC_K;
-
-        self.acc += fric; // Sum it because it's already inverted
-        self.vel = (self.acc * delta) + self.vel;
-        // TODO: Cap top speed
-
-        // If the force of friction is bigger than Arenito's forward acceleration
-        // and the computation continues as is, Arenito will move backwards!
-        // If Arenito is unable to overpower friction, then it should stop.
-        if self.acc.length() < FRIC_K {
-            self.vel = Vec3::ZERO;
-            self.acc = Vec3::ZERO;
-            self.state = ArenitoState::STILL;
-        }
-
-        let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
-        let dl = d.length();
-
-        if self.state == ArenitoState::FORWARD {
-            self.center += d;
-            body.translation += d;
-
-            // Rotate (visibly) wheel
-            for wheel in &mut left_wheels {
-                wheel.rotate_local_z(-dl);
+                for wheel in &mut left_wheels {
+                    wheel.rotate_local_z(-l);
+                }
+                for wheel in &mut right_wheels {
+                    wheel.rotate_local_z(-l);
+                }
             }
-            for wheel in &mut right_wheels {
-                wheel.rotate_local_z(-dl);
-            }
-        } else {
-            let theta = dl * self.state as isize as f32;
-            self.look_angle = (self.look_angle + theta) % TAU;
+            ArenitoState::RIGHT | ArenitoState::LEFT => {
+                body.translation -= self.center;
+                body.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-l));
+                body.translation += self.center;
 
-            body.translation -= self.center;
-            body.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-theta));
-            body.translation += self.center;
-
-            for wheel in &mut left_wheels {
-                wheel.rotate_local_z(-theta);
+                for wheel in &mut left_wheels {
+                    wheel.rotate_local_z(-l);
+                }
+                for wheel in &mut right_wheels {
+                    wheel.rotate_local_z(l);
+                }
             }
-            for wheel in &mut right_wheels {
-                wheel.rotate_local_z(theta);
-            }
+            _ => {}
         }
     }
 
