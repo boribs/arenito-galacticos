@@ -297,3 +297,155 @@ impl Arenito {
         )
     }
 }
+
+#[cfg(test)]
+mod arenito_tests {
+    use super::*;
+    use std::f32::consts::{PI, FRAC_PI_2, FRAC_PI_4};
+
+    const F32_DIFF: f32 = 0.01;
+
+    /// Compares vectors' values.
+    /// Considers "equal" values within a difference of `F32_DIFF`.
+    fn cmp_vec(a: Vec3, b: Vec3) {
+        assert!((a.x - b.x).abs() < F32_DIFF);
+        assert!((a.y - b.y).abs() < F32_DIFF);
+        assert!((a.z - b.z).abs() < F32_DIFF);
+    }
+
+    // ------------------------------------------------------------
+    // The following tests are to test Arenito's movement a single
+    // frame forward, from absolute rest on a flat surface.
+
+    #[test]
+    fn accelerated_movement_positive_x() {
+        let mut arenito = Arenito::new();
+        arenito.forward();
+        arenito.update_pos(16);
+
+        let expected_acc = Vec3::new(3.5, 0.0, 0.0);
+        let expected_vel = Vec3::new(0.056, 0.0, 0.0);
+        let expected_center = Vec3::new(0.001344, 0.5, 0.0);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    #[test]
+    fn accelerated_movement_positive_xz() {
+        let mut arenito = Arenito::new();
+        arenito.look_angle = FRAC_PI_4;
+        arenito.forward();
+        arenito.update_pos(16);
+
+        let expected_acc = Vec3::new(2.47487, 0.0, 2.47487);
+        let expected_vel = Vec3::new(0.03959, 0.0, 0.03959);
+        let expected_center = Vec3::new(0.00095, 0.5, 0.00095);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    #[test]
+    fn accelerated_movement_positive_z() {
+        let mut arenito = Arenito::new();
+        arenito.look_angle = FRAC_PI_2;
+        arenito.forward();
+        arenito.update_pos(16);
+
+        // most zeros aren't actually zero, but very close
+        let expected_acc = Vec3::new(0.0, 0.0, 3.5);
+        let expected_vel = Vec3::new(0.0, 0.0, 0.056);
+        let expected_center = Vec3::new(0.0, 0.5, 0.0);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    #[test]
+    fn accelerated_movement_negative_x_positive_z() {
+        let mut arenito = Arenito::new();
+        arenito.look_angle = 3.0 * FRAC_PI_4;
+        arenito.forward();
+        arenito.update_pos(16);
+
+        let expected_acc = Vec3::new(-2.47487, 0.0, 2.47487);
+        let expected_vel = Vec3::new(-0.03959, 0.0, 0.03959);
+        let expected_center = Vec3::new(-0.0009, 0.5, 0.0009);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    #[test]
+    fn accelerated_movement_negative_x() {
+        let mut arenito = Arenito::new();
+        arenito.look_angle = PI;
+        arenito.forward();
+        arenito.update_pos(16);
+
+        let expected_acc = Vec3::new(-3.5, 0.0, 0.0);
+        let expected_vel = Vec3::new(-0.056, 0.0, 0.0);
+        let expected_center = Vec3::new(-0.001344, 0.5, 0.0);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    #[test]
+    fn accelerated_movement_negative_x_negative_z() {
+        let mut arenito = Arenito::new();
+        arenito.look_angle = 5.0 * FRAC_PI_4;
+        arenito.forward();
+        arenito.update_pos(16);
+
+        let expected_acc = Vec3::new(-2.47487, 0.0, -2.47487);
+        let expected_vel = Vec3::new(-0.03959, 0.0, -0.03959);
+        let expected_center = Vec3::new(-0.0009, 0.5, -0.0009);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    #[test]
+    fn accelerated_movement_negative_z() {
+        let mut arenito = Arenito::new();
+        arenito.look_angle = 3.0 * FRAC_PI_2;
+        arenito.forward();
+        arenito.update_pos(16);
+
+        let expected_acc = Vec3::new(0.0, 0.0, -3.5);
+        let expected_vel = Vec3::new(0.0, 0.0, -0.056);
+        let expected_center = Vec3::new(0.0, 0.5, -0.001344);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    #[test]
+    fn accelerated_movement_negative_z_positive_x() {
+        let mut arenito = Arenito::new();
+        arenito.look_angle = 7.0 * FRAC_PI_4;
+        arenito.forward();
+        arenito.update_pos(16);
+
+        let expected_acc = Vec3::new(2.47487, 0.0, -2.47487);
+        let expected_vel = Vec3::new(0.03959, 0.0, -0.03959);
+        let expected_center = Vec3::new(0.00095, 0.5, -0.00095);
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);
+    }
+
+    // TODO: stopping tests
+    // TOOD: zero movement tests
+    // TODO: max vel tests
+}
