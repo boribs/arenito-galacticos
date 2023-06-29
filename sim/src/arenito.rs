@@ -303,7 +303,7 @@ mod arenito_tests {
     use super::*;
     use std::f32::consts::{PI, FRAC_PI_2, FRAC_PI_4};
 
-    const F32_DIFF: f32 = 0.01;
+    const F32_DIFF: f32 = 0.001;
 
     /// Compares vectors' values.
     /// Considers "equal" values within a difference of `F32_DIFF`.
@@ -358,7 +358,7 @@ mod arenito_tests {
         // most zeros aren't actually zero, but very close
         let expected_acc = Vec3::new(0.0, 0.0, 3.5);
         let expected_vel = Vec3::new(0.0, 0.0, 0.056);
-        let expected_center = Vec3::new(0.0, 0.5, 0.0);
+        let expected_center = Vec3::new(0.0, 0.5, 0.001344);
 
         cmp_vec(arenito.vel, expected_vel);
         cmp_vec(arenito.acc, expected_acc);
