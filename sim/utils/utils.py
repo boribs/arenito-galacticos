@@ -91,7 +91,14 @@ def calc_arenito_update(
 
     return (fric, acc, vel, cen)
 
-def arenito_basic_movement_from_standstill_angle(angle):
+def random_angles(n: int) -> tuple[float]:
+    """
+    Returns a tuple with n angles (in radians) in the range [-2π, 2π].
+    """
+
+    NEG = (True, False)
+    return (random() * math.tau * (-1 if choice(NEG) else 1) for _ in range(n))
+
     acc = Vec.from_angle(angle) * 4
     _, acc, vel, cen = calc_arenito_update(acc = acc)
     print(f'angle: {angle}: \n\tacc: {acc}\n\tvel: {vel}\n\tcen: {cen}')
@@ -101,7 +108,9 @@ def arenito_basic_movement_from_standstill():
         angle = i * (math.pi / 4)
         arenito_basic_movement_from_standstill_angle(angle)
 
-if __name__ == '__main__':
-    # arenito_basic_movement_from_standstill()
+def random_angle_basic_movement_standstill(n: int):
+    for a in random_angles(n):
+        arenito_basic_movement_from_standstill_angle(a)
 
+if __name__ == '__main__':
     pass
