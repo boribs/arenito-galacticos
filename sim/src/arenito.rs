@@ -308,9 +308,9 @@ mod arenito_tests {
     /// Compares vectors' values.
     /// Considers "equal" values within a difference of `F32_DIFF`.
     fn cmp_vec(a: Vec3, b: Vec3) {
-        assert!((a.x - b.x).abs() < F32_DIFF);
-        assert!((a.y - b.y).abs() < F32_DIFF);
-        assert!((a.z - b.z).abs() < F32_DIFF);
+        assert!((a.x - b.x).abs() < F32_DIFF, "x: {} != {}", a.x, b.x);
+        assert!((a.y - b.y).abs() < F32_DIFF, "y: {} != {}", a.y, b.y);
+        assert!((a.z - b.z).abs() < F32_DIFF, "z: {} != {}", a.z, b.z);
     }
 
     // ------------------------------------------------------------
