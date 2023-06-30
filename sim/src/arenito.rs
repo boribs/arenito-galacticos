@@ -318,7 +318,7 @@ mod arenito_tests {
     // frame forward, from absolute rest on a flat surface.
 
     #[test]
-    fn accelerated_movement_positive_x() {
+    fn flat_surface_accelerated_movement_positive_x() {
         let mut arenito = Arenito::new();
         arenito.forward();
         arenito.update_pos(16);
@@ -333,7 +333,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_positive_xz() {
+    fn flat_surface_accelerated_movement_positive_xz() {
         let mut arenito = Arenito::new();
         arenito.look_angle = FRAC_PI_4;
         arenito.forward();
@@ -349,7 +349,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_positive_z() {
+    fn flat_surface_accelerated_movement_positive_z() {
         let mut arenito = Arenito::new();
         arenito.look_angle = FRAC_PI_2;
         arenito.forward();
@@ -366,7 +366,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_negative_x_positive_z() {
+    fn flat_surface_accelerated_movement_negative_x_positive_z() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 3.0 * FRAC_PI_4;
         arenito.forward();
@@ -382,7 +382,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_negative_x() {
+    fn flat_surface_accelerated_movement_negative_x() {
         let mut arenito = Arenito::new();
         arenito.look_angle = PI;
         arenito.forward();
@@ -398,7 +398,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_negative_x_negative_z() {
+    fn flat_surface_accelerated_movement_negative_x_negative_z() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 5.0 * FRAC_PI_4;
         arenito.forward();
@@ -414,7 +414,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_negative_z() {
+    fn flat_surface_accelerated_movement_negative_z() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 3.0 * FRAC_PI_2;
         arenito.forward();
@@ -430,7 +430,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_negative_z_positive_x() {
+    fn flat_surface_accelerated_movement_negative_z_positive_x() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 7.0 * FRAC_PI_4;
         arenito.forward();
@@ -446,7 +446,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_1() {
+    fn flat_surface_accelerated_movement_random_angle_1() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 0.1234;
         arenito.forward();
@@ -462,7 +462,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_2() {
+    fn flat_surface_accelerated_movement_random_angle_2() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 0.38;
         arenito.forward();
@@ -478,7 +478,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_3() {
+    fn flat_surface_accelerated_movement_random_angle_3() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 4.7551;
         arenito.forward();
@@ -494,7 +494,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_4() {
+    fn flat_surface_accelerated_movement_random_angle_4() {
         let mut arenito = Arenito::new();
         arenito.look_angle = -6.1362;
         arenito.forward();
@@ -510,7 +510,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_5() {
+    fn flat_surface_accelerated_movement_random_angle_5() {
         let mut arenito = Arenito::new();
         arenito.look_angle = -0.713244;
         arenito.forward();
@@ -526,7 +526,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_6() {
+    fn flat_surface_accelerated_movement_random_angle_6() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 3.70245;
         arenito.forward();
@@ -542,7 +542,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_7() {
+    fn flat_surface_accelerated_movement_random_angle_7() {
         let mut arenito = Arenito::new();
         arenito.look_angle = -1.4037;
         arenito.forward();
@@ -558,7 +558,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_8() {
+    fn flat_surface_accelerated_movement_random_angle_8() {
         let mut arenito = Arenito::new();
         arenito.look_angle = -1.4037;
         arenito.forward();
@@ -574,7 +574,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_9() {
+    fn flat_surface_accelerated_movement_random_angle_9() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 1.65394;
         arenito.forward();
@@ -590,7 +590,7 @@ mod arenito_tests {
     }
 
     #[test]
-    fn accelerated_movement_random_angle_10() {
+    fn flat_surface_accelerated_movement_random_angle_10() {
         let mut arenito = Arenito::new();
         arenito.look_angle = 0.52525;
         arenito.forward();
