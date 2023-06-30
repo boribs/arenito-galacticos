@@ -313,6 +313,22 @@ mod arenito_tests {
         assert!((a.z - b.z).abs() < F32_DIFF, "z: {} != {}", a.z, b.z);
     }
 
+    #[test]
+    fn flat_surface_arenito_doesnt_move_with_0_acceleration_and_velocity() {
+        let mut arenito = Arenito::new();
+
+        // look angle really doesn't matter, but I guess it's
+        // useful to make a point?
+        for angle in [0.0, -1.31, 4.32, 6.16, -2.54] {
+            arenito.look_angle = angle;
+            arenito.update_pos(16);
+
+            cmp_vec(arenito.vel, Vec3::ZERO);
+            cmp_vec(arenito.acc, Vec3::ZERO);
+            cmp_vec(arenito.center, Vec3::new(0., 0.5, 0.));
+        }
+    }
+
     // ------------------------------------------------------------
     // The following tests are to test Arenito's movement a single
     // frame forward, from absolute rest on a flat surface.
