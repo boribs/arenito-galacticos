@@ -1,5 +1,6 @@
 from __future__ import annotations
 import math
+from random import random, choice
 
 """
 Just random utilities to facilitate testing :)
@@ -99,12 +100,13 @@ def random_angles(n: int) -> tuple[float]:
     NEG = (True, False)
     return (random() * math.tau * (-1 if choice(NEG) else 1) for _ in range(n))
 
+def arenito_basic_movement_from_standstill_angle(angle: float):
     acc = Vec.from_angle(angle) * 4
     _, acc, vel, cen = calc_arenito_update(acc = acc)
     print(f'angle: {angle}: \n\tacc: {acc}\n\tvel: {vel}\n\tcen: {cen}')
 
-def arenito_basic_movement_from_standstill():
-    for i in range(9):
+def arenito_basic_movement_from_standstill(n: int):
+    for i in range(n):
         angle = i * (math.pi / 4)
         arenito_basic_movement_from_standstill_angle(angle)
 
