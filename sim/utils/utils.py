@@ -45,7 +45,7 @@ class Vec:
             raise Exception(f'Can\'t add Vector and {type(other)}.')
 
     def __repr__(self):
-        return f'({self.x}, {self.y}, {self.z})'
+        return '({:.5f}, {:.5f}, {:.5f})'.format(self.x, self.y, self.z)
 
     @staticmethod
     def zero():
@@ -109,7 +109,7 @@ def random_angles(n: int) -> tuple[float]:
 def arenito_basic_movement_from_standstill_angle(angle: float):
     acc = Vec.from_angle(angle) * 4
     _, acc, vel, cen = calc_arenito_update(acc = acc)
-    print(f'angle: {angle}: \n\tacc: {acc}\n\tvel: {vel}\n\tcen: {cen}')
+    print(f'angle: {angle}: \n\tvel: {vel}\n\tacc: {acc}\n\tcen: {cen}')
 
 def arenito_basic_movement_from_standstill(n: int):
     for i in range(n):
@@ -119,6 +119,35 @@ def arenito_basic_movement_from_standstill(n: int):
 def random_angle_basic_movement_standstill(n: int):
     for a in random_angles(n):
         arenito_basic_movement_from_standstill_angle(a)
+
+def arenito_basic_movement_from_motion(angle: float, vel_k: float):
+    vel = Vec.from_angle(angle) * vel_k
+    acc = Vec.from_angle(angle) * 4
+    cen = Vec(0, 0.5, 0)
+
+    _, nacc, nvel, ncen = calc_arenito_update(acc = acc, vel = vel, cen = cen)
+
+    # I'm lazy enough to make the utility print the body of the test:)
+    print(f'''
+        let mut arenito = Arenito::vel_acc(
+            Vec3::new{vel},
+            Vec3::new{acc},
+            Vec3::new{cen},
+        );
+        arenito.update_pos(16);
+
+        let expected_vel = Vec3::new{nvel};
+        let expected_acc = Vec3::new{nacc};
+        let expected_center = Vec3::new{ncen};
+
+        cmp_vec(arenito.vel, expected_vel);
+        cmp_vec(arenito.acc, expected_acc);
+        cmp_vec(arenito.center, expected_center);\n
+    ''')
+
+def random_basic_movement_from_motion(n: int):
+    for a in random_angles(n):
+        arenito_basic_movement_from_motion(a, 1 + random())
 
 if __name__ == '__main__':
     pass
