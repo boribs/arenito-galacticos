@@ -1,5 +1,8 @@
-from utils import *
+from utils import Vec, deg2rad, rad2deg
 import unittest
+import math
+
+MAX_DIFF = 0.0001
 
 class UtilsTest(unittest.TestCase):
     def test_simple_vector_creation(self):
@@ -61,6 +64,30 @@ class UtilsTest(unittest.TestCase):
     def test_vector_from_angle_3(self):
         vec = Vec.from_angle(math.pi / 3)
         self.assertAlmostEqual(vec.z, Vec(0.5, 0, math.sin(math.pi / 3)).z)
+
+    def test_deg2rad_zero(self):
+        self.assertEqual(0, deg2rad(0))
+
+    def test_deg2rad_180_deg_to_pi_rad(self):
+        self.assertEqual(math.pi, deg2rad(180))
+
+    def test_deg2rad_270_deg_to_pi_rad(self):
+        self.assertAlmostEqual(4.712389, deg2rad(270))
+
+    def test_deg2rad_33_deg_to_pi_rad(self):
+        self.assertAlmostEqual(0.5759587, deg2rad(33))
+
+    def test_rad2deg_zero(self):
+        self.assertEqual(0, rad2deg(0))
+
+    def test_rad2deg_180_deg_to_pi_rad(self):
+        self.assertEqual(180, rad2deg(math.pi))
+
+    def test_rad2deg_270_deg_to_pi_rad(self):
+        self.assertTrue(abs(270 - rad2deg(4.712389)) < MAX_DIFF)
+
+    def test_rad2deg_33_deg_to_pi_rad(self):
+        self.assertTrue(abs(33 -rad2deg(0.5759587)) < MAX_DIFF)
 
 if __name__ == '__main__':
     unittest.main()

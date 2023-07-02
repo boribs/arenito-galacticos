@@ -66,6 +66,12 @@ class Vec:
 
         return self / m
 
+def deg2rad(a: float) -> float:
+    return a * math.pi / 180
+
+def rad2deg(a: float) -> float:
+    return a * 180 / math.pi
+
 def calc_arenito_update(
         acc: Vec = Vec.zero(),
         vel: Vec = Vec.zero(),
