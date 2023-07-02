@@ -140,9 +140,7 @@ def arenito_basic_movement_from_motion(angle: float, vel_k: float):
         let expected_acc = Vec3::new{nacc};
         let expected_center = Vec3::new{ncen};
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);\n
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     ''')
 
 def random_basic_movement_from_motion(n: int):

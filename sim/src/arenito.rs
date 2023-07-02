@@ -331,6 +331,13 @@ mod arenito_tests {
         assert!((a.z - b.z).abs() < F32_DIFF, "z: {} != {}", a.z, b.z);
     }
 
+    /// Compares arenito's values with the provided ones.
+    fn cmp_arenito(arenito: &Arenito, vel: &Vec3, acc: &Vec3, cen: &Vec3) {
+        cmp_vec(arenito.vel, *vel);
+        cmp_vec(arenito.acc, *acc);
+        cmp_vec(arenito.center, *cen);
+    }
+
     #[test]
     fn flat_surface_arenito_doesnt_move_with_0_acceleration_and_velocity() {
         let mut arenito = Arenito::new();
@@ -361,9 +368,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(3.5, 0.0, 0.0);
         let expected_center = Vec3::new(0.001344, 0.5, 0.0);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -377,9 +382,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(2.47487, 0.0, 2.47487);
         let expected_center = Vec3::new(0.00095, 0.5, 0.00095);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -394,9 +397,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(0.0, 0.0, 3.5);
         let expected_center = Vec3::new(0.0, 0.5, 0.001344);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -410,9 +411,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-2.47487, 0.0, 2.47487);
         let expected_center = Vec3::new(-0.0009, 0.5, 0.0009);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -426,9 +425,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-3.5, 0.0, 0.0);
         let expected_center = Vec3::new(-0.001344, 0.5, 0.0);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -442,9 +439,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-2.47487, 0.0, -2.47487);
         let expected_center = Vec3::new(-0.0009, 0.5, -0.0009);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -458,9 +453,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(0.0, 0.0, -3.5);
         let expected_center = Vec3::new(0.0, 0.5, -0.001344);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -474,9 +467,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(2.47487, 0.0, -2.47487);
         let expected_center = Vec3::new(0.00095, 0.5, -0.00095);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -490,9 +481,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(3.47338, 0.0, 0.43080);
         let expected_center = Vec3::new(0.0013, 0.5, 0.00016);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -506,9 +495,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(3.25032, 0.0, 1.29822);
         let expected_center = Vec3::new(0.00124, 0.5, 0.00049);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -522,9 +509,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(0.14944, 0.0, -3.49680);
         let expected_center = Vec3::new(0.0, 0.5, -0.0013);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -538,9 +523,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(3.46229, 0.0, 0.51233);
         let expected_center = Vec3::new(0.00132, 0.5, 0.00019);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -554,9 +537,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(2.6468, 0.0, -2.29001);
         let expected_center = Vec3::new(0.001016, 0.5, -0.00087);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -570,9 +551,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-2.9637, 0.0, -1.8617);
         let expected_center = Vec3::new(-0.00113, 0.5, -0.00071);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -586,9 +565,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(0.58178, 0.0, -3.45130);
         let expected_center = Vec3::new(0.00022, 0.5, -0.00132);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -602,9 +579,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(0.58178, 0.0, -3.45130);
         let expected_center = Vec3::new(0.00022, 0.5, -0.00132);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -618,9 +593,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-0.29068, 0.0, 3.487908);
         let expected_center = Vec3::new(-0.00011, 0.5, 0.001339);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -634,9 +607,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(3.02817, 0.0, 1.75502);
         let expected_center = Vec3::new(0.00116, 0.5, 0.00067);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     // ------------------------------------------------------------
@@ -659,14 +630,11 @@ mod arenito_tests {
         let expected_acc = Vec3::new(3.5, 0.0, 0.0);
         let expected_center = Vec3::new(0.00507, 0.5, 0.0);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
     fn flat_surface_accelerating_positive_xz() {
-
         // no initial look angle since direction is in velocity.
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.84852, 0.0, 0.84852),
@@ -681,9 +649,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(2.47487, 0.0, 2.47487);
         let expected_center = Vec3::new(0.01452, 0.5, 0.01452);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -699,9 +665,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(0.0, 0.0, 3.5);
         let expected_center = Vec3::new(0.0, 0.5, 0.018144);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -717,9 +681,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-2.47487, 0.0, 2.47487);
         let expected_center = Vec3::new(-0.01486, 0.5, 0.01486);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -735,9 +697,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-3.5, 0.0, 0.0);
         let expected_center = Vec3::new(-0.02415728, 0.5, 0.0);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -753,9 +713,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-2.47487, 0.0, -2.47487);
         let expected_center = Vec3::new(-0.01708, 0.5, -0.01708);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -771,9 +729,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(0.0, 0.0, -3.5);
         let expected_center = Vec3::new(0.0, 0.5, -0.02134);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -789,9 +745,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(2.47487, 0.0, -2.47487);
         let expected_center = Vec3::new(0.015092, 0.5, -0.01509);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -807,9 +761,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(3.499884, 0.0, -0.02840);
         let expected_center = Vec3::new(0.027132, 0.5, -0.00022);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -825,9 +777,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(2.43693, 0.00000, 2.51224);
         let expected_center = Vec3::new(0.01240, 0.50000, 0.01278);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -843,9 +793,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-0.60194, 0.00000, -3.44785);
         let expected_center = Vec3::new(-0.00382, 0.50000, -0.02189);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -861,9 +809,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-2.48670, 0.00000, 2.46299);
         let expected_center = Vec3::new(-0.02283, 0.50000, 0.02262);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -879,9 +825,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-0.60450, 0.00000, -3.44740);
         let expected_center = Vec3::new(-0.00409, 0.50000, -0.02331);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -897,9 +841,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(2.86075, 0.00000, 2.01646);
         let expected_center = Vec3::new(0.01538, 0.50000, 0.01084);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -915,9 +857,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(1.39006, 0.00000, 3.21212);
         let expected_center = Vec3::new(0.01180, 0.50000, 0.02728);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -933,10 +873,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-1.88625, 0.00000, -2.94823);
         let expected_center = Vec3::new(-0.01719, 0.50000, -0.02686);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
-
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -952,9 +889,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-1.98247, 0.00000, -2.88441);
         let expected_center = Vec3::new(-0.01575, 0.50000, -0.02291);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     #[test]
@@ -970,9 +905,7 @@ mod arenito_tests {
         let expected_acc = Vec3::new(-1.15777, 0.00000, 3.30297);
         let expected_center = Vec3::new(-0.00820, 0.50000, 0.02339);
 
-        cmp_vec(arenito.vel, expected_vel);
-        cmp_vec(arenito.acc, expected_acc);
-        cmp_vec(arenito.center, expected_center);
+        cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
     // TODO: stopping tests
