@@ -51,9 +51,27 @@ impl Wire {
             w,
         ));
     }
+
+    pub fn spawn_unique<C>(
+        start: Vec3,
+        end: Vec3,
+        color: [f32; 3],
+        component: C,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) where
+        C: Component,
+    {
+        let w = Wire::new(start, end);
+        commands.spawn((
+            PbrBundle {
+                mesh: meshes.add(w.into()),
+                material: materials.add(Color::from(color).into()),
                 ..default()
             },
             w,
+            component,
         ));
     }
 }
