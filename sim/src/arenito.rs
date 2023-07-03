@@ -307,6 +307,7 @@ mod arenito_tests {
     // irregular_terrain_absolute_rest_arenito_inclines_to_left_on_right_hill
 
     use super::*;
+    use rand::{prelude::thread_rng, Rng};
     use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, PI};
 
     const F32_DIFF: f32 = 0.001;
@@ -357,6 +358,7 @@ mod arenito_tests {
     // ------------------------------------------------------------
     // The following tests are to test Arenito's movement a single
     // frame forward, from absolute rest on a flat surface.
+    // all of them assume FRIC_K = 0.5!!!
 
     #[test]
     fn flat_surface_absolute_rest_positive_x() {
@@ -908,6 +910,70 @@ mod arenito_tests {
         cmp_arenito(&arenito, &expected_vel, &expected_acc, &expected_center);
     }
 
-    // TODO: stopping tests
+    // ------------------------------------------------------------
+    // I've now deemed unnecessary to test movement on every direction
+    // since the tests above show that the robot does pretty much
+    // how I'd expect it to do on basically every direction.
+    // The following tests are for general movement behaviour:
+    // - stopping
+    // - limiting velocity
+    //
+    // Writing these tests I realized I may have messed up the physics
+    // a little: Arenito stops almost immediately after releasing the
+    // key, regardless of velocity
+    // Consider fixing stopping condition and testing "eventually it
+    // will come to a stop" (multiple update_pos() until it stops?).
+
+    #[test]
+    fn flat_surface_decelerating_positive_x() {
+        // Arenito should stop moving if it's acceleration is
+        // less than that of friction.
+        let mut arenito = Arenito::vel_acc(
+            Vec3::new(1.10000, 0.00000, 0.00000),
+            Vec3::new(0.47800, 0.00000, 0.00000),
+            Vec3::new(0.00000, 0.50000, 0.00000),
+        );
+        arenito.update_pos(16);
+
+        cmp_vec(arenito.vel, Vec3::ZERO);
+        cmp_vec(arenito.acc, Vec3::ZERO);
+        assert!(arenito.state == ArenitoState::STILL);
+    }
+
+    #[test]
+    fn flat_surface_decelerating_negative_z() {
+        let mut arenito = Arenito::vel_acc(
+            Vec3::new(0.0, 0.0, -1.10000),
+            Vec3::new(0.0, 0.0, -0.47800),
+            Vec3::new(0.0, 0.5, 0.00000),
+        );
+        arenito.update_pos(16);
+
+        cmp_vec(arenito.vel, Vec3::ZERO);
+        cmp_vec(arenito.acc, Vec3::ZERO);
+        assert!(arenito.state == ArenitoState::STILL);
+    }
+
+    #[test]
+    fn flat_surface_decelerating_random_look_angle() {
+        let mut rng = thread_rng();
+
+        for _ in 0..100 {
+            let (sin, cos) = rng.gen_range(-TAU..TAU).sin_cos();
+            let mut arenito = Arenito::vel_acc(
+                // whatever the direction may be, if acceleration
+                // is less than friction, Arenito should stop.
+                Vec3::new(cos, 0.0, sin) * rng.gen_range(0.0..FRIC_K),
+                Vec3::new(cos, 0.0, sin) * rng.gen_range(0.0..FRIC_K),
+                Vec3::new(0.0, 0.5, 0.0),
+            );
+            arenito.update_pos(16);
+
+            cmp_vec(arenito.vel, Vec3::ZERO);
+            cmp_vec(arenito.acc, Vec3::ZERO);
+            assert!(arenito.state == ArenitoState::STILL);
+        }
+    }
+
     // TODO: max vel tests
 }
