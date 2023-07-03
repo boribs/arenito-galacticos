@@ -20,8 +20,15 @@ impl Wire {
         Wire { start, end }
     }
 
-    pub fn point(&mut self, end: Vec3, mesh: &mut Mesh) {
+    pub fn set_start(&mut self, start: Vec3) {
+        self.start = start;
+    }
+
+    pub fn set_end(&mut self, end: Vec3) {
         self.end = end;
+    }
+
+    pub fn update(&self, mesh: &mut Mesh) {
         let points = vec![self.start, self.end];
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
     }
