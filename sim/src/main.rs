@@ -9,6 +9,12 @@ use arenito::*;
 use sensor::*;
 use wire::*;
 
+#[derive(Component)]
+struct VelWire;
+
+#[derive(Component)]
+struct AccWire;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -17,8 +23,30 @@ fn main() {
         .add_startup_system(setup)
         .add_startup_system(arenito_spawner)
         .add_system(arenito_mover)
+        .add_system(wire_mover)
         .add_system(sensor_reader)
         .run();
+}
+
+fn wire_mover(
+    arenito: ResMut<Arenito>,
+    mut vel_query: Query<(&mut Wire, &Handle<Mesh>, Without<AccWire>)>,
+    mut acc_query: Query<(&mut Wire, &Handle<Mesh>, With<AccWire>)>,
+    mut assets: ResMut<Assets<Mesh>>,
+) {
+    let mut vel = vel_query.single_mut();
+    let mut acc = acc_query.single_mut();
+
+    let vup = Vec3::new(0.0, 1.7, 0.0);
+    let aup = Vec3::new(0.0, 1.9, 0.0);
+
+    vel.0.set_start(arenito.center + vup);
+    vel.0.set_end(arenito.center + arenito.vel + vup);
+    vel.0.update(assets.get_mut(vel.1).unwrap());
+
+    acc.0.set_start(arenito.center + aup);
+    acc.0.set_end(arenito.center + arenito.acc + aup);
+    acc.0.update(assets.get_mut(acc.1).unwrap());
 }
 
 fn sensor_reader(arenito: Res<Arenito>) {
@@ -64,7 +92,6 @@ fn arenito_spawner(
     arenito.spawn(&mut commands, &mut materials, &asset_server);
 }
 
-/// set up a simple 3D scene
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -76,7 +103,25 @@ fn setup(
         ..default()
     });
 
-    // Wire::spawn(Vec3::ZERO, Vec3::ONE, &mut commands, &mut meshes, &mut materials);
+    Wire::spawn_unique(
+        Vec3::ZERO,
+        Vec3::ZERO,
+        [1.0, 1.0, 0.0],
+        VelWire,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
+
+    Wire::spawn_unique(
+        Vec3::ZERO,
+        Vec3::ZERO,
+        [1.0, 0.0, 0.0],
+        AccWire,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {
