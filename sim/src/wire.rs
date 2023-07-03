@@ -36,6 +36,7 @@ impl Wire {
     pub fn spawn(
         start: Vec3,
         end: Vec3,
+        color: [f32; 3],
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
@@ -44,7 +45,12 @@ impl Wire {
         commands.spawn((
             PbrBundle {
                 mesh: meshes.add(w.into()),
-                material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+                material: materials.add(Color::from(color).into()),
+                ..default()
+            },
+            w,
+        ));
+    }
                 ..default()
             },
             w,
