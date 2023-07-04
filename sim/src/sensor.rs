@@ -10,6 +10,7 @@ impl SensorError {
     const DEFAULT_MAX: f32 = 0.1;
 
     /// Returns a Vec3 with random values in the range min..max.
+    /// Every value in the vector is the same. Does this even matter?
     pub fn vec(min: f32, max: f32) -> Vec3 {
         Vec3::splat(thread_rng().gen_range(min..max))
     }
@@ -50,7 +51,7 @@ impl Sensor {
 }
 
 #[cfg(test)]
-mod tests {
+mod sensor_read_tests {
     use super::*;
 
     impl Arenito {
@@ -69,17 +70,20 @@ mod tests {
     }
 
     #[test]
-    fn sensor_reads_dont_go_to_negative_values() {
+    fn sensor_acc_reads_dont_go_to_negative_values() {
         let mut rng = thread_rng();
+        let mut arenito = Arenito::new();
 
         for _ in 0..100 {
-            let arenito = Arenito::acc(Vec3::new(
+            arenito.acc = Vec3::new(
                 rng.gen_range(-2.1..2.1),
                 rng.gen_range(-2.1..2.1),
                 rng.gen_range(-2.1..2.1),
-            ));
+            );
             let read = Sensor::read_acc(&arenito);
             within_value(&read);
         }
     }
 }
+
+// TODO: Implement Gyroscope
