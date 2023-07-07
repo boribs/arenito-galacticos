@@ -35,6 +35,10 @@ pub struct Arenito {
 }
 
 impl Arenito {
+    const ACCEL_SPEED: f32 = 4.0;
+    const ROT_SPEED: f32 = 1.5;
+    const MAX_VELOCITY: f32 = 3.0;
+
     /// Returns an empty, non-spawned Arenito.
     pub fn new() -> Self {
         Arenito {
@@ -194,7 +198,9 @@ impl Arenito {
 
         self.acc += fric; // Sum it because it's already inverted
         self.vel = (self.acc * delta) + self.vel;
-        // TODO: Cap top speed
+        if self.vel.length() > Arenito::MAX_VELOCITY {
+            self.vel = self.vel.normalize() * Arenito::MAX_VELOCITY;
+        }
 
         // If the force of friction is bigger than Arenito's forward acceleration
         // and the computation continues as is, Arenito will move backwards!
@@ -918,8 +924,6 @@ mod arenito_tests {
     // Writing these tests I realized I may have messed up the physics
     // a little: Arenito stops almost immediately after releasing the
     // key, regardless of velocity
-    // Consider fixing stopping condition and testing "eventually it
-    // will come to a stop" (multiple update_pos() until it stops?).
 
     #[test]
     fn flat_surface_decelerating_positive_x() {
