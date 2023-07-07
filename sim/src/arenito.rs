@@ -1,8 +1,5 @@
 use bevy::prelude::*;
 use std::f32::consts::TAU;
-
-const ACCEL_SPEED: f32 = 4.0;
-const ROT_SPEED: f32 = 1.5;
 const FRIC_K: f32 = 0.5;
 
 /// Component used as an identifier for the different
@@ -122,7 +119,7 @@ impl Arenito {
         }
 
         let (sin, cos) = self.look_angle.sin_cos();
-        self.acc = Vec3::new(cos, 0.0, sin) * ACCEL_SPEED;
+        self.acc = Vec3::new(cos, 0.0, sin) * Arenito::ACCEL_SPEED;
         self.state = ArenitoState::FORWARD;
     }
 
@@ -133,7 +130,7 @@ impl Arenito {
             return;
         }
 
-        self.acc = Vec3::ONE * ROT_SPEED;
+        self.acc = Vec3::ONE * Arenito::ROT_SPEED;
         self.state = dir;
     }
 
