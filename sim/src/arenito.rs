@@ -920,10 +920,6 @@ mod arenito_tests {
     // The following tests are for general movement behaviour:
     // - stopping
     // - limiting velocity
-    //
-    // Writing these tests I realized I may have messed up the physics
-    // a little: Arenito stops almost immediately after releasing the
-    // key, regardless of velocity
 
     #[test]
     fn flat_surface_decelerating_positive_x() {
@@ -976,5 +972,21 @@ mod arenito_tests {
         }
     }
 
-    // TODO: max vel tests
+    #[test]
+    fn flat_surface_arenito_reaches_max_vel() {
+        let mut rng = thread_rng();
+        for _ in 0..1 {
+            let (sin, cos) = rng.gen_range(-TAU..TAU).sin_cos();
+            let mut arenito = Arenito::vel_acc(
+                Vec3::new(cos, 0.0, sin) * rng.gen_range(3.0..10.0),
+                Vec3::ZERO,
+                Vec3::new(0.0, 0.5, 0.0),
+            );
+            arenito.forward();
+            arenito.update_pos(16);
+
+            assert!(arenito.vel.length() <= Arenito::MAX_VELOCITY);
+        }
+    }
+
 }
