@@ -31,9 +31,9 @@ impl SensorError {
 /// and a gyroscope.
 /// The outputs of this simulator are trying to be as similar as posible to this:
 /// (https://randomnerdtutorials.com/arduino-mpu-6050-accelerometer-gyroscope/)
-pub struct Sensor;
+pub struct MPU6050;
 
-impl Sensor {
+impl MPU6050 {
     // This is the upper bound for the accelerometer readings.
     // Depends entirely on the hardware.
     // Acceleration reads CAN NOT be higher than this.
@@ -53,7 +53,7 @@ impl Sensor {
 
         // interpolate each value between [0, 1024],
         // considering that Sensor::ACCELERATION_MAX maps to 1024.
-        acc.abs() * 1024.0 / Sensor::ACCELERATION_MAX
+        acc.abs() * 1024.0 / MPU6050::ACCELERATION_MAX
     }
 
     /// Gets Arenito's "real" rotational speed.
@@ -85,7 +85,7 @@ mod sensor_read_tests {
                 rng.gen_range(-2.1..2.1),
                 rng.gen_range(-2.1..2.1),
             );
-            let read = Sensor::read_acc(&arenito);
+            let read = MPU6050::read_acc(&arenito);
             acc_within_value(&read);
         }
     }

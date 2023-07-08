@@ -50,8 +50,8 @@ fn wire_mover(
 }
 
 fn sensor_reader(arenito: Res<Arenito>) {
-    let _accel_read = Sensor::read_acc(&arenito);
-    let _gyro_read = Sensor::read_rot(&arenito);
+    let _accel_read = MPU6050::read_acc(&arenito);
+    let _gyro_read = MPU6050::read_rot(&arenito);
     // use gyroscope and accelerometer to determine position
 }
 
@@ -80,7 +80,7 @@ fn arenito_mover(
     }
 
     arenito.update(time.delta().as_millis(), body_part_query);
-    println!("{}", arenito.log());
+    // println!("{}", arenito.log());
 }
 
 fn arenito_spawner(
