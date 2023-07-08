@@ -974,8 +974,13 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_arenito_reaches_max_vel() {
+        // sometimes the length of arenito's velocity will be something
+        // like 3.00000000001, which is really close to Arenito's current
+        // max velocity, but not quite it, which makes this test fail.
+        let max_vel = Arenito::MAX_VELOCITY + 0.00001;
+
         let mut rng = thread_rng();
-        for _ in 0..1 {
+        for _ in 0..100 {
             let (sin, cos) = rng.gen_range(-TAU..TAU).sin_cos();
             let mut arenito = Arenito::vel_acc(
                 Vec3::new(cos, 0.0, sin) * rng.gen_range(3.0..10.0),
@@ -985,8 +990,7 @@ mod arenito_tests {
             arenito.forward();
             arenito.update_pos(16);
 
-            assert!(arenito.vel.length() <= Arenito::MAX_VELOCITY);
+            assert!(arenito.vel.length() <= max_vel);
         }
     }
-
 }
