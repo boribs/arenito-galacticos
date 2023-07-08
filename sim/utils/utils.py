@@ -120,9 +120,9 @@ def random_angle_basic_movement_standstill(n: int):
     for a in random_angles(n):
         arenito_basic_movement_from_standstill_angle(a)
 
-def arenito_basic_movement_from_motion(angle: float, vel_k: float):
+def arenito_basic_movement_from_motion(angle: float, vel_k: float, acc_k: float):
     vel = Vec.from_angle(angle) * vel_k
-    acc = Vec.from_angle(angle) * 4
+    acc = Vec.from_angle(angle) * acc_k
     cen = Vec(0, 0.5, 0)
 
     _, nacc, nvel, ncen = calc_arenito_update(acc = acc, vel = vel, cen = cen)
@@ -145,7 +145,7 @@ def arenito_basic_movement_from_motion(angle: float, vel_k: float):
 
 def random_basic_movement_from_motion(n: int):
     for a in random_angles(n):
-        arenito_basic_movement_from_motion(a, 1 + random())
+        arenito_basic_movement_from_motion(a, random(), 0.4)
 
 if __name__ == '__main__':
     pass
