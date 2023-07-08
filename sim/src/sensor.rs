@@ -10,9 +10,13 @@ impl SensorError {
     const DEFAULT_MAX: f32 = 0.1;
 
     /// Returns a Vec3 with random values in the range min..max.
-    /// Every value in the vector is the same. Does this even matter?
     pub fn vec(min: f32, max: f32) -> Vec3 {
-        Vec3::splat(thread_rng().gen_range(min..max))
+        let mut rng = thread_rng();
+        Vec3::new(
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+        )
     }
 
     /// Returns the default (kinda like std::default::Default) vector
