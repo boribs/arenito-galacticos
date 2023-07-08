@@ -27,7 +27,10 @@ impl SensorError {
 }
 
 /// This struct is responsible for the simulations of all sensors related to Arenito.
-/// There's currently only an implementation for an Accelerometer. A Gyroscope is on the way.
+/// This sensor simulation is based on the MPU6050 Chip, which includes an acceleromter
+/// and a gyroscope.
+/// The outputs of this simulator are trying to be as similar as posible to this:
+/// (https://randomnerdtutorials.com/arduino-mpu-6050-accelerometer-gyroscope/)
 pub struct Sensor;
 
 impl Sensor {
@@ -51,6 +54,12 @@ impl Sensor {
         // interpolate each value between [0, 1024],
         // considering that Sensor::ACCELERATION_MAX maps to 1024.
         acc.abs() * 1024.0 / Sensor::ACCELERATION_MAX
+    }
+
+    /// Gets Arenito's "real" rotational speed.
+    /// The real accelerometer already outputs values in rad/s.
+    pub fn read_rot(arenito: &Arenito) -> Vec3 {
+        arenito.rot + SensorError::default() * 2.0
     }
 }
 
@@ -80,6 +89,6 @@ mod sensor_read_tests {
             acc_within_value(&read);
         }
     }
-}
 
-// TODO: Implement Gyroscope
+    // No idea how to or what to test for gyro reads...
+}

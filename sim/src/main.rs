@@ -51,7 +51,7 @@ fn wire_mover(
 
 fn sensor_reader(arenito: Res<Arenito>) {
     let _accel_read = Sensor::read_acc(&arenito);
-    // missing implementation of gyroscope
+    let _gyro_read = Sensor::read_rot(&arenito);
     // use gyroscope and accelerometer to determine position
 }
 
