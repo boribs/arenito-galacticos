@@ -58,15 +58,7 @@ impl Sensor {
 mod sensor_read_tests {
     use super::*;
 
-    impl Arenito {
-        pub fn acc(vec: Vec3) -> Self {
-            let mut a = Arenito::new();
-            a.acc = vec;
-            a
-        }
-    }
-
-    fn within_value(vec: &Vec3) {
+    fn acc_within_value(vec: &Vec3) {
         // println!("{}", vec);
         assert!(vec.x >= 0.0 && vec.x <= 1024.0);
         assert!(vec.y >= 0.0 && vec.y <= 1024.0);
@@ -85,7 +77,7 @@ mod sensor_read_tests {
                 rng.gen_range(-2.1..2.1),
             );
             let read = Sensor::read_acc(&arenito);
-            within_value(&read);
+            acc_within_value(&read);
         }
     }
 }
