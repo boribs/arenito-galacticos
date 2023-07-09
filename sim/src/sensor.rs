@@ -37,7 +37,7 @@ impl MPU6050 {
     // This is the upper bound for the accelerometer readings.
     // Depends entirely on the hardware.
     // Acceleration reads CAN NOT be higher than this.
-    const ACCELERATION_MAX: f32 = 9.8; // 1g!
+    pub const ACCELERATION_MAX: f32 = 9.8; // 1g!
 
     /// Gets Arenito's "real" acceleration and converts it
     /// to something the real accelerometer would return:
