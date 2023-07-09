@@ -3,14 +3,22 @@
     Las detecciones pueden ser cilíndricas, triangulares o rectangulares?
 
 ☐ Mejorar detección de obstáculos
-    Probar bien sensores ultrasónicos
+    Probar bien sensores ultrasónicos.
     Intentar con sensores digitales infrarrojos amarillos (de los que
-    nos prestaron los amigos de Jalisco)
+    nos prestaron los amigos de Jalisco).
 
 ☐ Mejorar rutina de giro
     Cuando no sabe a dónde ir, checar hacia qué dirección hay más agua
-    y girar al otro lado. Lo mismo con los obstáculos
+    y girar al otro lado. Lo mismo con los obstáculos.
 
 ☐ Noción de espacialidad
     El robot sabrá dónde está él y las cosas que busca, relativo a
-    su posición inicial (0, 0)
+    su posición inicial (0, 0).
+    Con esto podría hacer una ruta desde su posición hasta el
+    depósito de latas, esquivando obstáculos.
+
+☐ Velocímetro
+    Alguna forma de determinar la velocidad actual del robot.
+
+☐ Detección de atascamiento
+    Poder detectar cuando el robot se quede atorado.

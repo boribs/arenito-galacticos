@@ -24,4 +24,5 @@ Simluación de movimiento:
     ☐ Rotación del robot según la posición de las llantas respecto a la arena
 
 Simulación de sensores:
-    ☐ Determinar cómo calcular
+    ✔ Determinar movimiento según lectura de sensores (terreno plano) @done(23-07-09 16:26)
+    ☐ Determinar movimiento según lectura de sensores (terreno no uniforme)
