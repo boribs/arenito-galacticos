@@ -40,28 +40,34 @@ fn wire_mover(
         match w.2 {
             WireComponent::ACCELERATOIN => {acc = Some(w)},
             WireComponent::VELOCITY => {vel = Some(w)},
-            _ => {}
+            WireComponent::ROTATION => {rot = Some(w)},
         }
     }
 
     let mut vel = vel.unwrap();
     let mut acc = acc.unwrap();
+    let mut rot = rot.unwrap();
 
+    let rup = Vec3::new(0.0, 1.6, 0.0);
     let vup = Vec3::new(0.0, 1.7, 0.0);
-    let aup = Vec3::new(0.0, 1.9, 0.0);
+    let aup = Vec3::new(0.0, 1.8, 0.0);
 
     vel.0.set_start(arenito.center + vup);
     vel.0.set_end(arenito.center + arenito.vel + vup);
-    vel.0.update(assets.get_mut(vel.1).unwrap());
+    vel.0.update(meshes.get_mut(vel.1).unwrap());
 
     acc.0.set_start(arenito.center + aup);
     acc.0.set_end(arenito.center + arenito.acc + aup);
     acc.0.update(meshes.get_mut(acc.1).unwrap());
 
-fn sensor_reader(arenito: Res<Arenito>) {
-    let _accel_read = MPU6050::read_acc(&arenito);
-    let _gyro_read = MPU6050::read_rot(&arenito);
-    // use gyroscope and accelerometer to determine position
+    let r = MPU6050::read_rot(&arenito);
+    // let r = arenito.rot;
+    let rvec = Vec3::new(r.y.cos(), 0.0, r.y.sin());
+    rot.0.set_start(arenito.center + rup);
+    rot.0.set_end(arenito.center + rvec + rup);
+    rot.0.update(meshes.get_mut(rot.1).unwrap());
+}
+
 }
 
 fn arenito_mover(
