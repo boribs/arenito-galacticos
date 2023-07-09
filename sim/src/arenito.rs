@@ -146,7 +146,7 @@ impl Arenito {
         commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        body_part_query: &Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
+        body_part_query: &Query<(&mut Transform, &BodyPart, Entity)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
         self.acc = Vec3::ZERO;
@@ -176,7 +176,7 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
-        body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
+        body_part_query: Query<(&mut Transform, &BodyPart, Entity)>,
     ) {
         let vec = self.update_pos(delta_ms);
         self.update_model(vec, body_part_query);
@@ -239,7 +239,7 @@ impl Arenito {
     fn update_model(
         &self,
         vec: (Vec3, f32),
-        mut body_part_query: Query<(&mut Transform, &BodyPart, Entity, With<BodyPart>)>,
+        mut body_part_query: Query<(&mut Transform, &BodyPart, Entity)>,
     ) {
         // Saving different body parts to their own variable.
         // Each body part behaves differently.
