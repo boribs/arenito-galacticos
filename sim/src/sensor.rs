@@ -56,8 +56,11 @@ impl MPU6050 {
         acc.abs() * 1024.0 / MPU6050::ACCELERATION_MAX
     }
 
-    /// Gets Arenito's "real" rotational speed.
-    /// The real accelerometer already outputs values in rad/s.
+    /// Gets Arenito's "real" rotation.
+    /// Technically the sensor outputs rotational speed, but I'm
+    /// too lazy to simulate that.
+    /// This implementation skips all the math needed to convert
+    /// from rotational speed to "current rotation" altogether.
     pub fn read_rot(arenito: &Arenito) -> Vec3 {
         arenito.rot + SensorError::default() * 2.0
     }
