@@ -10,10 +10,10 @@ use sensor::*;
 use wire::*;
 
 #[derive(Component)]
-struct VelWire;
-
-#[derive(Component)]
-struct AccWire;
+enum WireComponent {
+    VELOCITY,
+    ACCELERATOIN,
+}
 
 fn main() {
     App::new()
@@ -30,12 +30,22 @@ fn main() {
 
 fn wire_mover(
     arenito: ResMut<Arenito>,
-    mut vel_query: Query<(&mut Wire, &Handle<Mesh>, Without<AccWire>)>,
-    mut acc_query: Query<(&mut Wire, &Handle<Mesh>, With<AccWire>)>,
+    mut wire: Query<(&mut Wire, &Handle<Mesh>, &WireComponent)>,
     mut assets: ResMut<Assets<Mesh>>,
 ) {
-    let mut vel = vel_query.single_mut();
-    let mut acc = acc_query.single_mut();
+    let mut vel: Option<(Mut<'_, Wire>, &Handle<Mesh>, &WireComponent)> = None;
+    let mut acc: Option<(Mut<'_, Wire>, &Handle<Mesh>, &WireComponent)> = None;
+
+    for w in &mut wire {
+        match w.2 {
+            WireComponent::ACCELERATOIN => {acc = Some(w)},
+            WireComponent::VELOCITY => {vel = Some(w)},
+            _ => {}
+        }
+    }
+
+    let mut vel = vel.unwrap();
+    let mut acc = acc.unwrap();
 
     let vup = Vec3::new(0.0, 1.7, 0.0);
     let aup = Vec3::new(0.0, 1.9, 0.0);
@@ -107,7 +117,7 @@ fn setup(
         Vec3::ZERO,
         Vec3::ZERO,
         [1.0, 1.0, 0.0],
-        VelWire,
+        WireComponent::VELOCITY,
         &mut commands,
         &mut meshes,
         &mut materials,
@@ -117,7 +127,7 @@ fn setup(
         Vec3::ZERO,
         Vec3::ZERO,
         [1.0, 0.0, 0.0],
-        AccWire,
+        WireComponent::ACCELERATOIN,
         &mut commands,
         &mut meshes,
         &mut materials,
