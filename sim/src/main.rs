@@ -31,7 +31,7 @@ fn main() {
 fn wire_mover(
     arenito: ResMut<Arenito>,
     mut wire: Query<(&mut Wire, &Handle<Mesh>, &WireComponent)>,
-    mut assets: ResMut<Assets<Mesh>>,
+    mut meshes: ResMut<Assets<Mesh>>,
 ) {
     let mut vel: Option<(Mut<'_, Wire>, &Handle<Mesh>, &WireComponent)> = None;
     let mut acc: Option<(Mut<'_, Wire>, &Handle<Mesh>, &WireComponent)> = None;
@@ -56,8 +56,7 @@ fn wire_mover(
 
     acc.0.set_start(arenito.center + aup);
     acc.0.set_end(arenito.center + arenito.acc + aup);
-    acc.0.update(assets.get_mut(acc.1).unwrap());
-}
+    acc.0.update(meshes.get_mut(acc.1).unwrap());
 
 fn sensor_reader(arenito: Res<Arenito>) {
     let _accel_read = MPU6050::read_acc(&arenito);
