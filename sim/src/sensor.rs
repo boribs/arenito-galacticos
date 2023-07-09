@@ -6,8 +6,8 @@ use rand::{prelude::thread_rng, Rng};
 /// Since this is a needed step on simulating sensors.
 struct SensorError;
 impl SensorError {
-    const DEFAULT_MIN: f32 = -0.1;
-    const DEFAULT_MAX: f32 = 0.1;
+    const DEFAULT_MIN: f32 = -0.05;
+    const DEFAULT_MAX: f32 = 0.05;
 
     /// Returns a Vec3 with random values in the range min..max.
     pub fn vec(min: f32, max: f32) -> Vec3 {
@@ -62,7 +62,7 @@ impl MPU6050 {
     /// This implementation skips all the math needed to convert
     /// from rotational speed to "current rotation" altogether.
     pub fn read_rot(arenito: &Arenito) -> Vec3 {
-        arenito.rot + SensorError::default() * 2.0
+        arenito.rot + SensorError::default()
     }
 }
 
