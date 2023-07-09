@@ -53,7 +53,7 @@ impl MPU6050 {
 
         // interpolate each value between [0, 1024],
         // considering that Sensor::ACCELERATION_MAX maps to 1024.
-        acc.abs() * 1024.0 / MPU6050::ACCELERATION_MAX
+        (acc.abs() * 1024.0 / MPU6050::ACCELERATION_MAX).ceil()
     }
 
     /// Gets Arenito's "real" rotation.
