@@ -37,7 +37,7 @@ pub struct Arenito {
 impl Arenito {
     const ACCEL_SPEED: f32 = 4.0;
     const ROT_SPEED: f32 = 1.5;
-    const MAX_VELOCITY: f32 = 3.0;
+    pub const MAX_VELOCITY: f32 = 3.0;
 
     /// Returns an empty, non-spawned Arenito.
     pub fn new() -> Self {

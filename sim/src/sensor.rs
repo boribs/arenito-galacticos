@@ -2,6 +2,26 @@ use crate::arenito::*;
 use bevy::prelude::*;
 use rand::{prelude::thread_rng, Rng};
 
+/// This struct is used when calculating how much Arenito has moved
+/// since the last frame, as a means of storing some values needed
+/// for the calculation.
+#[derive(Resource)]
+pub struct CalculatedMovement {
+    pub acc: Vec3,
+    pub vel: Vec3,
+    pub pos: Vec3,
+}
+
+impl CalculatedMovement {
+    pub fn new() -> Self {
+        CalculatedMovement {
+            acc: Vec3::ZERO,
+            vel: Vec3::ZERO,
+            pos: Vec3::new(0.0, 2.0, 0.0),
+        }
+    }
+}
+
 /// This struct's purpose is to generalize "Error Vector" generation.
 /// Since this is a needed step on simulating sensors.
 struct SensorError;
