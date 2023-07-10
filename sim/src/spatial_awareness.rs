@@ -1,7 +1,7 @@
-use bevy::prelude::*;
+use crate::arenito::*;
 use crate::sensor::MPU6050;
 use crate::wire::*;
-use crate::arenito::*;
+use bevy::prelude::*;
 
 /// This struct is used when calculating how much Arenito has moved
 /// since the last frame, as a means of storing some values needed
@@ -26,10 +26,12 @@ impl CalculatedMovement {
 pub fn path_finder(
     time: Res<Time>,
     arenito: Res<Arenito>,
+    mut wirepath: ResMut<WirePath>,
     mut prev: ResMut<CalculatedMovement>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    segment_query: Query<(&mut Wire, &WirePathSegment, Entity, &Handle<Mesh>)>,
 ) {
     if arenito.state != ArenitoState::FORWARD {
         // not moving or movement not relevant,
@@ -37,6 +39,11 @@ pub fn path_finder(
         prev.vel = Vec3::ZERO;
         prev.acc = Vec3::ZERO;
         return;
+    }
+
+    // Previously stopped, safe to assume new direction.
+    if prev.vel == Vec3::ZERO {
+        wirepath.append_segment(prev.pos, &mut commands, &mut meshes, &mut materials);
     }
 
     let accel = MPU6050::read_acc(&arenito);
@@ -61,18 +68,13 @@ pub fn path_finder(
     if vel.length() > Arenito::MAX_VELOCITY {
         vel = vel.normalize() * Arenito::MAX_VELOCITY;
     }
+
     // calculate current position
     let d = (vel * t) + (0.5 * acc * t * t);
     let pos = prev.pos + d;
-    // spawn wire
-    Wire::spawn(
-        prev.pos,
-        pos,
-        [1.0, 0.1, 1.0],
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-    );
+
+    // update current path segment
+    wirepath.update_last(pos, &mut meshes, segment_query);
 
     // update previous values
     prev.acc = acc;

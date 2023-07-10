@@ -1,15 +1,14 @@
 pub mod arenito;
 pub mod sensor;
-pub mod wire;
 pub mod spatial_awareness;
+pub mod wire;
 
 use bevy::prelude::*;
 use bevy_obj::*;
 
 use arenito::*;
-use sensor::*;
-use wire::*;
 use spatial_awareness as sa;
+use wire::*;
 
 #[derive(Component)]
 enum WireComponent {
@@ -24,6 +23,7 @@ fn main() {
         .add_plugin(ObjPlugin)
         .insert_resource(Arenito::new())
         .insert_resource(sa::CalculatedMovement::new())
+        .insert_resource(WirePath::new([1.0, 1.0, 1.0]))
         .add_startup_system(setup)
         .add_startup_system(arenito_spawner)
         .add_system(arenito_mover)
@@ -65,8 +65,8 @@ fn wire_mover(
     acc.0.set_end(arenito.center + arenito.acc + aup);
     acc.0.update(meshes.get_mut(acc.1).unwrap());
 
-    let r = MPU6050::read_rot(&arenito);
-    // let r = arenito.rot;
+    // let r = MPU6050::read_rot(&arenito);
+    let r = arenito.rot;
     let rvec = Vec3::new(r.y.cos(), 0.0, r.y.sin());
     rot.0.set_start(arenito.center + rup);
     rot.0.set_end(arenito.center + rvec + rup);
@@ -104,10 +104,19 @@ fn arenito_mover(
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
+    mut wirepath: ResMut<WirePath>,
 ) {
     arenito.spawn(&mut commands, &mut materials, &asset_server);
+    wirepath.init_path(
+        Vec3::new(0.0, 2.0, 0.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
 }
 
 fn setup(
@@ -162,8 +171,7 @@ fn setup(
     });
     // camera
     commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.1, 12.0, 0.0)
-            .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+        transform: Transform::from_xyz(8.1, 4.0, 0.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
         ..default()
     });
 }
