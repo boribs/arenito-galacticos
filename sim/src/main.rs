@@ -1,6 +1,7 @@
 pub mod arenito;
 pub mod sensor;
 pub mod wire;
+pub mod spatial_awareness;
 
 use bevy::prelude::*;
 use bevy_obj::*;
@@ -8,6 +9,7 @@ use bevy_obj::*;
 use arenito::*;
 use sensor::*;
 use wire::*;
+use spatial_awareness as sa;
 
 #[derive(Component)]
 enum WireComponent {
@@ -21,12 +23,12 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(ObjPlugin)
         .insert_resource(Arenito::new())
-        .insert_resource(CalculatedMovement::new())
+        .insert_resource(sa::CalculatedMovement::new())
         .add_startup_system(setup)
         .add_startup_system(arenito_spawner)
         .add_system(arenito_mover)
         .add_system(wire_mover)
-        .add_system(sensor_reader)
+        .add_system(sa::path_finder)
         .run();
 }
 
@@ -69,63 +71,6 @@ fn wire_mover(
     rot.0.set_start(arenito.center + rup);
     rot.0.set_end(arenito.center + rvec + rup);
     rot.0.update(meshes.get_mut(rot.1).unwrap());
-}
-
-fn sensor_reader(
-    time: Res<Time>,
-    arenito: Res<Arenito>,
-    mut prev: ResMut<CalculatedMovement>,
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    if arenito.state != ArenitoState::FORWARD {
-        // not moving or movement not relevant,
-        // velocity and acceleration are 0.
-        prev.vel = Vec3::ZERO;
-        prev.acc = Vec3::ZERO;
-        return;
-    }
-
-    let accel = MPU6050::read_acc(&arenito);
-    let gyro = MPU6050::read_rot(&arenito);
-
-    // Previous movement values are stored in CalculatedMovement resource.
-    // Initially, thay're set to 0. That is, Arenito initially is not moving.
-
-    // Since the accelerometer only outputs ranges between 0 and 1024 a conversion
-    // is needed to get the "real" acceleration direction vector.
-    // This vector assumes a flat surface!
-    // TODO: Direction vector for uneven surface.
-    let acc = accel / 1024.0 * MPU6050::ACCELERATION_MAX;
-    let acc = Vec3::new(gyro.y.cos(), 0.0, gyro.y.sin()) * acc.length();
-
-    // get time `t` since last call (in seconds)
-    let t = time.delta().as_millis() as f32 / 1000.0;
-
-    // calculate current velocity
-    // the real one won't need to calculate it, It'll have a velocimeter
-    let mut vel = (acc * t) + prev.vel;
-    if vel.length() > Arenito::MAX_VELOCITY {
-        vel = vel.normalize() * Arenito::MAX_VELOCITY;
-    }
-    // calculate current position
-    let d = (vel * t) + (0.5 * acc * t * t);
-    let pos = prev.pos + d;
-    // spawn wire
-    Wire::spawn(
-        prev.pos,
-        pos,
-        [1.0, 0.1, 1.0],
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-    );
-
-    // update previous values
-    prev.acc = acc;
-    prev.vel = vel;
-    prev.pos = pos;
 }
 
 fn arenito_mover(
