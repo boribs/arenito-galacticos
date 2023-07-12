@@ -1,14 +1,14 @@
 Ambiente gráfico:
-    ###############################################
-    # Panel A              # Panel B              #
-    #                      #                      #
-    #                      #                      #
-    #  Simulación bonita   #   Mapeo del camino   #
-    #  e interactiva:      #   recorrido e info   #
-    #  ajuste de sensores, # recordada (barreras, #
-    #   latas y depósito   #   agua, depósito)    #
-    #                      #                      #
-    ###############################################
+    ####################### ########################
+    # Panel A             # # Panel B              #
+    #                     # #                      #
+    #                     # #                      #
+    #  Simulación bonita  # #   Mapeo del camino   #
+    #  e interactiva:     # #   recorrido e info   #
+    #  ajuste de sensores,# # recordada (barreras, #
+    #   latas y depósito  # #   agua, depósito)    #
+    #                     # #                      #
+    ####################### ########################
 
     ✔ Visualización del mapa y del Arenito @done(23-06-21 18:48)
         El mapa consiste de una superficie no uniforme (arena)
@@ -26,3 +26,8 @@ Simluación de movimiento:
 Simulación de sensores:
     ✔ Determinar movimiento según lectura de sensores (terreno plano) @done(23-07-09 16:26)
     ☐ Determinar movimiento según lectura de sensores (terreno no uniforme)
+    ☐ Sensor de proximidad
+    ☐ Detector de colores (cámara)
+
+Noción de obstáculos:
+    ☐ Determinar posiciones de obstáculos
