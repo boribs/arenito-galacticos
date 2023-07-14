@@ -74,7 +74,6 @@ pub fn path_finder(
     // Since the accelerometer only outputs ranges between 0 and 1024 a conversion
     // is needed to get the "real" acceleration direction vector.
     // This vector assumes a flat surface!
-    // TODO: Direction vector for uneven surface.
     let acc = accel / 1024.0 * MPU6050::ACCELERATION_MAX;
     let acc = Vec3::from_gyro(&gyro) * acc.length();
 
