@@ -3,6 +3,25 @@ use crate::sensor::MPU6050;
 use crate::wire::*;
 use bevy::prelude::*;
 
+/// This trait aims to unify the calculation of a direction vector from
+/// the output of MPU6050's gyroscope.
+/// Tailored specifically for this simulator's application it's assumed
+/// that the X+ axis points (initially) forwards and it controls the roll
+/// of Arenito.
+///
+/// To determine the direction only the yaw and the pitch are considered.
+/// That means that the y (yaw) and z (pitch) components of the gyro values
+/// are used.
+pub trait FromGyro {
+    fn from_gyro(gyro: &Vec3) -> Vec3;
+}
+
+impl FromGyro for Vec3 {
+    fn from_gyro(gyro: &Vec3) -> Vec3 {
+        Vec3::new(gyro.y.cos(), gyro.z.sin(), gyro.y.sin())
+    }
+}
+
 /// This struct is used when calculating how much Arenito has moved
 /// since the last frame, as a means of storing some values needed
 /// for the calculation.
@@ -57,7 +76,7 @@ pub fn path_finder(
     // This vector assumes a flat surface!
     // TODO: Direction vector for uneven surface.
     let acc = accel / 1024.0 * MPU6050::ACCELERATION_MAX;
-    let acc = Vec3::new(gyro.y.cos(), 0.0, gyro.y.sin()) * acc.length();
+    let acc = Vec3::from_gyro(&gyro) * acc.length();
 
     // get time `t` since last call (in seconds)
     let t = time.delta().as_millis() as f32 / 1000.0;

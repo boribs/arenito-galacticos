@@ -65,7 +65,6 @@ impl Wire {
     }
 
     /// Spawns a Wire on a given position with another component.
-    /// TODO: Macro this to allow n components
     pub fn spawn_unique<C>(
         start: Vec3,
         end: Vec3,

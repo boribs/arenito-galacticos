@@ -8,6 +8,7 @@ use bevy_obj::*;
 
 use arenito::*;
 use spatial_awareness as sa;
+use spatial_awareness::FromGyro;
 use wire::*;
 
 #[derive(Component)]
@@ -65,9 +66,9 @@ fn wire_mover(
     acc.0.set_end(arenito.center + arenito.acc + aup);
     acc.0.update(meshes.get_mut(acc.1).unwrap());
 
-    // let r = MPU6050::read_rot(&arenito);
+    // let r = sensor::MPU6050::read_rot(&arenito);
     let r = arenito.rot;
-    let rvec = Vec3::new(r.y.cos(), 0.0, r.y.sin());
+    let rvec = Vec3::from_gyro(&r);
     rot.0.set_start(arenito.center + rup);
     rot.0.set_end(arenito.center + rvec + rup);
     rot.0.update(meshes.get_mut(rot.1).unwrap());
