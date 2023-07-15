@@ -17,6 +17,7 @@ pub trait FromGyro {
 }
 
 impl FromGyro for Vec3 {
+    /// Creates a unit vector from a rotation vector.
     fn from_gyro(gyro: &Vec3) -> Vec3 {
         Vec3::new(gyro.y.cos(), gyro.z.sin(), gyro.y.sin())
     }
@@ -33,6 +34,7 @@ pub struct CalculatedMovement {
 }
 
 impl CalculatedMovement {
+    /// Creates a new CalculatedMovement instance set to the default values.
     pub fn new() -> Self {
         CalculatedMovement {
             acc: Vec3::ZERO,
@@ -42,6 +44,13 @@ impl CalculatedMovement {
     }
 }
 
+/// Routine to determine the path Arenito has taken.
+/// This also creates wires that represent tis path.
+///
+/// This path prediction works by reading the outputs from the
+/// MPU6050 sensor and calculating how much the robot has moved
+/// (and where) based on previous movement values, remembered by
+/// the CalculatedMovement resource.
 pub fn path_finder(
     time: Res<Time>,
     arenito: Res<Arenito>,
