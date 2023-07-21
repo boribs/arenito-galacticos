@@ -72,6 +72,27 @@ def deg2rad(a: float) -> float:
 def rad2deg(a: float) -> float:
     return a * 180 / math.pi
 
+def pcimk(n: float, k: int) -> int:
+    """
+    Returns the `P`revious `C`losest `I`nteger, `M`ultiple of `K`.\n
+    Returns `n` if already multiple of `k`.
+    """
+
+    return n - (n % k)
+
+def ncimk(n: float, k: int) -> int:
+    """
+    Returns the `N`ext `C`losest `I`nteger, `M`ultiple of `K`.
+    """
+
+    m = (n % k)
+    # If this behaviour is desired `test_ncimk_negative_multiple_returns_same_number`
+    # enable these lines
+    # if m == 0:
+    #     return n
+
+    return n + (k - m)
+
 def calc_arenito_update(
         acc: Vec = Vec.zero(),
         vel: Vec = Vec.zero(),

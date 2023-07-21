@@ -1,4 +1,4 @@
-from utils import Vec, deg2rad, rad2deg
+from utils import Vec, deg2rad, rad2deg, pcimk, ncimk
 import unittest
 import math
 
@@ -88,6 +88,60 @@ class UtilsTest(unittest.TestCase):
 
     def test_rad2deg_33_deg_to_pi_rad(self):
         self.assertTrue(abs(33 -rad2deg(0.5759587)) < MAX_DIFF)
+
+class PreviousClosestIntegerMultipleOfKTests(unittest.TestCase):
+    def test_pcimk_positive_1(self):
+        self.assertEqual(pcimk(5, 2), 4)
+
+    def test_pcimk_positive_2(self):
+        self.assertEqual(pcimk(1, 2), 0)
+
+    def test_pcimk_positive_3(self):
+        self.assertEqual(pcimk(5, 3), 3)
+
+    def test_pcimk_positive_4(self):
+        self.assertEqual(pcimk(9, 3), 9)
+
+    def test_pcimk_negative_1(self):
+        self.assertEqual(pcimk(-1, 2), -2)
+
+    def test_pcimk_negative_2(self):
+        self.assertEqual(pcimk(-2, 2), -2)
+
+    def test_pcimk_negative_3(self):
+        self.assertEqual(pcimk(-1, 3), -3)
+
+    def test_pcimk_negative_4(self):
+        self.assertEqual(pcimk(-5, 3), -6)
+
+class NextClosestIntegerMultipleOfKTests(unittest.TestCase):
+    def test_ncimk_positive_1(self):
+        self.assertEqual(ncimk(1, 3), 3)
+
+    def test_ncimk_positive_2(self):
+        self.assertEqual(ncimk(5, 4), 8)
+
+    def test_ncimk_positive_3(self):
+        self.assertEqual(ncimk(3, 2), 4)
+
+    def test_ncimk_positive_4(self):
+        self.assertEqual(ncimk(2, 4), 4)
+
+    def test_ncimk_negative_1(self):
+        self.assertEqual(ncimk(-2, 4), 0)
+
+    def test_ncimk_negative_2(self):
+        self.assertEqual(ncimk(-3, 2), -2)
+
+    def test_ncimk_negative_3(self):
+        self.assertEqual(ncimk(-1, 2), 0)
+
+    def test_ncimk_negative_4(self):
+        self.assertEqual(ncimk(-5, 4), -4)
+
+    @unittest.skip('I\'m not sure I want this')
+    def test_ncimk_negative_multiple_returns_same_number(self):
+        self.assertEqual(ncimk(-2, 2), -2)
 
 if __name__ == '__main__':
     unittest.main()
