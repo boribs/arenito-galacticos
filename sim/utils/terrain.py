@@ -1,4 +1,4 @@
-from utils import Vec, pcimk, ncimk
+from autils import *
 from math import ceil, floor
 import unittest
 

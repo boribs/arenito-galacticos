@@ -1,4 +1,4 @@
-from utils import Vec, deg2rad, rad2deg, pcimk, ncimk
+from autils import *
 import unittest
 import math
 
