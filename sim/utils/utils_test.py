@@ -4,7 +4,7 @@ import math
 
 MAX_DIFF = 0.0001
 
-class UtilsTest(unittest.TestCase):
+class VectorTests(unittest.TestCase):
     def test_simple_vector_creation(self):
         vec = Vec(1, 1, 1)
 
@@ -65,6 +65,7 @@ class UtilsTest(unittest.TestCase):
         vec = Vec.from_angle(math.pi / 3)
         self.assertAlmostEqual(vec.z, Vec(0.5, 0, math.sin(math.pi / 3)).z)
 
+class RadianAndDegreeConversionTests(unittest.TestCase):
     def test_deg2rad_zero(self):
         self.assertEqual(0, deg2rad(0))
 
