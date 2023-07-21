@@ -29,5 +29,7 @@ Simulación de sensores:
     ☐ Sensor de proximidad
     ☐ Detector de colores (cámara)
 
-Noción de obstáculos:
+Noción espacial:
     ☐ Determinar posiciones de obstáculos
+    ☐ Determinar posición de depósito de latas
+    ☐ Determinar áreas sin explorar (Roombizar!)
