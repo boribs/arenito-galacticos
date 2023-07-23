@@ -362,5 +362,29 @@ class NNSTests(unittest.TestCase):
             (2, 0, 2)
         )
 
+    def test_nns_6(self):
+        point = (7, 0, 5)
+        vertices = from_2d_to_3d([
+            (2, 2), (4, 4), (3, 5), (7, 2),
+            (8, 5), (9, 6), (11, 4), (11, 1),
+        ])
+
+        self.assertEqual(
+            nns(point, vertices),
+            (8, 0, 5)
+        )
+
+    def test_nns_7(self):
+        point = (2, 0, 3)
+        vertices = from_2d_to_3d([
+            (2, 2), (4, 4), (3, 5), (7, 2),
+            (8, 5), (9, 6), (11, 4), (11, 1),
+        ])
+
+        self.assertEqual(
+            nns(point, vertices),
+            (2, 0, 2)
+        )
+
 if __name__ == '__main__':
     unittest.main()
