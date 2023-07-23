@@ -83,7 +83,7 @@ def _cut_lt(lim: float, i: int, valid_nodes: list[tuple]):
             valid_nodes.remove(v)
             # print(f'removing: {v}')
 
-def cut(
+def cut_vertices(
         point: tuple[float],
         axis: int,
         node: Node,
@@ -134,7 +134,7 @@ def cut(
 
     # now cut in the other axis
     # print('x:', valid_nodes)
-    cut(point, 2 if axis == 0 else 0, node.child, vertices, valid_nodes)
+    cut_vertices(point, 2 if axis == 0 else 0, node.child, vertices, valid_nodes)
 
 def dist(a: tuple[float], b: tuple[float]) -> float:
     """
@@ -158,7 +158,7 @@ def nns(point: tuple[float], vertices: list[tuple]) -> tuple[float]:
 
     valid_nodes = vertices.copy()
     # start cutting nodes
-    cut(point, 0, root, vertices, valid_nodes)
+    cut_vertices(point, 0, root, vertices, valid_nodes)
 
     indexes = [-1, -1]
     node = root
