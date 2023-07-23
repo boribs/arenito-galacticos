@@ -101,6 +101,8 @@ def cut_vertices(
 
     The results are a tree with the closest nodes to `point` and (maybe) another
     vertex on `valid_vertices`.
+
+    `vertices` is the list of all avaliable vertices on a given chunk.
     """
 
     assert axis == 0 or axis == 2, 'Axis must be either 0 or 2.'
