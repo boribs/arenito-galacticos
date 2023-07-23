@@ -59,28 +59,28 @@ class Node:
         self.index = index
         self.child = None
 
-def _cut_gt(lim: float, i: int, valid_nodes: list[tuple]):
+def _cut_gt(lim: float, i: int, valid_vertices: list[tuple]):
     """
     Removes vertices with `i` positions greater than the limit.
     """
 
     # print(f'gt: {i}')
 
-    for v in valid_nodes.copy():
+    for v in valid_vertices.copy():
         if v[i] > lim:
-            valid_nodes.remove(v)
+            valid_vertices.remove(v)
             # print(f'removing: {v}')
 
-def _cut_lt(lim: float, i: int, valid_nodes: list[tuple]):
+def _cut_lt(lim: float, i: int, valid_vertices: list[tuple]):
     """
     Removes vertices with `i` positions lower than the limit.
     """
 
     # print(f'lt: {i}')
 
-    for v in valid_nodes.copy():
+    for v in valid_vertices.copy():
         if v[i] < lim:
-            valid_nodes.remove(v)
+            valid_vertices.remove(v)
             # print(f'removing: {v}')
 
 def cut_vertices(
@@ -88,11 +88,11 @@ def cut_vertices(
         axis: int,
         node: Node,
         vertices: list[tuple],
-        valid_nodes: list[tuple]
+        valid_vertices: list[tuple]
     ):
 
     """
-    Discards (removes) nodes from `valid_nodes`, considering some axis. Then calls
+    Discards (removes) nodes from `valid_vertices`, considering some axis. Then calls
     itself again with the other valid axis.
 
     Valid axis are:
@@ -100,7 +100,7 @@ def cut_vertices(
     * 2 => z
 
     The results are a tree with the closest nodes to `point` and (maybe) another
-    vertex on `valid_nodes`.
+    vertex on `valid_vertices`.
     """
 
     assert axis == 0 or axis == 2, 'Axis must be either 0 or 2.'
@@ -109,32 +109,32 @@ def cut_vertices(
     lim = vertices[node.index][axis]
 
     # remove this (pivot) point from avaliable nodes
-    valid_nodes.remove(vertices[node.index])
+    valid_vertices.remove(vertices[node.index])
 
     # print('x lim:', lim)
 
-    if len(valid_nodes) <= 1:
+    if len(valid_vertices) <= 1:
         return
 
     # if the point is to the right/over of the limit
     if point[axis] > lim:
         # remove every point to the left/under of the limit
-        _cut_lt(lim, axis, valid_nodes)
+        _cut_lt(lim, axis, valid_vertices)
     else:
         # remove every point to the right/over (or on the same
         # line) the limit
-        _cut_gt(lim, axis, valid_nodes)
+        _cut_gt(lim, axis, valid_vertices)
 
     # select next node
-    if len(valid_nodes) <= 2:
+    if len(valid_vertices) <= 2:
         return
 
     # extend tree, get next pivot
-    node.child = Node(vertices.index(valid_nodes[0]))
+    node.child = Node(vertices.index(valid_vertices[0]))
 
     # now cut in the other axis
-    # print('x:', valid_nodes)
-    cut_vertices(point, 2 if axis == 0 else 0, node.child, vertices, valid_nodes)
+    # print('x:', valid_vertices)
+    cut_vertices(point, 2 if axis == 0 else 0, node.child, vertices, valid_vertices)
 
 def dist(a: tuple[float], b: tuple[float]) -> float:
     """
@@ -156,9 +156,9 @@ def nns(point: tuple[float], vertices: list[tuple]) -> tuple[float]:
     root = Node(0) # The first node is not always the best option
                    # but it'll do.
 
-    valid_nodes = vertices.copy()
+    valid_vertices = vertices.copy()
     # start cutting nodes
-    cut_vertices(point, 0, root, vertices, valid_nodes)
+    cut_vertices(point, 0, root, vertices, valid_vertices)
 
     indexes = [-1, -1]
     node = root
@@ -171,8 +171,8 @@ def nns(point: tuple[float], vertices: list[tuple]) -> tuple[float]:
         # advance node
         node = node.child
 
-    if valid_nodes:
-        indexes.append(vertices.index(valid_nodes[0]))
+    if valid_vertices:
+        indexes.append(vertices.index(valid_vertices[0]))
 
     # compute distances
     distances = [
