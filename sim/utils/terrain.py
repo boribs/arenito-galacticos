@@ -83,25 +83,30 @@ def _cut_lt(lim: float, i: int, valid_nodes: list[tuple]):
             valid_nodes.remove(v)
             # print(f'removing: {v}')
 
-def cut_x(
+def cut(
         point: tuple[float],
+        axis: int,
         node: Node,
         vertices: list[tuple],
         valid_nodes: list[tuple]
     ):
 
     """
-    Adds nodes to `node`, expanding the tree. Deletes `valid_nodes` values in the process.
+    Discards (removes) nodes from `valid_nodes`, considering some axis. Then calls
+    itself again with the other valid axis.
 
-    This function is used specifically for cutting nodes considering some
-    `x` component.
+    Valid axis are:
+    * 0 => x
+    * 2 => z
 
-    It also calls `cut_z`, creating a recursive chain. The results are a tree with the closest
-    nodes to `point` and (maybe) another vertex on `valid_nodes`.
+    The results are a tree with the closest nodes to `point` and (maybe) another
+    vertex on `valid_nodes`.
     """
 
+    assert axis == 0 or axis == 2, 'Axis must be either 0 or 2.'
+
     # limit area considering node.index
-    lim = vertices[node.index][0]
+    lim = vertices[node.index][axis]
 
     # remove this (pivot) point from avaliable nodes
     valid_nodes.remove(vertices[node.index])
@@ -111,14 +116,14 @@ def cut_x(
     if len(valid_nodes) <= 1:
         return
 
-    # if the point is to the right of the limit
-    if point[0] > lim:
-        # remove every point to the left of the limit
-        _cut_lt(lim, 0, valid_nodes)
+    # if the point is to the right/over of the limit
+    if point[axis] > lim:
+        # remove every point to the left/under of the limit
+        _cut_lt(lim, axis, valid_nodes)
     else:
-        # remove every point to the right (or on the same
-        # line) as the limit
-        _cut_gt(lim, 0, valid_nodes)
+        # remove every point to the right/over (or on the same
+        # line) the limit
+        _cut_gt(lim, axis, valid_nodes)
 
     # select next node
     if len(valid_nodes) <= 2:
@@ -129,47 +134,7 @@ def cut_x(
 
     # now cut in the other axis
     # print('x:', valid_nodes)
-    cut_z(point, node.child, vertices, valid_nodes)
-
-def cut_z(
-        point: tuple[float],
-        node: Node,
-        vertices: list[tuple],
-        valid_nodes: list[tuple]
-    ):
-
-    """
-    Adds nodes to `node`, expanding the tree. Deletes `valid_nodes` values in the process.
-
-    This function is used specifically for cutting nodes considering some
-    `z` component.
-
-    It also calls `cut_x`, creating a recursive chain. The results are a tree with the closest
-    nodes to `point` and (maybe) another vertex on `valid_nodes`.
-    """
-
-    # This ons is exactly the same as cut_x, but with other index.
-    # I should use just one function...
-
-    lim = vertices[node.index][2]
-    valid_nodes.remove(vertices[node.index])
-
-    # print('z lim:', lim)
-
-    if len(valid_nodes) <= 1:
-        return
-
-    if point[2] > lim:
-        _cut_lt(lim, 2, valid_nodes)
-    else:
-        _cut_gt(lim, 2, valid_nodes)
-
-    if len(valid_nodes) <= 2:
-        return
-
-    node.child = Node(vertices.index(valid_nodes[0]))
-    # print('z:', valid_nodes)
-    cut_x(point, node.child, vertices, valid_nodes)
+    cut(point, 2 if axis == 0 else 0, node.child, vertices, valid_nodes)
 
 def dist(a: tuple[float], b: tuple[float]) -> float:
     """
@@ -193,7 +158,7 @@ def nns(point: tuple[float], vertices: list[tuple]) -> tuple[float]:
 
     valid_nodes = vertices.copy()
     # start cutting nodes
-    cut_x(point, root, vertices, valid_nodes)
+    cut(point, 0, root, vertices, valid_nodes)
 
     indexes = [-1, -1]
     node = root
