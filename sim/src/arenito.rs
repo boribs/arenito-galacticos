@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use std::f32::consts::TAU;
+
 const FRIC_K: f32 = 0.5;
 
 /// Component used as an identifier for the different
