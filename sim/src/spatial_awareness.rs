@@ -1,7 +1,47 @@
 use crate::arenito::*;
+use crate::arenito_plugin::ArenitoPlugin;
 use crate::sensor::MPU6050;
 use crate::wire::*;
 use bevy::prelude::*;
+
+/// A plugin for Arenito's Spatial Awareness systems.
+/// This plugin adds:
+/// - Wire Path resource
+/// - Calculated Movement resource
+/// - Path Finder system
+pub struct SpatialAwarenessPlugin;
+
+impl Plugin for SpatialAwarenessPlugin {
+    fn build(&self, app: &mut App) {
+        if !app.is_plugin_added::<ArenitoPlugin>() {
+            panic!("This plugin requires ArenitoPlugin!");
+        }
+
+        // resources
+        app.insert_resource(CalculatedMovement::new())
+            .insert_resource(WirePath::new([1.0, 1.0, 1.0]));
+        // startup systems
+        app.add_startup_system(wirepath_init);
+        // systems
+        app.add_system(path_finder);
+    }
+}
+
+/// Initializes a new path. This is required in order to start adding path segments.
+fn wirepath_init(
+    mut wirepath: ResMut<WirePath>,
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    wirepath.init_path(
+        Vec3::new(0.0, 2.0, 0.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
+}
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.

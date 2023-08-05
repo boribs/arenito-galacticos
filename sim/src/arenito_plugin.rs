@@ -1,5 +1,4 @@
 use crate::arenito::*;
-use crate::spatial_awareness as sa;
 use crate::spatial_awareness::FromGyro;
 use crate::wire::*;
 use bevy::prelude::*;
@@ -10,12 +9,9 @@ use bevy_obj::*;
 ///
 /// This plugin adds:
 /// - Arenito resource
-/// - WirePath resource
-/// - Calculated Movement resource
 /// - Arenito spawner startup system
-/// - Arenito wires startup system
+/// - Arenito's wires startup system
 /// - Arenito mover system
-/// - Path finder system
 ///
 /// *It also requires that `ObjPlugin` is added.
 pub struct ArenitoPlugin;
@@ -27,15 +23,11 @@ impl Plugin for ArenitoPlugin {
         }
 
         // resources
-        app.insert_resource(Arenito::new())
-            .insert_resource(sa::CalculatedMovement::new())
-            .insert_resource(WirePath::new([1.0, 1.0, 1.0]));
+        app.insert_resource(Arenito::new());
         // startup systems
         app.add_startup_system(arenito_spawner);
         // systems
-        app.add_system(arenito_mover)
-            .add_system(wire_mover)
-            .add_system(sa::path_finder);
+        app.add_system(arenito_mover).add_system(wire_mover);
     }
 }
 
@@ -54,16 +46,8 @@ fn arenito_spawner(
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
-    mut wirepath: ResMut<WirePath>,
 ) {
     arenito.spawn(&mut commands, &mut materials, &asset_server);
-    wirepath.init_path(
-        Vec3::new(0.0, 2.0, 0.0),
-        Vec3::new(0.0, 2.0, 0.0),
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-    );
 
     Wire::spawn_unique(
         Vec3::ZERO,
