@@ -11,7 +11,7 @@ use spatial_awareness::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(ArenitoPlugin)
+        .add_plugin(ArenitoPlugin { show_wires: false })
         .add_plugin(SpatialAwarenessPlugin)
         .add_startup_system(setup)
         .run();

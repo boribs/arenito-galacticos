@@ -14,7 +14,9 @@ use bevy_obj::*;
 /// - Arenito mover system
 ///
 /// *It also requires that `ObjPlugin` is added.
-pub struct ArenitoPlugin;
+pub struct ArenitoPlugin {
+    pub show_wires: bool,
+}
 
 impl Plugin for ArenitoPlugin {
     fn build(&self, app: &mut App) {
@@ -22,12 +24,17 @@ impl Plugin for ArenitoPlugin {
             app.add_plugin(ObjPlugin);
         }
 
+        // indicator wires
+        if self.show_wires {
+            app.add_startup_system(wire_spawner).add_system(wire_mover);
+        }
+
         // resources
         app.insert_resource(Arenito::new());
         // startup systems
         app.add_startup_system(arenito_spawner);
         // systems
-        app.add_system(arenito_mover).add_system(wire_mover);
+        app.add_system(arenito_mover);
     }
 }
 
@@ -39,16 +46,12 @@ enum WireComponent {
     ROTATION,
 }
 
-/// Adds Arenito and the "indication wires" to the scene.
-fn arenito_spawner(
+/// Adds Arenito's indicator wires to the scene.
+fn wire_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    asset_server: Res<AssetServer>,
-    arenito: Res<Arenito>,
 ) {
-    arenito.spawn(&mut commands, &mut materials, &asset_server);
-
     Wire::spawn_unique(
         Vec3::ZERO,
         Vec3::ZERO,
@@ -78,6 +81,16 @@ fn arenito_spawner(
         &mut meshes,
         &mut materials,
     );
+}
+
+/// Adds Arenito to the scene.
+fn arenito_spawner(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+    arenito: Res<Arenito>,
+) {
+    arenito.spawn(&mut commands, &mut materials, &asset_server);
 }
 
 /// Moves the wires that indicate direction, speed and acceleration.
