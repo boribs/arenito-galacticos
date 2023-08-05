@@ -6,12 +6,10 @@ pub mod wire;
 
 use arenito_plugin::*;
 use bevy::prelude::*;
-use bevy_obj::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(ObjPlugin)
         .add_plugin(ArenitoPlugin)
         .add_startup_system(setup)
         .run();

@@ -3,6 +3,7 @@ use crate::spatial_awareness as sa;
 use crate::spatial_awareness::FromGyro;
 use crate::wire::*;
 use bevy::prelude::*;
+use bevy_obj::*;
 
 /// A plugin for adding Arenito (the 3D robot) to
 /// the app. This is to help declutter `main.rs`.
@@ -21,6 +22,10 @@ pub struct ArenitoPlugin;
 
 impl Plugin for ArenitoPlugin {
     fn build(&self, app: &mut App) {
+        if !app.is_plugin_added::<ObjPlugin>() {
+            app.add_plugin(ObjPlugin);
+        }
+
         // resources
         app.insert_resource(Arenito::new())
             .insert_resource(sa::CalculatedMovement::new())
