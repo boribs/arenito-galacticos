@@ -34,6 +34,7 @@ impl Plugin for ArenitoPlugin {
     }
 }
 
+/// Indication Wire components, for querying them.
 #[derive(Component)]
 enum WireComponent {
     VELOCITY,
@@ -41,6 +42,7 @@ enum WireComponent {
     ROTATION,
 }
 
+/// Adds Arenito and the "indication wires" to the scene.
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -89,6 +91,7 @@ fn arenito_spawner(
     );
 }
 
+/// Moves the wires that indicate direction, speed and acceleration.
 fn wire_mover(
     arenito: ResMut<Arenito>,
     mut wire: Query<(&mut Wire, &Handle<Mesh>, &WireComponent)>,
@@ -130,6 +133,7 @@ fn wire_mover(
     rot.0.update(meshes.get_mut(rot.1).unwrap());
 }
 
+/// Reads user input and makes Arenito move.
 fn arenito_mover(
     time: Res<Time>,
     mut commands: Commands,
