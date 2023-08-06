@@ -1,10 +1,9 @@
 pub mod arenito;
-pub mod arenito_plugin;
 pub mod sensor;
 pub mod spatial_awareness;
 pub mod wire;
 
-use arenito_plugin::*;
+use arenito::ArenitoPlugin;
 use bevy::prelude::*;
 use spatial_awareness::*;
 

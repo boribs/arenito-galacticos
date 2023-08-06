@@ -1,5 +1,4 @@
 use crate::arenito::*;
-use crate::arenito_plugin::ArenitoPlugin;
 use crate::sensor::MPU6050;
 use crate::wire::*;
 use bevy::prelude::*;
