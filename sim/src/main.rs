@@ -4,8 +4,17 @@ pub mod spatial_awareness;
 pub mod wire;
 
 use arenito::ArenitoPlugin;
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    core_pipeline::clear_color::ClearColorConfig,
+    render::camera::Viewport, window::WindowResized
+};
 use spatial_awareness::*;
+
+#[derive(Component)]
+pub struct SceneCamera;
+#[derive(Component)]
+pub struct DataCamera;
 
 fn main() {
     App::new()
@@ -13,6 +22,7 @@ fn main() {
         .add_plugin(ArenitoPlugin { show_wires: false })
         .add_plugin(SpatialAwarenessPlugin)
         .add_startup_system(setup)
+        .add_system(set_camera_viewports)
         .run();
 }
 
@@ -37,8 +47,67 @@ fn setup(
         ..default()
     });
 
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(8.1, 4.0, 0.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-        ..default()
-    });
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(8.1, 4.0, 0.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            ..default()
+        },
+        SceneCamera
+    ));
+
+    commands.spawn((
+        Camera2dBundle {
+            camera: Camera {
+                order: 1,
+                ..default()
+            },
+            camera_2d: Camera2d {
+                clear_color: ClearColorConfig::None,
+                ..default()
+            },
+            ..default()
+        },
+        DataCamera
+    ));
+}
+
+/// Dynamically resizes viewport widths according to window size.
+/// This needs to be done every frame.
+fn set_camera_viewports(
+    windows: Query<&Window>,
+    mut resize_events: EventReader<WindowResized>,
+    mut left_camera: Query<&mut Camera, (With<SceneCamera>, Without<DataCamera>)>,
+    mut right_camera: Query<&mut Camera, With<DataCamera>>,
+) {
+    // We need to dynamically resize the camera's viewports whenever the window size changes
+    // so then each camera always takes up half the screen.
+    // A resize_event is sent when the window is first created, allowing us to reuse this
+    // system for initial setup.
+    // https://github.com/bevyengine/bevy/blob/main/examples/2d/2d_shapes.rs
+    // https://github.com/bevyengine/bevy/blob/main/examples/3d/split_screen.rs
+    for resize_event in resize_events.iter() {
+        let window = windows.get(resize_event.window).unwrap();
+        let lw = 3 * window.resolution.physical_width() / 5;
+        let rw = window.resolution.physical_width() - lw;
+
+        let mut left_camera = left_camera.single_mut();
+        left_camera.viewport = Some(Viewport {
+            physical_position: UVec2::new(0, 0),
+            physical_size: UVec2::new(
+                lw,
+                window.resolution.physical_height(),
+            ),
+            ..default()
+        });
+
+        let mut right_camera = right_camera.single_mut();
+        right_camera.viewport = Some(Viewport {
+            physical_position: UVec2::new(rw, 0),
+            physical_size: UVec2::new(
+                rw,
+                window.resolution.physical_height(),
+            ),
+            ..default()
+        });
+    }
 }
