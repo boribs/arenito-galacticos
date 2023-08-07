@@ -138,3 +138,6 @@ dmypy.json
 .DS_Store
 
 log.txt
+
+# PDFs
+/pdf
