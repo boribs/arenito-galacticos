@@ -45,7 +45,7 @@ impl Wire {
     }
 
     /// Spawns a Wire on a given position.
-    pub fn spawn(
+    pub fn spawn3d(
         start: Vec3,
         end: Vec3,
         color: [f32; 3],
@@ -65,7 +65,7 @@ impl Wire {
     }
 
     /// Spawns a Wire on a given position with another component.
-    pub fn spawn_unique<C>(
+    pub fn spawn3d_unique<C>(
         start: Vec3,
         end: Vec3,
         color: [f32; 3],
@@ -143,7 +143,7 @@ impl WirePath {
             panic!("This method must be called only once!");
         }
 
-        Wire::spawn_unique(
+        Wire::spawn3d_unique(
             start,
             end,
             self.color,
@@ -169,7 +169,7 @@ impl WirePath {
             panic!("Must initialize a path before adding segments!");
         }
 
-        Wire::spawn_unique(
+        Wire::spawn3d_unique(
             self.last_segment_end,
             end,
             self.color,
