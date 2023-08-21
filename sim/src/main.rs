@@ -50,6 +50,14 @@ fn setup(
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(8.1, 4.0, 0.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            camera: Camera {
+                order: 1,
+                ..default()
+            },
+            camera_3d: Camera3d {
+                clear_color: ClearColorConfig::None,
+                ..default()
+            },
             ..default()
         },
         SceneCamera
@@ -57,14 +65,6 @@ fn setup(
 
     commands.spawn((
         Camera2dBundle {
-            camera: Camera {
-                order: 1,
-                ..default()
-            },
-            camera_2d: Camera2d {
-                clear_color: ClearColorConfig::None,
-                ..default()
-            },
             ..default()
         },
         DataCamera
