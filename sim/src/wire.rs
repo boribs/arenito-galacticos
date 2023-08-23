@@ -104,7 +104,9 @@ impl From<Wire> for Mesh {
 }
 
 #[derive(Component)]
-pub struct WirePathSegment(u32);
+pub struct WirePathSegmentLast;
+#[derive(Component)]
+pub struct WirePathSegmentSecondLast;
 
 // TODO: Create WirePathSegmentLast and WirePathSegmentSecondLast
 //       components to track path.
