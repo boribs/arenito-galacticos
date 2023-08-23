@@ -44,28 +44,8 @@ impl Wire {
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
     }
 
-    /// Spawns a Wire on a given position.
-    pub fn spawn3d(
-        start: Vec3,
-        end: Vec3,
-        color: [f32; 3],
-        commands: &mut Commands,
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
-    ) {
-        let w = Wire::new(start, end);
-        commands.spawn((
-            PbrBundle {
-                mesh: meshes.add(w.into()),
-                material: materials.add(Color::from(color).into()),
-                ..default()
-            },
-            w,
-        ));
-    }
-
     /// Spawns a Wire on a given position with another component.
-    pub fn spawn3d_unique<C>(
+    pub fn spawn3d<C>(
         start: Vec3,
         end: Vec3,
         color: [f32; 3],
@@ -108,6 +88,14 @@ impl From<Wire> for Mesh {
 #[derive(Component)]
 pub struct WirePathSegment(u32);
 
+// TODO: Create WirePathSegmentLast and WirePathSegmentSecondLast
+//       components to track path.
+// TODO: When spawning wires, use Wire::get_bundle to (manually)
+//       spawn wires, then add components.
+// TODO: Use World::query to query second last path segment,
+//       remove component. Then add second last to last and
+//       last to the newest.
+
 /// This struct is used to connect multiple wires to form a path.
 /// It's intended use is to display the path Arenito travels.
 #[derive(Resource)]
@@ -143,7 +131,7 @@ impl WirePath {
             panic!("This method must be called only once!");
         }
 
-        Wire::spawn3d_unique(
+        Wire::spawn3d(
             start,
             end,
             self.color,
@@ -169,7 +157,7 @@ impl WirePath {
             panic!("Must initialize a path before adding segments!");
         }
 
-        Wire::spawn3d_unique(
+        Wire::spawn3d(
             self.last_segment_end,
             end,
             self.color,

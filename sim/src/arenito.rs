@@ -56,7 +56,7 @@ fn wire_spawner(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    Wire::spawn3d_unique(
+    Wire::spawn3d(
         Vec3::ZERO,
         Vec3::ZERO,
         [1.0, 1.0, 0.0],
@@ -66,7 +66,7 @@ fn wire_spawner(
         &mut materials,
     );
 
-    Wire::spawn3d_unique(
+    Wire::spawn3d(
         Vec3::ZERO,
         Vec3::ZERO,
         [1.0, 0.0, 0.0],
@@ -76,7 +76,7 @@ fn wire_spawner(
         &mut materials,
     );
 
-    Wire::spawn3d_unique(
+    Wire::spawn3d(
         Vec3::ZERO,
         Vec3::ZERO,
         [0.0, 0.0, 1.0],
