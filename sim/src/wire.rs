@@ -67,6 +67,24 @@ impl Wire {
             component,
         ));
     }
+
+    fn get_bundle(
+        start: Vec3,
+        end: Vec3,
+        color: [f32; 3],
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) -> (PbrBundle, Wire) {
+        let w = Wire::new(start, end);
+        (
+            PbrBundle {
+                mesh: meshes.add(w.into()),
+                material: materials.add(Color::from(color).into()),
+                ..default()
+            },
+            w
+        )
+    }
 }
 
 impl From<Wire> for Mesh {
