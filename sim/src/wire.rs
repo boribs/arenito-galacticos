@@ -119,17 +119,19 @@ pub struct WirePathSegmentSecondLast;
 /// This struct is used to connect multiple wires to form a path.
 /// It's intended use is to display the path Arenito travels.
 #[derive(Resource)]
-pub struct WirePath {
+pub struct WirePath<C: Component + Copy> {
+    pub path_id: C,
     pub segments: u32,
     pub color: [f32; 3],
     last_segment_end: Vec3,
 }
 
-impl WirePath {
+impl<C> WirePath<C> where C: Component + Copy {
     /// Creates a new WirePath instance. This will be used to control the path.
     /// A path is created with new_segment
-    pub fn new(color: [f32; 3]) -> Self {
+    pub fn new(color: [f32; 3], path_id: C) -> Self {
         WirePath {
+            path_id,
             segments: 0,
             color,
             last_segment_end: Vec3::ZERO,
@@ -151,15 +153,10 @@ impl WirePath {
             panic!("This method must be called only once!");
         }
 
-        Wire::spawn3d(
-            start,
-            end,
-            self.color,
-            WirePathSegment(0),
-            commands,
-            meshes,
-            materials,
-        );
+        let b = Wire::get_bundle(start, end, self.color, meshes, materials);
+        let mut h = commands.spawn(b);
+        h.insert(self.path_id);
+        h.insert(WirePathSegmentLast);
 
         self.segments = 1;
         self.last_segment_end = end;
