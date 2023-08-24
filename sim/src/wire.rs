@@ -85,14 +85,15 @@ impl From<Wire> for Mesh {
     }
 }
 
-
-// TODO: Don't use wires for WirePath, instead modify it's mesh.
-
 /// This struct is to (visually) describe paths!
+/// It's made of lines described in `WirePath::points`, where the first
+/// point is the beginning, the second is the end of the first segment
+/// and the beginning of the second, the third point is the end
+/// of the second segment and so on.
 #[derive(Component)]
 pub struct WirePath {
     pub color: [f32; 3],
-    pub segments: Vec<Vec3>,
+    pub points: Vec<Vec3>,
 }
 
 impl WirePath {
@@ -101,7 +102,7 @@ impl WirePath {
     pub fn new(color: [f32; 3]) -> Self {
         WirePath {
             color,
-            segments: Vec::new(),
+            points: Vec::new(),
         }
     }
 
@@ -113,12 +114,12 @@ impl WirePath {
         start: Vec3,
         end: Vec3,
     ) {
-        if !self.segments.is_empty() {
+        if !self.points.is_empty() {
             panic!("This method must be called only once!");
         }
 
-        self.segments.push(start);
-        self.segments.push(end);
+        self.points.push(start);
+        self.points.push(end);
     }
 
     /// Adds a new end point to the wire.
@@ -126,35 +127,35 @@ impl WirePath {
         &mut self,
         end: Vec3,
     ) {
-        if self.segments.is_empty() {
+        if self.points.is_empty() {
             panic!("Must initialize a path before adding segments!");
         }
 
-        self.segments.push(end);
+        self.points.push(end);
     }
 
     /// Deletes the last path segment.
     pub fn delete_last(
         &mut self,
     ) {
-        if self.segments.len() < 3 { // check this!
+        if self.points.len() < 3 { // check this!
             return;
         }
 
-        self.segments.pop();
+        self.points.pop();
     }
 
-    /// Updates the end position of the last path segment.
+    /// Updates the end position of the last segment.
     pub fn move_last(
         &mut self,
         end: Vec3,
     ) {
-        if self.segments.is_empty() {
+        if self.points.is_empty() {
             panic!("No segments in path!");
         }
 
-        let i = self.segments.len() - 1;
-        self.segments[i] = end;
+        let i = self.points.len() - 1;
+        self.points[i] = end;
     }
 
     /// Removes every point from it's segments array.
@@ -162,13 +163,13 @@ impl WirePath {
     pub fn reset(
         &mut self,
     ) {
-        self.segments.clear();
+        self.points.clear();
     }
 
     /// Updates the mesh.
     /// Call this after setting segments.
     pub fn update(&self, mesh: &mut Mesh) {
-        let points = self.segments.clone();
+        let points = self.points.clone();
         let normals = vec![[1.0, 1.0, 1.0]; points.len()];
         let uvs = vec![[1.0, 1.0]; points.len()];
 
@@ -177,7 +178,8 @@ impl WirePath {
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
     }
 
-    /// Spawns the wire path on a given position, with just one segment.
+    /// Spawns the wire path on a given position and
+    /// initializes it with just one segment.
     pub fn spawn3d(
         start: Vec3,
         end: Vec3,
@@ -202,7 +204,7 @@ impl WirePath {
     }
 
     fn get_mesh(&self) -> Mesh {
-        let positions = self.segments.clone();
+        let positions = self.points.clone();
         let normals = vec![[1.0, 1.0, 1.0]; 2];
         let uvs = vec![[1.0, 1.0]; 2];
 
