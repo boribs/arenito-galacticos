@@ -153,7 +153,8 @@ impl WirePath {
             panic!("No segments in path!");
         }
 
-        self.segments[self.segments.len() - 1] = end;
+        let i = self.segments.len() - 1;
+        self.segments[i] = end;
     }
 
     /// Removes every point from it's segments array.
