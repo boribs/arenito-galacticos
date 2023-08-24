@@ -67,24 +67,6 @@ impl Wire {
             component,
         ));
     }
-
-    fn get_bundle(
-        start: Vec3,
-        end: Vec3,
-        color: [f32; 3],
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
-    ) -> (PbrBundle, Wire) {
-        let w = Wire::new(start, end);
-        (
-            PbrBundle {
-                mesh: meshes.add(w.into()),
-                material: materials.add(Color::from(color).into()),
-                ..default()
-            },
-            w
-        )
-    }
 }
 
 impl From<Wire> for Mesh {
@@ -103,27 +85,16 @@ impl From<Wire> for Mesh {
     }
 }
 
-#[derive(Component)]
-pub struct WirePathSegmentLast;
-#[derive(Component)]
-pub struct WirePathSegmentSecondLast;
 
-// TODO: Create WirePathSegmentLast and WirePathSegmentSecondLast
-//       components to track path.
-// TODO: When spawning wires, use Wire::get_bundle to (manually)
-//       spawn wires, then add components.
-// TODO: Use World::query to query second last path segment,
-//       remove component. Then add second last to last and
-//       last to the newest.
+// TODO: Don't use wires for WirePath, instead modify it's mesh.
 
 /// This struct is used to connect multiple wires to form a path.
 /// It's intended use is to display the path Arenito travels.
 #[derive(Resource)]
 pub struct WirePath<C: Component + Copy> {
     pub path_id: C,
-    pub segments: u32,
+    pub segments: Vec<Vec3>,
     pub color: [f32; 3],
-    last_segment_end: Vec3,
 }
 
 impl<C> WirePath<C> where C: Component + Copy {
@@ -132,9 +103,8 @@ impl<C> WirePath<C> where C: Component + Copy {
     pub fn new(color: [f32; 3], path_id: C) -> Self {
         WirePath {
             path_id,
-            segments: 0,
+            segments: Vec::new(),
             color,
-            last_segment_end: Vec3::ZERO,
         }
     }
 
@@ -149,17 +119,11 @@ impl<C> WirePath<C> where C: Component + Copy {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
     ) {
-        if self.segments != 0 {
+        if !self.segments.is_empty() {
             panic!("This method must be called only once!");
         }
 
-        let b = Wire::get_bundle(start, end, self.color, meshes, materials);
-        let mut h = commands.spawn(b);
-        h.insert(self.path_id);
-        h.insert(WirePathSegmentLast);
-
-        self.segments = 1;
-        self.last_segment_end = end;
+        // do something
     }
 
     /// Spawns a new wire from the end position of the last path segment.
@@ -170,43 +134,22 @@ impl<C> WirePath<C> where C: Component + Copy {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
     ) {
-        if self.segments == 0 {
+        if self.segments.is_empty() {
             panic!("Must initialize a path before adding segments!");
         }
 
-        Wire::spawn3d(
-            self.last_segment_end,
-            end,
-            self.color,
-            WirePathSegment(self.segments),
-            commands,
-            meshes,
-            materials,
-        );
 
-        self.segments += 1;
-        self.last_segment_end = end;
     }
 
     /// Deletes the last path segment.
     pub fn delete_last(
         &mut self,
         commands: &mut Commands,
-        segment_query: Query<(&mut Wire, &WirePathSegment, Entity, &Handle<Mesh>)>,
     ) {
-        if self.segments == 0 {
+        if self.segments.is_empty() {
             return;
         }
 
-        // find the last segment...
-        for segment in &segment_query {
-            if segment.1 .0 == self.segments - 1 {
-                commands.entity(segment.2).despawn();
-                break;
-            }
-        }
-
-        self.segments -= 1;
     }
 
     /// Updates the end position of the last path segment.
@@ -214,21 +157,10 @@ impl<C> WirePath<C> where C: Component + Copy {
         &mut self,
         end: Vec3,
         meshes: &mut ResMut<Assets<Mesh>>,
-        mut segment_query: Query<(&mut Wire, &WirePathSegment, Entity, &Handle<Mesh>)>,
     ) {
-        if self.segments == 0 {
+        if self.segments.is_empty() {
             panic!("No segments in path!");
         }
-
-        for mut segment in &mut segment_query {
-            if segment.1 .0 == self.segments - 1 {
-                segment.0.set_end(end);
-                segment.0.update(meshes.get_mut(segment.3).unwrap());
-                break;
-            }
-        }
-
-        self.last_segment_end = end;
     }
 
     /// Despawns every wire of the path and restores segments and last_segment_end
@@ -237,14 +169,8 @@ impl<C> WirePath<C> where C: Component + Copy {
     pub fn reset(
         &mut self,
         commands: &mut Commands,
-        segment_query: Query<(&Wire, &WirePathSegment, Entity, &Handle<Mesh>)>,
     ) {
-        for segment in &segment_query {
-            commands.entity(segment.2).despawn();
-        }
 
-        self.segments = 0;
-        self.last_segment_end = Vec3::ZERO;
     }
 }
 
