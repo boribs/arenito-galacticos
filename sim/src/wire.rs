@@ -179,6 +179,16 @@ impl WirePath {
 
     ) {
 
+    fn get_mesh(&self) -> Mesh {
+        let positions = self.segments.clone();
+        let normals = vec![[1.0, 1.0, 1.0]; 2];
+        let uvs = vec![[1.0, 1.0]; 2];
+
+        let mut mesh = Mesh::new(PrimitiveTopology::LineStrip);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+        mesh
     }
 }
 
