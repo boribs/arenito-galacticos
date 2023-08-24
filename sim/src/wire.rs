@@ -177,7 +177,29 @@ impl WirePath {
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
     }
 
+    /// Spawns the wire path on a given position, with just one segment.
+    pub fn spawn3d(
+        start: Vec3,
+        end: Vec3,
+        color: [f32; 3],
+        path_id: impl Component,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
     ) {
+        let mut wp = WirePath::new(color);
+        wp.init_path(start, end);
+
+        commands.spawn((
+            PbrBundle {
+                mesh: meshes.add(wp.get_mesh()),
+                material: materials.add(Color::from(color).into()),
+                ..default()
+            },
+            wp,
+            path_id
+        ));
+    }
 
     fn get_mesh(&self) -> Mesh {
         let positions = self.segments.clone();
