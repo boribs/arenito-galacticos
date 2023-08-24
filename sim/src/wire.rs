@@ -90,19 +90,17 @@ impl From<Wire> for Mesh {
 
 /// This struct is to (visually) describe paths!
 #[derive(Component)]
-pub struct WirePath<C: Component + Copy> {
+pub struct WirePath {
     pub color: [f32; 3],
-    pub path_id: C,
     pub segments: Vec<Vec3>,
 }
 
-impl<C> WirePath<C> where C: Component + Copy {
+impl WirePath {
     /// Creates a new WirePath instance. This will be used to control the path.
     /// A path is created with new_segment
-    pub fn new(color: [f32; 3], path_id: C) -> Self {
+    pub fn new(color: [f32; 3]) -> Self {
         WirePath {
             color,
-            path_id,
             segments: Vec::new(),
         }
     }
