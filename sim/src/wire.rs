@@ -109,11 +109,7 @@ impl WirePath {
     /// Initializes a path. Creates a segment from `start` to `end`.
     /// This method must be called once at the beginning of the path.
     /// Subsecuent calls with an already initialized path will result in a panic.
-    pub fn init_path(
-        &mut self,
-        start: Vec3,
-        end: Vec3,
-    ) {
+    pub fn init_path(&mut self, start: Vec3, end: Vec3) {
         if !self.points.is_empty() {
             panic!("This method must be called only once!");
         }
@@ -122,11 +118,8 @@ impl WirePath {
         self.points.push(end);
     }
 
-    /// Adds a new end point to the wire.
-    pub fn append_segment(
-        &mut self,
-        end: Vec3,
-    ) {
+    /// Adds a new end point to the path, resulting in a new segment.
+    pub fn append_segment(&mut self, end: Vec3) {
         if self.points.is_empty() {
             panic!("Must initialize a path before adding segments!");
         }
@@ -135,10 +128,8 @@ impl WirePath {
     }
 
     /// Deletes the last path segment.
-    pub fn delete_last(
-        &mut self,
-    ) {
-        if self.points.len() < 3 { // check this!
+    pub fn delete_last(&mut self) {
+        if self.points.len() < 3 {
             return;
         }
 
@@ -146,10 +137,7 @@ impl WirePath {
     }
 
     /// Updates the end position of the last segment.
-    pub fn move_last(
-        &mut self,
-        end: Vec3,
-    ) {
+    pub fn move_last(&mut self, end: Vec3) {
         if self.points.is_empty() {
             panic!("No segments in path!");
         }
@@ -160,9 +148,7 @@ impl WirePath {
 
     /// Removes every point from it's segments array.
     /// Must call `init_path` after to star a new path!
-    pub fn reset(
-        &mut self,
-    ) {
+    pub fn reset(&mut self) {
         self.points.clear();
     }
 
@@ -199,10 +185,12 @@ impl WirePath {
                 ..default()
             },
             wp,
-            path_id
+            path_id,
         ));
     }
 
+    /// Creates a mesh out of this path's segments.
+    /// This method is not supposed to be called by the user.
     fn get_mesh(&self) -> Mesh {
         let positions = self.points.clone();
         let normals = vec![[1.0, 1.0, 1.0]; 2];
@@ -215,5 +203,3 @@ impl WirePath {
         mesh
     }
 }
-
-// TODO: Implement arrows

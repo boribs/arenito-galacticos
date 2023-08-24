@@ -5,9 +5,8 @@ pub mod wire;
 
 use arenito::ArenitoPlugin;
 use bevy::{
-    prelude::*,
-    core_pipeline::clear_color::ClearColorConfig,
-    render::camera::Viewport, window::WindowResized
+    core_pipeline::clear_color::ClearColorConfig, prelude::*, render::camera::Viewport,
+    window::WindowResized,
 };
 use spatial_awareness::*;
 
@@ -49,7 +48,8 @@ fn setup(
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(8.1, 4.0, 0.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            transform: Transform::from_xyz(8.1, 4.0, 0.0)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
             camera: Camera {
                 order: 1,
                 ..default()
@@ -60,15 +60,10 @@ fn setup(
             },
             ..default()
         },
-        SceneCamera
+        SceneCamera,
     ));
 
-    commands.spawn((
-        Camera2dBundle {
-            ..default()
-        },
-        DataCamera
-    ));
+    commands.spawn((Camera2dBundle { ..default() }, DataCamera));
 }
 
 /// Dynamically resizes viewport widths according to window size.
@@ -93,20 +88,14 @@ fn set_camera_viewports(
         let mut left_camera = left_camera.single_mut();
         left_camera.viewport = Some(Viewport {
             physical_position: UVec2::new(0, 0),
-            physical_size: UVec2::new(
-                lw,
-                window.resolution.physical_height(),
-            ),
+            physical_size: UVec2::new(lw, window.resolution.physical_height()),
             ..default()
         });
 
         let mut right_camera = right_camera.single_mut();
         right_camera.viewport = Some(Viewport {
             physical_position: UVec2::new(rw, 0),
-            physical_size: UVec2::new(
-                rw,
-                window.resolution.physical_height(),
-            ),
+            physical_size: UVec2::new(rw, window.resolution.physical_height()),
             ..default()
         });
     }
