@@ -88,13 +88,12 @@ impl From<Wire> for Mesh {
 
 // TODO: Don't use wires for WirePath, instead modify it's mesh.
 
-/// This struct is used to connect multiple wires to form a path.
-/// It's intended use is to display the path Arenito travels.
-#[derive(Resource)]
+/// This struct is to (visually) describe paths!
+#[derive(Component)]
 pub struct WirePath<C: Component + Copy> {
+    pub color: [f32; 3],
     pub path_id: C,
     pub segments: Vec<Vec3>,
-    pub color: [f32; 3],
 }
 
 impl<C> WirePath<C> where C: Component + Copy {
@@ -102,9 +101,9 @@ impl<C> WirePath<C> where C: Component + Copy {
     /// A path is created with new_segment
     pub fn new(color: [f32; 3], path_id: C) -> Self {
         WirePath {
+            color,
             path_id,
             segments: Vec::new(),
-            color,
         }
     }
 
@@ -115,60 +114,57 @@ impl<C> WirePath<C> where C: Component + Copy {
         &mut self,
         start: Vec3,
         end: Vec3,
-        commands: &mut Commands,
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
     ) {
         if !self.segments.is_empty() {
             panic!("This method must be called only once!");
         }
 
-        // do something
+        self.segments.push(start);
+        self.segments.push(end);
     }
 
-    /// Spawns a new wire from the end position of the last path segment.
+    /// Adds a new end point to the wire.
     pub fn append_segment(
         &mut self,
         end: Vec3,
-        commands: &mut Commands,
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
     ) {
         if self.segments.is_empty() {
             panic!("Must initialize a path before adding segments!");
         }
 
-
+        self.segments.push(end);
     }
 
     /// Deletes the last path segment.
     pub fn delete_last(
         &mut self,
-        commands: &mut Commands,
     ) {
-        if self.segments.is_empty() {
+        if self.segments.len() < 3 { // check this!
             return;
         }
 
+        self.segments.pop();
     }
 
     /// Updates the end position of the last path segment.
-    pub fn update_last(
+    pub fn move_last(
         &mut self,
         end: Vec3,
-        meshes: &mut ResMut<Assets<Mesh>>,
     ) {
         if self.segments.is_empty() {
             panic!("No segments in path!");
         }
+
+        self.segments[self.segments.len() - 1] = end;
     }
 
-    /// Despawns every wire of the path and restores segments and last_segment_end
-    /// to their default values.
+    /// Removes every point from it's segments array.
     /// Must call `init_path` after to star a new path!
     pub fn reset(
         &mut self,
-        commands: &mut Commands,
+    ) {
+        self.segments.clear();
+    }
     ) {
 
     }
