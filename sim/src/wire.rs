@@ -164,6 +164,19 @@ impl WirePath {
     ) {
         self.segments.clear();
     }
+
+    /// Updates the mesh.
+    /// Call this after setting segments.
+    pub fn update(&self, mesh: &mut Mesh) {
+        let points = self.segments.clone();
+        let normals = vec![[1.0, 1.0, 1.0]; points.len()];
+        let uvs = vec![[1.0, 1.0]; points.len()];
+
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+    }
+
     ) {
 
     }
