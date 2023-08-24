@@ -10,6 +10,9 @@ use bevy::prelude::*;
 /// - Path Finder system
 pub struct SpatialAwarenessPlugin;
 
+#[derive(Component)]
+pub struct A;
+
 impl Plugin for SpatialAwarenessPlugin {
     fn build(&self, app: &mut App) {
         if !app.is_plugin_added::<ArenitoPlugin>() {
@@ -17,8 +20,7 @@ impl Plugin for SpatialAwarenessPlugin {
         }
 
         // resources
-        app.insert_resource(CalculatedMovement::new())
-            .insert_resource(WirePath::new([1.0, 1.0, 1.0]));
+        app.insert_resource(CalculatedMovement::new());
         // startup systems
         app.add_startup_system(wirepath_init);
         // systems
@@ -28,14 +30,15 @@ impl Plugin for SpatialAwarenessPlugin {
 
 /// Initializes a new path. This is required in order to start adding path segments.
 fn wirepath_init(
-    mut wirepath: ResMut<WirePath>,
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    wirepath.init_path(
+    WirePath::spawn3d(
         Vec3::new(0.0, 2.0, 0.0),
         Vec3::new(0.0, 2.0, 0.0),
+        [1.0, 1.0, 1.0],
+        A,
         &mut commands,
         &mut meshes,
         &mut materials,
@@ -93,12 +96,9 @@ impl CalculatedMovement {
 pub fn path_finder(
     time: Res<Time>,
     arenito: Res<Arenito>,
-    mut wirepath: ResMut<WirePath>,
+    mut wirepath: Query<(&mut WirePath, &Handle<Mesh>, With<A>)>,
     mut prev: ResMut<CalculatedMovement>,
-    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    segment_query: Query<(&mut Wire, &WirePathSegment, Entity, &Handle<Mesh>)>,
 ) {
     if arenito.state != ArenitoState::FORWARD {
         // not moving or movement not relevant,
@@ -108,9 +108,11 @@ pub fn path_finder(
         return;
     }
 
+    let (mut wirepath, handle, _) = wirepath.single_mut();
+
     // Previously stopped, safe to assume new direction.
     if prev.vel == Vec3::ZERO {
-        wirepath.append_segment(prev.pos, &mut commands, &mut meshes, &mut materials);
+        wirepath.append_segment(prev.pos);
     }
 
     let accel = MPU6050::read_acc(&arenito);
@@ -140,7 +142,9 @@ pub fn path_finder(
     let pos = prev.pos + d;
 
     // update current path segment
-    wirepath.update_last(pos, &mut meshes, segment_query);
+    wirepath.move_last(pos);
+    // update wirepath mesh
+    wirepath.update(meshes.get_mut(handle).unwrap());
 
     // update previous values
     prev.acc = acc;
