@@ -33,3 +33,8 @@ Noción espacial:
     ☐ Determinar posiciones de obstáculos
     ☐ Determinar posición de depósito de latas
     ☐ Determinar áreas sin explorar (Roombizar!)
+
+Inormación (Pantalla 2D):
+    ☐ Camino recorrido
+    ☐ Obstáculos recordados
+    ☐ Área limitada

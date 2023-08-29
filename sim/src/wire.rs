@@ -1,12 +1,12 @@
 use bevy::{prelude::*, render::render_resource::*};
 
 #[derive(Component, Copy, Clone)]
-pub struct Wire {
+pub struct Wire3D {
     start: Vec3,
     end: Vec3,
 }
 
-impl Default for Wire {
+impl Default for Wire3D {
     fn default() -> Self {
         Self {
             start: Vec3::ZERO,
@@ -15,12 +15,12 @@ impl Default for Wire {
     }
 }
 
-impl Wire {
+impl Wire3D {
     /// Creates a new Wire component.
     /// This is supposed to be passed on spawn and then retrieved
     /// with a Query.
     pub fn new(start: Vec3, end: Vec3) -> Self {
-        Wire { start, end }
+        Wire3D { start, end }
     }
 
     /// Sets the start coordinate of the wire.
@@ -45,18 +45,16 @@ impl Wire {
     }
 
     /// Spawns a Wire on a given position with another component.
-    pub fn spawn3d<C>(
+    pub fn spawn(
         start: Vec3,
         end: Vec3,
         color: [f32; 3],
-        component: C,
+        component: impl Component,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-    ) where
-        C: Component,
-    {
-        let w = Wire::new(start, end);
+    ) {
+        let w = Wire3D::new(start, end);
         commands.spawn((
             PbrBundle {
                 mesh: meshes.add(w.into()),
@@ -69,9 +67,9 @@ impl Wire {
     }
 }
 
-impl From<Wire> for Mesh {
-    fn from(wire: Wire) -> Self {
-        let Wire { start, end } = wire;
+impl From<Wire3D> for Mesh {
+    fn from(wire: Wire3D) -> Self {
+        let Wire3D { start, end } = wire;
 
         let positions = vec![start, end];
         let normals = vec![[1.0, 1.0, 1.0]; 2];

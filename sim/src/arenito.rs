@@ -56,7 +56,7 @@ fn wire_spawner(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    Wire::spawn3d(
+    Wire3D::spawn(
         Vec3::ZERO,
         Vec3::ZERO,
         [1.0, 1.0, 0.0],
@@ -66,7 +66,7 @@ fn wire_spawner(
         &mut materials,
     );
 
-    Wire::spawn3d(
+    Wire3D::spawn(
         Vec3::ZERO,
         Vec3::ZERO,
         [1.0, 0.0, 0.0],
@@ -76,7 +76,7 @@ fn wire_spawner(
         &mut materials,
     );
 
-    Wire::spawn3d(
+    Wire3D::spawn(
         Vec3::ZERO,
         Vec3::ZERO,
         [0.0, 0.0, 1.0],
@@ -100,12 +100,12 @@ fn arenito_spawner(
 /// Moves the wires that indicate direction, speed and acceleration.
 fn wire_mover(
     arenito: ResMut<Arenito>,
-    mut wire: Query<(&mut Wire, &Handle<Mesh>, &WireComponent)>,
+    mut wire: Query<(&mut Wire3D, &Handle<Mesh>, &WireComponent)>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    let mut vel: Option<(Mut<'_, Wire>, &Handle<Mesh>, &WireComponent)> = None;
-    let mut acc: Option<(Mut<'_, Wire>, &Handle<Mesh>, &WireComponent)> = None;
-    let mut rot: Option<(Mut<'_, Wire>, &Handle<Mesh>, &WireComponent)> = None;
+    let mut vel: Option<(Mut<'_, Wire3D>, &Handle<Mesh>, &WireComponent)> = None;
+    let mut acc: Option<(Mut<'_, Wire3D>, &Handle<Mesh>, &WireComponent)> = None;
+    let mut rot: Option<(Mut<'_, Wire3D>, &Handle<Mesh>, &WireComponent)> = None;
 
     for w in &mut wire {
         match w.2 {
