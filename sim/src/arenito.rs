@@ -171,9 +171,9 @@ fn arenito_mover(
 /* ---------------------------/Arenito Plugin---------------------------- */
 
 /// Component used as an identifier for the different
-/// body parts in Arenito.
+/// body parts in 3D Arenito.
 #[derive(Component)]
-pub enum BodyPart {
+pub enum Arenito3D {
     Frame,
     LeftWheel,
     RightWheel,
@@ -238,7 +238,7 @@ impl Arenito {
                     transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
                     ..default()
                 },
-                BodyPart::Frame,
+                Arenito3D::Frame,
             ))
             .with_children(|parent| {
                 let t = self.center + Vec3::new(0.5, -0.5, 0.85);
@@ -249,7 +249,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    BodyPart::RightWheel,
+                    Arenito3D::RightWheel,
                 ));
                 let t = self.center + Vec3::new(-0.5, -0.5, 0.85);
                 parent.spawn((
@@ -259,7 +259,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    BodyPart::RightWheel,
+                    Arenito3D::RightWheel,
                 ));
                 let t = self.center + Vec3::new(0.5, -0.5, -0.85);
                 parent.spawn((
@@ -269,7 +269,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    BodyPart::LeftWheel,
+                    Arenito3D::LeftWheel,
                 ));
                 let t = self.center + Vec3::new(-0.5, -0.5, -0.85);
                 parent.spawn((
@@ -279,7 +279,7 @@ impl Arenito {
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
                     },
-                    BodyPart::LeftWheel,
+                    Arenito3D::LeftWheel,
                 ));
             });
     }
@@ -344,7 +344,7 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
-        body_part_query: Query<(&mut Transform, &BodyPart, Entity)>,
+        body_part_query: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         let vec = self.update_pos(delta_ms);
         self.update_model(vec, body_part_query);
@@ -407,7 +407,7 @@ impl Arenito {
     fn update_model(
         &self,
         vec: (Vec3, f32),
-        mut body_part_query: Query<(&mut Transform, &BodyPart, Entity)>,
+        mut body_part_query: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         // Saving different body parts to their own variable.
         // Each body part behaves differently.
@@ -417,13 +417,13 @@ impl Arenito {
 
         for body_part in &mut body_part_query {
             match body_part.1 {
-                BodyPart::LeftWheel => {
+                Arenito3D::LeftWheel => {
                     left_wheels.push(body_part.0);
                 }
-                BodyPart::RightWheel => {
+                Arenito3D::RightWheel => {
                     right_wheels.push(body_part.0);
                 }
-                BodyPart::Frame => {
+                Arenito3D::Frame => {
                     body.push(body_part.0);
                 }
             }
