@@ -311,7 +311,7 @@ impl Arenito {
                 MaterialMesh2dBundle {
                     mesh: Mesh2dHandle(meshes.add(shape::Quad::default().into())),
                     material: materials2d.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_xyz(200.0, 0.0, 0.0).with_scale(Vec3::splat(50.0)),
+                    transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(50.0)),
                     ..default()
                 },
                 Arenito2D,
