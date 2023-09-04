@@ -173,6 +173,7 @@ fn arenito_mover(
     keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
     arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
+    arenito2d: Query<(&mut Transform, &Arenito2D)>,
 ) {
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
@@ -191,7 +192,7 @@ fn arenito_mover(
         );
     }
 
-    arenito.update(time.delta().as_millis(), body_part_query);
+    arenito.update(time.delta().as_millis(), arenito3d, arenito2d);
     // println!("{}", arenito.log());
 }
 
@@ -379,7 +380,7 @@ impl Arenito {
         self.rot = Vec3::ZERO;
         self.state = ArenitoState::STILL;
 
-        body_part_query.for_each(|e| {
+        arenito3d.for_each(|e| {
             commands.entity(e.2).despawn();
         });
 
@@ -402,9 +403,10 @@ impl Arenito {
         &mut self,
         delta_ms: u128,
         arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
+        arenito2d: Query<(&mut Transform, &Arenito2D)>,
     ) {
         let vec = self.update_pos(delta_ms);
-        self.update_model(vec, body_part_query);
+        self.update_model(vec, arenito3d, arenito2d);
     }
 
     /// Updates Arenito's position given some time in ms (`delta_ms`).
@@ -465,6 +467,7 @@ impl Arenito {
         &self,
         vec: (Vec3, f32),
         mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
+        mut arenito2d: Query<(&mut Transform, &Arenito2D)>,
     ) {
         // Saving different body parts to their own variable.
         // Each body part behaves differently.
@@ -488,6 +491,7 @@ impl Arenito {
 
         // Since body is only one element, shadow it out of the vector!
         let body = &mut body[0];
+        let mut a2d = arenito2d.single_mut();
         let (d, l) = vec;
 
         match self.state {
@@ -500,6 +504,8 @@ impl Arenito {
                 for wheel in &mut right_wheels {
                     wheel.rotate_local_z(-l);
                 }
+
+                a2d.0.translation += d.to_2d() * 100.0;
             }
             ArenitoState::RIGHT | ArenitoState::LEFT => {
                 body.translation -= self.center;
@@ -512,6 +518,11 @@ impl Arenito {
                 for wheel in &mut right_wheels {
                     wheel.rotate_local_z(l);
                 }
+
+                let c = a2d.0.translation.clone();
+                a2d.0.translation -= c;
+                a2d.0.rotate_around(Vec3::ZERO, Quat::from_rotation_z(l));
+                a2d.0.translation += c;
             }
             _ => {}
         }
