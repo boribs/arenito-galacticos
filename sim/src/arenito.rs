@@ -161,7 +161,7 @@ fn arenito_mover(
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
-    body_part_query: Query<(&mut Transform, &Arenito3D, Entity)>,
+    arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
 ) {
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
@@ -176,7 +176,7 @@ fn arenito_mover(
             &mut materials2d,
             &mut meshes,
             &asset_server,
-            &body_part_query,
+            &arenito3d,
         );
     }
 
@@ -360,7 +360,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        body_part_query: &Query<(&mut Transform, &Arenito3D, Entity)>,
+        arenito3d: &Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
         self.acc = Vec3::ZERO;
@@ -386,11 +386,11 @@ impl Arenito {
     /// It also updates Arenito's velocity and acceleration.
     ///
     /// * `delta_ms` - time delta between this and the last frame this was called.
-    /// * `body_part_query` - Bevy's way of finding elements.
+    /// * `arenito3d` - Bevy's way of finding elements.
     pub fn update(
         &mut self,
         delta_ms: u128,
-        body_part_query: Query<(&mut Transform, &Arenito3D, Entity)>,
+        arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
     ) {
         let vec = self.update_pos(delta_ms);
         self.update_model(vec, body_part_query);
@@ -453,7 +453,7 @@ impl Arenito {
     fn update_model(
         &self,
         vec: (Vec3, f32),
-        mut body_part_query: Query<(&mut Transform, &Arenito3D, Entity)>,
+        mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
     ) {
         // Saving different body parts to their own variable.
         // Each body part behaves differently.
@@ -461,7 +461,7 @@ impl Arenito {
         let mut left_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
         let mut right_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
 
-        for body_part in &mut body_part_query {
+        for body_part in &mut arenito3d {
             match body_part.1 {
                 Arenito3D::LeftWheel => {
                     left_wheels.push(body_part.0);
