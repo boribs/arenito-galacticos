@@ -10,17 +10,6 @@ use std::f32::consts::TAU;
 
 const FRIC_K: f32 = 0.5;
 
-/* ----------------------------Vec3::3d -> 2d---------------------------- */
-trait To2D {
-    fn to_2d(&self) -> Self;
-}
-
-impl To2D for Vec3 {
-    fn to_2d(&self) -> Self {
-        Vec3::new(self.x, self.z, 0.0)
-    }
-}
-
 /* ----------------------------Arenito Plugin---------------------------- */
 
 /// A plugin for adding Arenito (the 3D robot) to

@@ -4,6 +4,17 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 
+/* ----------------------------Vec3::3d -> 2d---------------------------- */
+pub trait To2D {
+    fn to_2d(&self) -> Self;
+}
+
+impl To2D for Vec3 {
+    fn to_2d(&self) -> Self {
+        Vec3::new(self.x, self.z, 0.0)
+    }
+}
+
 #[derive(Component, Copy, Clone)]
 pub struct Wire3D {
     start: Vec3,
