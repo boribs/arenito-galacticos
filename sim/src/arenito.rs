@@ -1,6 +1,9 @@
 use crate::spatial_awareness::FromGyro;
 use crate::wire::*;
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+};
 use bevy_obj::*;
 use std::f32::consts::TAU;
 
@@ -91,10 +94,18 @@ fn wire_spawner(
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials2d: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
 ) {
-    arenito.spawn(&mut commands, &mut materials, &asset_server);
+    arenito.spawn(
+        &mut commands,
+        &mut materials,
+        &mut materials2d,
+        &mut meshes,
+        &asset_server,
+    );
 }
 
 /// Moves the wires that indicate direction, speed and acceleration.
@@ -143,11 +154,13 @@ fn wire_mover(
 fn arenito_mover(
     time: Res<Time>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    keyboard_input: Res<Input<KeyCode>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials2d: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut arenito: ResMut<Arenito>,
-    body_part_query: Query<(&mut Transform, &BodyPart, Entity)>,
+    keyboard_input: Res<Input<KeyCode>>,
+    asset_server: Res<AssetServer>,
+    body_part_query: Query<(&mut Transform, &Arenito3D, Entity)>,
 ) {
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
@@ -158,8 +171,10 @@ fn arenito_mover(
     } else if keyboard_input.pressed(KeyCode::R) {
         arenito.reset(
             &mut commands,
-            &asset_server,
             &mut materials,
+            &mut materials2d,
+            &mut meshes,
+            &asset_server,
             &body_part_query,
         );
     }
@@ -178,6 +193,9 @@ pub enum Arenito3D {
     LeftWheel,
     RightWheel,
 }
+
+#[derive(Component)]
+pub struct Arenito2D;
 
 /// Describes Arenito's state.
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -228,8 +246,11 @@ impl Arenito {
         &self,
         commands: &mut Commands,
         materials: &mut ResMut<Assets<StandardMaterial>>,
+        materials2d: &mut ResMut<Assets<ColorMaterial>>,
+        meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
     ) {
+        // This is 3D Arenito!
         commands
             .spawn((
                 PbrBundle {
@@ -282,6 +303,18 @@ impl Arenito {
                     Arenito3D::LeftWheel,
                 ));
             });
+
+        // Aaaaaand 2D Arenito.
+        commands
+            .spawn((
+                MaterialMesh2dBundle {
+                    mesh: Mesh2dHandle(meshes.add(shape::Quad::default().into())),
+                    material: materials2d.add(ColorMaterial::from(Color::WHITE)),
+                    transform: Transform::from_xyz(200.0, 0.0, 0.0).with_scale(Vec3::splat(50.0)),
+                    ..default()
+                },
+                Arenito2D,
+            ));
     }
 
     /// Sets the acceleration to "advance acceleration".
@@ -312,9 +345,11 @@ impl Arenito {
     pub fn reset(
         &mut self,
         commands: &mut Commands,
-        asset_server: &Res<AssetServer>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        body_part_query: &Query<(&mut Transform, &BodyPart, Entity)>,
+        materials2d: &mut ResMut<Assets<ColorMaterial>>,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        asset_server: &Res<AssetServer>,
+        body_part_query: &Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
         self.acc = Vec3::ZERO;
@@ -326,7 +361,7 @@ impl Arenito {
             commands.entity(e.2).despawn();
         });
 
-        self.spawn(commands, materials, asset_server);
+        self.spawn(commands, materials, materials2d, meshes, asset_server);
     }
 
     /// Applies the movement given some delta time.
