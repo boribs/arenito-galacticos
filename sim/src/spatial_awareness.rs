@@ -34,7 +34,7 @@ fn wirepath_init(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    WirePath::spawn3d(
+    WirePath::spawn(
         Vec3::new(0.0, 2.0, 0.0),
         Vec3::new(0.0, 2.0, 0.0),
         [1.0, 1.0, 1.0],

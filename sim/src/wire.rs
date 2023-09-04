@@ -251,7 +251,7 @@ impl WirePath {
 
     /// Spawns the wire path on a given position and
     /// initializes it with just one segment.
-    pub fn spawn3d(
+    pub fn spawn(
         start: Vec3,
         end: Vec3,
         color: [f32; 3],
