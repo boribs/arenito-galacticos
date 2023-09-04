@@ -95,7 +95,7 @@ fn set_camera_viewports(
 
         let mut right_camera = right_camera.single_mut();
         right_camera.viewport = Some(Viewport {
-            physical_position: UVec2::new(rw, 0),
+            physical_position: UVec2::new(lw, 0),
             physical_size: UVec2::new(rw, window.resolution.physical_height()),
             ..default()
         });
