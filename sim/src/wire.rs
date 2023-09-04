@@ -1,4 +1,8 @@
-use bevy::{prelude::*, render::render_resource::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}};
+use bevy::{
+    prelude::*,
+    render::render_resource::*,
+    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+};
 
 #[derive(Component, Copy, Clone)]
 pub struct Wire3D {

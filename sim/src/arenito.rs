@@ -1,4 +1,5 @@
 use crate::spatial_awareness::FromGyro;
+use crate::static_shape;
 use crate::wire::*;
 use bevy::{
     prelude::*,
