@@ -1,6 +1,7 @@
 pub mod arenito;
 pub mod sensor;
 pub mod spatial_awareness;
+pub mod static_shape;
 pub mod wire;
 
 use arenito::ArenitoPlugin;
