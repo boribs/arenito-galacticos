@@ -322,8 +322,7 @@ impl Arenito {
                         meshes.add(static_shape::Arrow::new(10.0, 20.0, 13.0).into()),
                     ),
                     material: materials2d.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_xyz(0.0, 0.55, 1.0).with_scale(Vec3::splat(0.015)),
-
+                    transform: Transform::from_xyz(0.55, 0.0, 1.0).with_scale(Vec3::splat(0.015)),
                     ..default()
                 });
             });

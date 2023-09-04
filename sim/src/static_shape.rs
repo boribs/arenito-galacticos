@@ -38,7 +38,7 @@ impl From<Arrow> for Mesh {
         } = arrow;
 
         let a = Vec2::new(0., 0.);
-        let b = Vec2::new(0., height);
+        let b = Vec2::new(height, 0.);
         // height
         let total_height = (b - a).length();
         let body_height = total_height - head_height;
@@ -46,15 +46,16 @@ impl From<Arrow> for Mesh {
         // body width in both directions, from point a
         let body_width = width / 4.0;
 
+        // vertices are of an arrow pointing in the x+ axis
         let vertices = vec![
-            [a.x + body_width, a.y, 0.0],
-            [a.x + body_width, a.y + body_height, 0.0],
-            [a.x + width, a.y + body_height, 0.0],
+            [a.x, a.y + body_width, 0.0],
+            [a.x + body_height, a.y + body_width, 0.0],
+            [a.x + body_height, a.y + width, 0.0],
             [b.x, b.y, 0.0],
-            [a.x - width, a.y + body_height, 0.0],
-            [a.x - body_width, a.y + body_height, 0.0],
-            [a.x - body_width, a.y, 0.0],
-            [a.x + body_width, a.y, 0.0],
+            [a.x + body_height, a.y - width, 0.0],
+            [a.x + body_height, a.y - body_width, 0.0],
+            [a.x, a.y - body_width, 0.0],
+            [a.x, a.y + body_width, 0.0],
         ];
         let normals = vec![[1.0, 1.0, 1.0]; vertices.len()];
         let uvs = vec![[1.0, 1.0]; vertices.len()];
