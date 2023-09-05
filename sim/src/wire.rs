@@ -15,6 +15,7 @@ impl To2D for Vec3 {
     }
 }
 
+/* ---------------------------- Wire  stuff ---------------------------- */
 #[derive(Component, Copy, Clone)]
 pub struct Wire3D {
     start: Vec3,
@@ -297,5 +298,42 @@ impl WirePath {
         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
         mesh
+    }
+}
+
+#[cfg(test)]
+mod to_2d_tests {
+    use super::*;
+
+    #[test]
+    fn test_vector_conversion_1() {
+        let actual = Vec3::new(1.0, 0.0, 1.0);
+        let expected = Vec3::new(1.0, 1.0, 0.0);
+
+        assert_eq!(actual.to_2d(), expected);
+    }
+
+    #[test]
+    fn test_vector_conversion_2() {
+        let actual = Vec3::new(-1.0, 45.0, 0.0);
+        let expected = Vec3::new(-1.0, 0.0, 0.0);
+
+        assert_eq!(actual.to_2d(), expected);
+    }
+
+    #[test]
+    fn test_vector_conversion_3() {
+        let actual = Vec3::new(141.0, 33.0, -100.0);
+        let expected = Vec3::new(141.0, -100.0, 0.0);
+
+        assert_eq!(actual.to_2d(), expected);
+    }
+
+    #[test]
+    fn test_vector_conversion_4() {
+        let actual = Vec3::new(0.000001, 0.0, -2389472983472983479087.0);
+        let expected = Vec3::new(0.000001, -2389472983472983479087.0, 0.0);
+
+        assert_eq!(actual.to_2d(), expected);
     }
 }
