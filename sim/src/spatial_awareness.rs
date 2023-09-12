@@ -1,4 +1,8 @@
-use crate::{ arenito::*, sensor::MPU6050, wire::* };
+use crate::{
+    arenito::*,
+    arenito::SCALE_2D,
+    sensor::MPU6050, wire::*
+};
 use bevy::{
     prelude::*,
     sprite::Mesh2dHandle
@@ -36,9 +40,9 @@ fn wirepath_init(
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     WirePath::spawn(
-        Vec3::new(0.0, 2.0, 0.0),
-        Vec3::new(0.0, 2.0, 0.0),
-        [1.0, 1.0, 1.0],
+        Vec3::new(0.0, 0.0, 2.0),
+        Vec3::new(0.0, 0.0, 2.0),
+        [0.0, 0.0, 1.0],
         A,
         &mut commands,
         &mut meshes,
@@ -143,7 +147,7 @@ pub fn path_finder(
     let pos = prev.pos + d;
 
     // update current path segment
-    wirepath.move_last(pos.to_2d() * 100.0);
+    wirepath.move_last(pos.to_2d() * SCALE_2D);
     // update wirepath mesh
     wirepath.update(meshes.get_mut(&handle.0).unwrap());
 

@@ -9,6 +9,7 @@ use bevy_obj::*;
 use std::f32::consts::TAU;
 
 const FRIC_K: f32 = 0.5;
+pub const SCALE_2D: f32 = 100.0;
 
 /* ----------------------------Arenito Plugin---------------------------- */
 
@@ -312,7 +313,7 @@ impl Arenito {
                 MaterialMesh2dBundle {
                     mesh: Mesh2dHandle(meshes.add(shape::Quad::default().into())),
                     material: materials2d.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(50.0)),
+                    transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(SCALE_2D / 2.)),
                     ..default()
                 },
                 Arenito2D,
@@ -494,7 +495,7 @@ impl Arenito {
                     wheel.rotate_local_z(-l);
                 }
 
-                a2d.0.translation += d.to_2d() * 100.0;
+                a2d.0.translation += d.to_2d() * SCALE_2D;
             }
             ArenitoState::RIGHT | ArenitoState::LEFT => {
                 body.translation -= self.center;
