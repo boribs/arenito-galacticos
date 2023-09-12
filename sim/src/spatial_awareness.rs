@@ -1,7 +1,8 @@
-use crate::arenito::*;
-use crate::sensor::MPU6050;
-use crate::wire::*;
-use bevy::prelude::*;
+use crate::{ arenito::*, sensor::MPU6050, wire::* };
+use bevy::{
+    prelude::*,
+    sprite::Mesh2dHandle
+};
 
 /// A plugin for Arenito's Spatial Awareness systems.
 /// This plugin adds:
@@ -31,7 +32,7 @@ impl Plugin for SpatialAwarenessPlugin {
 /// Initializes a new path. This is required in order to start adding path segments.
 fn wirepath_init(
     mut commands: Commands,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     WirePath::spawn(
@@ -96,7 +97,7 @@ impl CalculatedMovement {
 pub fn path_finder(
     time: Res<Time>,
     arenito: Res<Arenito>,
-    mut wirepath: Query<(&mut WirePath, &Handle<Mesh>, With<A>)>,
+    mut wirepath: Query<(&mut WirePath, &Mesh2dHandle, With<A>)>,
     mut prev: ResMut<CalculatedMovement>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
@@ -142,9 +143,9 @@ pub fn path_finder(
     let pos = prev.pos + d;
 
     // update current path segment
-    wirepath.move_last(pos);
+    wirepath.move_last(pos.to_2d() * 100.0);
     // update wirepath mesh
-    wirepath.update(meshes.get_mut(handle).unwrap());
+    wirepath.update(meshes.get_mut(&handle.0).unwrap());
 
     // update previous values
     prev.acc = acc;

@@ -263,6 +263,7 @@ impl WirePath {
 
     /// Spawns the wire path on a given position and
     /// initializes it with just one segment.
+    /// `start` and `end` are supposed to be 2d-fied vectors!
     pub fn spawn(
         start: Vec3,
         end: Vec3,
@@ -270,15 +271,15 @@ impl WirePath {
         path_id: impl Component,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
+        materials: &mut ResMut<Assets<ColorMaterial>>,
     ) {
         let mut wp = WirePath::new(color);
         wp.init_path(start, end);
 
         commands.spawn((
-            PbrBundle {
-                mesh: meshes.add(wp.get_mesh()),
-                material: materials.add(Color::from(color).into()),
+            MaterialMesh2dBundle {
+                mesh: Mesh2dHandle(meshes.add(wp.get_mesh())),
+                material: materials.add(ColorMaterial::from(Color::from(color))),
                 ..default()
             },
             wp,
