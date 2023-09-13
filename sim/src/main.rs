@@ -37,6 +37,14 @@ fn setup(
         ..default()
     });
 
+    // reference cube
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        material: materials.add(Color::rgb(0.0, 0.0, 1.0).into()),
+        transform: Transform::from_xyz(4.0, 0.3, 0.0).with_scale(Vec3::splat(0.3)),
+        ..default()
+    });
+
     commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,

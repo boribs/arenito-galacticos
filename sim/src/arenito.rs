@@ -7,7 +7,7 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_obj::*;
-use std::f32::consts::{PI, TAU};
+use std::f32::consts::TAU;
 
 const FRIC_K: f32 = 0.5;
 pub const SCALE_2D: f32 = 100.0;
@@ -338,14 +338,6 @@ impl Arenito {
                     ..default()
                 });
             });
-
-        // reference cube
-        commands.spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-            material: materials.add(Color::rgb(0.0, 0.0, 1.0).into()),
-            transform: Transform::from_xyz(4.0, 0.3, 0.0).with_scale(Vec3::splat(0.3)),
-            ..default()
-        });
 
         // Aaaaaand 2D Arenito.
         commands
