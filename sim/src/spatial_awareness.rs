@@ -1,12 +1,5 @@
-use crate::{
-    arenito::*,
-    arenito::SCALE_2D,
-    sensor::MPU6050, wire::*
-};
-use bevy::{
-    prelude::*,
-    sprite::Mesh2dHandle
-};
+use crate::{arenito::SCALE_2D, arenito::*, sensor::MPU6050, wire::*};
+use bevy::{prelude::*, sprite::Mesh2dHandle};
 
 /// A plugin for Arenito's Spatial Awareness systems.
 /// This plugin adds:

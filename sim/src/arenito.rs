@@ -7,7 +7,7 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_obj::*;
-use std::f32::consts::TAU;
+use std::f32::consts::{PI, TAU};
 
 const FRIC_K: f32 = 0.5;
 pub const SCALE_2D: f32 = 100.0;
@@ -310,8 +310,10 @@ impl Arenito {
                     Arenito3D::LeftWheel,
                 ));
 
+                // Arenito mounted camera
                 let t = Transform::from_xyz(0.75, 1.3, 0.0)
-                    .looking_to(Vec3::new(1.0, -1.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
+                    .looking_to(Vec3::new(1.0, -0.5, 0.0), Vec3::new(0.0, 1.0, 0.0));
+
                 parent.spawn((
                     Camera3dBundle {
                         camera: Camera {
@@ -327,10 +329,12 @@ impl Arenito {
                     },
                     ArenitoCamera,
                 ));
+
+                // Camera prism
                 parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-                    material: materials.add(Color::rgb(1.0, 0.0, 1.0).into()),
-                    transform: t.with_scale(Vec3::splat(0.1)),
+                    mesh: meshes.add(Mesh::from(static_shape::CameraPrism::new(3.0, 95.0, 75.0))),
+                    material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+                    transform: t,
                     ..default()
                 });
             });
