@@ -2,6 +2,7 @@ use crate::spatial_awareness::FromGyro;
 use crate::static_shape;
 use crate::wire::*;
 use bevy::{
+    core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
@@ -186,7 +187,7 @@ fn arenito_mover(
     // println!("{}", arenito.log());
 }
 
-/* ---------------------------/Arenito Plugin---------------------------- */
+/* ---------------------------Arenito Plugin---------------------------- */
 
 /// Component used as an identifier for the different
 /// body parts in 3D Arenito.
@@ -196,6 +197,9 @@ pub enum Arenito3D {
     LeftWheel,
     RightWheel,
 }
+
+#[derive(Component)]
+pub struct ArenitoCamera;
 
 #[derive(Component)]
 pub struct Arenito2D;
@@ -305,7 +309,39 @@ impl Arenito {
                     },
                     Arenito3D::LeftWheel,
                 ));
+
+                let t = Transform::from_xyz(0.75, 1.3, 0.0)
+                    .looking_to(Vec3::new(1.0, -1.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
+                parent.spawn((
+                    Camera3dBundle {
+                        camera: Camera {
+                            order: 2,
+                            ..default()
+                        },
+                        camera_3d: Camera3d {
+                            clear_color: ClearColorConfig::None,
+                            ..default()
+                        },
+                        transform: t,
+                        ..default()
+                    },
+                    ArenitoCamera,
+                ));
+                parent.spawn(PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+                    material: materials.add(Color::rgb(1.0, 0.0, 1.0).into()),
+                    transform: t.with_scale(Vec3::splat(0.1)),
+                    ..default()
+                });
             });
+
+        // reference cube
+        commands.spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+            material: materials.add(Color::rgb(0.0, 0.0, 1.0).into()),
+            transform: Transform::from_xyz(4.0, 0.3, 0.0).with_scale(Vec3::splat(0.3)),
+            ..default()
+        });
 
         // Aaaaaand 2D Arenito.
         commands
@@ -313,7 +349,8 @@ impl Arenito {
                 MaterialMesh2dBundle {
                     mesh: Mesh2dHandle(meshes.add(shape::Quad::default().into())),
                     material: materials2d.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(SCALE_2D / 2.)),
+                    transform: Transform::from_xyz(0.0, 0.0, 0.0)
+                        .with_scale(Vec3::splat(SCALE_2D / 2.)),
                     ..default()
                 },
                 Arenito2D,
