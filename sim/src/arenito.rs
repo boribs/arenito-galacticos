@@ -332,7 +332,7 @@ impl Arenito {
 
                 // Camera prism
                 parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(static_shape::CameraPrism::new(3.0, 95.0, 75.0))),
+                    mesh: meshes.add(Mesh::from(static_shape::CameraPrism::new(5.0, 150.0, 129.0))),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     transform: t,
                     ..default()
