@@ -2,9 +2,14 @@ use crate::spatial_awareness::FromGyro;
 use crate::static_shape;
 use crate::wire::*;
 use bevy::{
-    core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+    render::{
+        camera::RenderTarget,
+        render_resource::{
+            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+        },
+    }
 };
 use bevy_obj::*;
 use std::f32::consts::TAU;
@@ -41,8 +46,11 @@ impl Plugin for ArenitoPlugin {
 
         // resources
         app.insert_resource(Arenito::new());
+        app.insert_resource(ArenitoCamData {image_handle: None, material_handle: None});
         // startup systems
+        app.add_startup_system(arenito_cam_setup);
         app.add_startup_system(arenito_spawner);
+        app.add_startup_system(spawn_arenito_cam_plane);
         // systems
         app.add_system(arenito_mover);
     }
@@ -99,6 +107,7 @@ fn arenito_spawner(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut cam_data: ResMut<ArenitoCamData>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
 ) {
@@ -108,6 +117,7 @@ fn arenito_spawner(
         &mut materials2d,
         &mut meshes,
         &asset_server,
+        &mut cam_data
     );
 }
 
@@ -160,6 +170,7 @@ fn arenito_mover(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut cam_data: ResMut<ArenitoCamData>,
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
@@ -179,12 +190,67 @@ fn arenito_mover(
             &mut materials2d,
             &mut meshes,
             &asset_server,
+            &mut cam_data,
             &arenito3d,
         );
     }
 
     arenito.update(time.delta().as_millis(), arenito3d, arenito2d);
     // println!("{}", arenito.log());
+}
+
+fn arenito_cam_setup(
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut images: ResMut<Assets<Image>>,
+    mut cam_data: ResMut<ArenitoCamData>,
+) {
+    let size = Extent3d {
+        width: 512,
+        height: 512,
+        ..default()
+    };
+
+    let mut image = Image {
+        texture_descriptor: TextureDescriptor {
+            label: None,
+            size,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Bgra8UnormSrgb,
+            mip_level_count: 1,
+            sample_count: 1,
+            usage: TextureUsages::TEXTURE_BINDING
+                | TextureUsages::COPY_DST
+                | TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        },
+        ..default()
+    };
+
+    // fill image.data with zeroes
+    image.resize(size);
+    let image_handle = images.add(image);
+
+    let material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(image_handle.clone()),
+        reflectance: 0.02,
+        unlit: false,
+        ..default()
+    });
+
+    cam_data.image_handle = Some(image_handle);
+    cam_data.material_handle = Some(material_handle);
+}
+
+fn spawn_arenito_cam_plane(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    cam_data: Res<ArenitoCamData>,
+) {
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(shape::Plane::default().into()),
+        material: cam_data.material_handle.clone().unwrap(),
+        ..default()
+    });
 }
 
 /* ---------------------------Arenito Plugin---------------------------- */
@@ -200,6 +266,12 @@ pub enum Arenito3D {
 
 #[derive(Component)]
 pub struct ArenitoCamera;
+
+#[derive(Resource)]
+pub struct ArenitoCamData {
+    image_handle: Option<Handle<Image>>,
+    material_handle: Option<Handle<StandardMaterial>>,
+}
 
 #[derive(Component)]
 pub struct Arenito2D;
@@ -256,6 +328,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
+        cam_data: &mut ResMut<ArenitoCamData>
     ) {
         // This is 3D Arenito!
         commands
@@ -312,16 +385,13 @@ impl Arenito {
 
                 // Arenito mounted camera
                 let t = Transform::from_xyz(0.75, 1.3, 0.0)
-                    .looking_to(Vec3::new(1.0, -0.5, 0.0), Vec3::new(0.0, 1.0, 0.0));
+                    .looking_to(Vec3::new(1.0, -0.5, 0.0), Vec3::Y);
 
                 parent.spawn((
                     Camera3dBundle {
                         camera: Camera {
-                            order: 2,
-                            ..default()
-                        },
-                        camera_3d: Camera3d {
-                            clear_color: ClearColorConfig::None,
+                            order: -1,
+                            target: RenderTarget::Image(cam_data.image_handle.clone().unwrap()),
                             ..default()
                         },
                         transform: t,
@@ -395,6 +465,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
+        cam_data: &mut ResMut<ArenitoCamData>,
         arenito3d: &Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
@@ -407,7 +478,7 @@ impl Arenito {
             commands.entity(e.2).despawn();
         });
 
-        self.spawn(commands, materials, materials2d, meshes, asset_server);
+        self.spawn(commands, materials, materials2d, meshes, asset_server, cam_data);
     }
 
     /// Applies the movement given some delta time.
