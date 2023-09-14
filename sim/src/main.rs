@@ -82,14 +82,6 @@ fn set_camera_viewports(
     mut resize_events: EventReader<WindowResized>,
     mut right_camera: Query<&mut Camera, With<DataCamera>>,
     mut left_camera: Query<&mut Camera, (With<SceneCamera>, Without<DataCamera>)>,
-    // mut arenito_camera: Query<
-    //     &mut Camera,
-    //     (
-    //         Without<SceneCamera>,
-    //         Without<DataCamera>,
-    //         With<ArenitoCamera>,
-    //     ),
-    // >,
 ) {
     // We need to dynamically resize the camera's viewports whenever the window size changes
     // so then each camera always takes up half the screen.
@@ -119,13 +111,5 @@ fn set_camera_viewports(
             physical_size: UVec2::new(rw, h),
             ..default()
         });
-
-        // let (aw, ah) = (w / 5, h / 5);
-        // let mut arenito_camera = arenito_camera.single_mut();
-        // arenito_camera.viewport = Some(Viewport {
-        //     physical_position: UVec2::new(lw - aw - w / 37, h / 17),
-        //     physical_size: UVec2::new(aw, ah),
-        //     ..default()
-        // });
     }
 }

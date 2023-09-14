@@ -3,13 +3,13 @@ use crate::static_shape;
 use crate::wire::*;
 use bevy::{
     prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     render::{
         camera::RenderTarget,
         render_resource::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
-    }
+    },
+    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_obj::*;
 use std::f32::consts::TAU;
@@ -46,7 +46,10 @@ impl Plugin for ArenitoPlugin {
 
         // resources
         app.insert_resource(Arenito::new());
-        app.insert_resource(ArenitoCamData {image_handle: None, material_handle: None});
+        app.insert_resource(ArenitoCamData {
+            image_handle: None,
+            material_handle: None,
+        });
         // startup systems
         app.add_startup_system(arenito_cam_setup);
         app.add_startup_system(arenito_spawner);
@@ -117,7 +120,7 @@ fn arenito_spawner(
         &mut materials2d,
         &mut meshes,
         &asset_server,
-        &mut cam_data
+        &mut cam_data,
     );
 }
 
@@ -199,6 +202,8 @@ fn arenito_mover(
     // println!("{}", arenito.log());
 }
 
+/// Configures the ArenitoCamData struct to hold image and material handles.
+/// https://github.com/bevyengine/bevy/blob/main/examples/3d/render_to_texture.rs
 fn arenito_cam_setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut images: ResMut<Assets<Image>>,
@@ -328,7 +333,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        cam_data: &mut ResMut<ArenitoCamData>
+        cam_data: &mut ResMut<ArenitoCamData>,
     ) {
         // This is 3D Arenito!
         commands
@@ -402,7 +407,9 @@ impl Arenito {
 
                 // Camera prism
                 parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(static_shape::CameraPrism::new(5.0, 150.0, 129.0))),
+                    mesh: meshes.add(Mesh::from(static_shape::CameraPrism::new(
+                        5.0, 150.0, 129.0,
+                    ))),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     transform: t,
                     ..default()
@@ -478,7 +485,14 @@ impl Arenito {
             commands.entity(e.2).despawn();
         });
 
-        self.spawn(commands, materials, materials2d, meshes, asset_server, cam_data);
+        self.spawn(
+            commands,
+            materials,
+            materials2d,
+            meshes,
+            asset_server,
+            cam_data,
+        );
     }
 
     /// Applies the movement given some delta time.
