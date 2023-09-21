@@ -169,3 +169,86 @@ impl From<CameraPrism> for Mesh {
         mesh
     }
 }
+
+/// Visualization of the area visible by Arneito's camera.
+#[derive(Component)]
+pub struct CameraArea {
+    // Camera's position
+    pos: Vec3,
+    // Horizontal view angle, in degrees
+    ha: f32,
+    // Vertical view angle, in degrees
+    va: f32,
+    // Camera's vertical rotation
+    alpha: f32,
+}
+
+impl CameraArea {
+    pub fn new(pos: Vec3, ha: f32, va: f32, alpha: f32) -> Self {
+        Self {
+            pos,
+            ha: ha.to_radians(),
+            va: va.to_radians(),
+            alpha: alpha.to_radians(),
+        }
+    }
+
+    fn x_pos(&self, angle: f32) -> f32 {
+        let m = angle.tan();
+        self.pos.x - (self.pos.y / m)
+    }
+
+    fn z_pos(&self, angle: f32, x: f32) -> f32 {
+        let m = angle.tan();
+        self.pos.z - m * (x - self.pos.x)
+    }
+
+    pub fn area_points(&self) -> Vec<Vec3> {
+        // A and B are the closest points to the camera
+        // in right-to-left order.
+        // C and D are in left-to-right order, further away.
+        //
+        //    C         B
+        //
+        //     D       A
+        //
+        //        cam
+
+        let (ha, va) = (self.ha / 2., self.va / 2.);
+        let x1 = self.x_pos(self.alpha + va);
+        let x2 = self.x_pos(self.alpha - va);
+        let z1 = self.z_pos(-ha, x1);
+        let z2 = self.z_pos(-ha, x2);
+        let z3 = self.z_pos(ha, x2);
+        let z4 = self.z_pos(ha, x1);
+
+        vec![
+            Vec3::new(x1, 0.0, z1), // A
+            Vec3::new(x2, 0.0, z2), // B
+            Vec3::new(x2, 0.0, z3), // C
+            Vec3::new(x1, 0.0, z4), // D
+        ]
+    }
+}
+
+impl Default for CameraArea {
+    fn default() -> Self {
+        Self::new(Vec3::new(0.75, 1.3, 0.0), 70.0, 45.0, -45.0)
+    }
+}
+
+impl From<CameraArea> for Mesh {
+    fn from(cam_area: CameraArea) -> Self {
+        let mut points = cam_area.area_points();
+        points.push(points[0].clone());
+
+        let normals = vec![[1.0, 1.0, 1.0]; points.len()];
+        let uvs = vec![[1.0, 1.0]; points.len()];
+
+        let mut mesh = Mesh::new(PrimitiveTopology::LineStrip);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+        mesh
+    }
+}
