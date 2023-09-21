@@ -1,6 +1,9 @@
-use crate::spatial_awareness::FromGyro;
-use crate::static_shape;
-use crate::wire::*;
+use crate::{
+    spatial_awareness::FromGyro,
+    static_shape::{self, CameraArea},
+    wire::*,
+    DataCamera, SceneCamera,
+};
 use bevy::{
     prelude::*,
     render::{
@@ -12,7 +15,7 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_obj::*;
-use std::f32::consts::TAU;
+use std::f32::consts::{FRAC_PI_2, PI, TAU};
 
 const FRIC_K: f32 = 0.5;
 pub const SCALE_2D: f32 = 100.0;
@@ -56,6 +59,7 @@ impl Plugin for ArenitoPlugin {
         app.add_startup_system(spawn_arenito_cam_plane);
         // systems
         app.add_system(arenito_mover);
+        app.add_system(update_arenito_cam_plane_pos);
     }
 }
 
@@ -262,6 +266,29 @@ fn spawn_arenito_cam_plane(
         ArenitoCamera,
     ));
 }
+
+/// Moves the plane relative to the main `Scene Camera`, such that
+/// Arenito's POV is always visible, even when the main camera moves.
+/// This is a hack, since I need to capture Arenito's camera output.
+fn update_arenito_cam_plane_pos(
+    mut scene_cam: Query<(&mut Transform, With<SceneCamera>)>,
+    mut arenito_cam: Query<(&mut Transform, With<ArenitoCamera>, Without<SceneCamera>)>,
+) {
+    let scene_cam = scene_cam.single_mut();
+    let mut arenito_cam = arenito_cam.single_mut();
+
+    let t = scene_cam.0.translation.normalize_or_zero() * 5.0;
+    arenito_cam.0.translation = scene_cam.0.translation - t + Vec3::Y;
+
+    arenito_cam.0.rotation = scene_cam.0.rotation;
+    arenito_cam
+        .0
+        .rotate_around(scene_cam.0.translation, Quat::from_rotation_y(-0.25));
+    arenito_cam.0.rotate_y(PI);
+    arenito_cam.0.rotate_local_x(-0.7);
+    arenito_cam.0.rotate_x(-0.01);
+
+    // println!("{:?}, {:?}", arenito_cam.0.translation, t);
 }
 
 /* ---------------------------Arenito Plugin---------------------------- */
