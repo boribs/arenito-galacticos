@@ -238,7 +238,7 @@ fn arenito_cam_setup(
     let material_handle = materials.add(StandardMaterial {
         base_color_texture: Some(image_handle.clone()),
         reflectance: 0.02,
-        unlit: false,
+        unlit: true,
         ..default()
     });
 
