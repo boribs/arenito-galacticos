@@ -246,16 +246,22 @@ fn arenito_cam_setup(
     cam_data.material_handle = Some(material_handle);
 }
 
+/// Spawns the proyection plane. This plane's texture is whatever
+/// Arenito's camera sees.
 fn spawn_arenito_cam_plane(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     cam_data: Res<ArenitoCamData>,
 ) {
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::default().into()),
-        material: cam_data.material_handle.clone().unwrap(),
-        ..default()
-    });
+    commands.spawn((
+        PbrBundle {
+            mesh: meshes.add(shape::Plane::default().into()),
+            material: cam_data.material_handle.clone().unwrap(),
+            ..default()
+        },
+        ArenitoCamera,
+    ));
+}
 }
 
 /* ---------------------------Arenito Plugin---------------------------- */
@@ -392,26 +398,18 @@ impl Arenito {
                 let t = Transform::from_xyz(0.75, 1.3, 0.0)
                     .looking_to(Vec3::new(1.0, -0.5, 0.0), Vec3::Y);
 
-                parent.spawn((
-                    Camera3dBundle {
-                        camera: Camera {
-                            order: -1,
-                            target: RenderTarget::Image(cam_data.image_handle.clone().unwrap()),
-                            ..default()
-                        },
-                        transform: t,
+                parent.spawn(Camera3dBundle {
+                    camera: Camera {
+                        target: RenderTarget::Image(cam_data.image_handle.clone().unwrap()),
                         ..default()
                     },
-                    ArenitoCamera,
-                ));
-
-                // Camera prism
-                parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(static_shape::CameraPrism::new(
-                        5.0, 150.0, 129.0,
-                    ))),
-                    material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     transform: t,
+                    ..default()
+                });
+
+                parent.spawn(PbrBundle {
+                    mesh: meshes.add(Mesh::from(CameraArea::default())),
+                    material: materials.add(Color::WHITE.into()),
                     ..default()
                 });
             });
