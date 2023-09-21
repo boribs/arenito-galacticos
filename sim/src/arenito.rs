@@ -2,7 +2,7 @@ use crate::{
     spatial_awareness::FromGyro,
     static_shape::{self, CameraArea},
     wire::*,
-    DataCamera, SceneCamera,
+    SceneCamera,
 };
 use bevy::{
     prelude::*,
@@ -15,7 +15,7 @@ use bevy::{
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_obj::*;
-use std::f32::consts::{FRAC_PI_2, PI, TAU};
+use std::f32::consts::{PI, TAU};
 
 const FRIC_K: f32 = 0.5;
 pub const SCALE_2D: f32 = 100.0;

@@ -4,7 +4,7 @@ pub mod spatial_awareness;
 pub mod static_shape;
 pub mod wire;
 
-use arenito::{ArenitoCamera, ArenitoPlugin};
+use arenito::ArenitoPlugin;
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig, prelude::*, render::camera::Viewport,
     window::WindowResized,
