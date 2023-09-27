@@ -140,6 +140,14 @@ impl CameraPrism {
             Vec3::new(ha.cos(), -va.sin(), -ha.sin()), // d
         ]
     }
+
+    /// Returns a prism with angles from a CameraArea.
+    pub fn from_cam(camera_area: &CameraArea) -> Self {
+        Self {
+            ha: camera_area.ha,
+            va: camera_area.va,
+        }
+    }
 }
 
 impl Default for CameraPrism {
@@ -213,24 +221,50 @@ impl CameraArea {
         //
         //    C         B
         //
-        //     D       A
+        //      D     A
         //
         //        cam
 
-        let (ha, va) = (self.ha / 2., self.va / 2.);
-        let x1 = self.x_pos(self.alpha + va);
-        let x2 = self.x_pos(self.alpha - va);
-        let z1 = self.z_pos(-ha, x1);
-        let z2 = self.z_pos(-ha, x2);
-        let z3 = self.z_pos(ha, x2);
-        let z4 = self.z_pos(ha, x1);
+        let q = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, self.alpha);
+        let mut points = CameraPrism::from_cam(self).get_points();
 
-        vec![
-            Vec3::new(x1, 0.0, z1), // A
-            Vec3::new(x2, 0.0, z2), // B
-            Vec3::new(x2, 0.0, z3), // C
-            Vec3::new(x1, 0.0, z4), // D
-        ]
+        for i in 0..points.len() {
+            // rotate each point and move to correct position
+            let p = q.mul_vec3(points[i]) + self.pos;
+
+            // since it's about a 3d line, we have to consider two planes xy and xz.
+            //
+            // starting with xy: the line equation goes: y - y_0 = m(x - x_0)
+            // we know that y = 0, because we want to know where it reaches the ground:
+            // (0) - y_0 = m(x - x_0)
+            // -y_0 = mx - mx_0
+            //
+            // and we want to find x:
+            // mx = mx_0 - y_0
+            // x = x_0 - (y_0 / m)
+            //
+            // we also know that the initial position (x_0 and y_0) is the camera's,
+            // so, we can re-write the equation as:
+            // x = pos.x - (pos.y / m)
+            //
+            // now the xz plane: based on the same equation, but replacing y by z,
+            // this plane's line equation is: z - z_0 = m(x - x_0)
+            // since we already know x, we just have to calculate this plane's slope
+            // and substitute the rest:
+            // z = m(x - x_0) + z_0
+
+            let mxy = (p.y - self.pos.y) / (p.x - self.pos.x); // xy slope
+            let mxz = (p.z - self.pos.z) / (p.x - self.pos.x); // xz slope
+
+            let x = self.pos.x - (self.pos.y / mxy);
+            points[i] = Vec3::new(
+                x,
+                0.0,
+                mxz * (x - self.pos.x) + self.pos.z
+            );
+        }
+
+        points
     }
 }
 
