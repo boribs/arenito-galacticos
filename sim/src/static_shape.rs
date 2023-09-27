@@ -82,8 +82,6 @@ impl From<Arrow> for Mesh {
 /// Visual representation of the viewport of a virtual 3d Camera
 #[derive(Component)]
 pub struct CameraPrism {
-    // How far the camera sees
-    depth: f32,
     // Horizontal view angle, in degrees
     ha: f32,
     // Vertical view angle, in degrees
@@ -91,24 +89,16 @@ pub struct CameraPrism {
 }
 
 impl CameraPrism {
-    pub fn new(depth: f32, ha: f32, va: f32) -> Self {
+    pub fn new(ha: f32, va: f32) -> Self {
         Self {
-            depth,
             ha: ha.to_radians(),
             va: va.to_radians(),
         }
     }
-}
 
-impl Default for CameraPrism {
-    fn default() -> Self {
-        CameraPrism::new(10.0, 81.0, 65.0)
-    }
-}
-
-impl From<CameraPrism> for Mesh {
-    /// Creates a default CameraPrism looking in the default Z- direction.
-    fn from(camera_prism: CameraPrism) -> Self {
+    /// Calculates the points that limit the base of the prism.
+    /// Considers the tip of the prism to be the origin (0, 0, 0).
+    pub fn get_points(&self) -> Vec<Vec3> {
         // a, b, c and d are the vertices of the base of
         // the prism. The prism has it's top on `o` and
         // is inclinated such that the top and the center
@@ -118,52 +108,49 @@ impl From<CameraPrism> for Mesh {
         // ..........................----....|.-.D........
         // .....................----______...|...|........
         // ................----___...........|...|........
-        // .z-.----->....O...................|.x.|........
+        // .x+.----->....O...................|.#.|........
         // ................----..............|...|........
         // ...................__----.........|...|........
         // ........................__----....|...|........
         // ...........................____---A.-.|........
         // ................................._____B........
         // ...............................................
-        // ..............|--------depth--------|..........
-        // ...............................................
-        let dis = Vec3::new(
-            (camera_prism.ha / 2.).tan(),
-            (camera_prism.va / 2.).tan(),
-            -camera_prism.depth,
-        );
-        let (a, b, c, d) = (
-            dis,
-            Vec3::new(dis.x, -dis.y, dis.z),
-            Vec3::new(-dis.x, dis.y, dis.z),
-            Vec3::new(-dis.x, -dis.y, dis.z),
-        );
 
-        let linelist = vec![
-            Vec3::ZERO,
-            a.clone(),
-            Vec3::ZERO,
-            b.clone(),
-            Vec3::ZERO,
-            c.clone(),
-            Vec3::ZERO,
-            d.clone(),
-            // ---
-            a.clone(),
-            b.clone(),
-            b.clone(),
-            d.clone(),
-            d.clone(),
-            c.clone(),
-            c.clone(),
-            a.clone(),
+        let (ha, va) = (self.ha / 2.0, self.va / 2.0);
+        vec![
+            Vec3::new(ha.cos(), va.sin(), -ha.sin()),  // a
+            Vec3::new(ha.cos(), va.sin(), ha.sin()),   // b
+            Vec3::new(ha.cos(), -va.sin(), ha.sin()),  // c
+            Vec3::new(ha.cos(), -va.sin(), -ha.sin()), // d
+        ]
+    }
+}
+
+impl Default for CameraPrism {
+    fn default() -> Self {
+        CameraPrism::new(81.0, 65.0)
+    }
+}
+
+impl From<CameraPrism> for Mesh {
+    /// Creates a default CameraPrism looking in the default Z- direction.
+    fn from(camera_prism: CameraPrism) -> Self {
+        let points = camera_prism.get_points();
+        let vertices = vec![
+            Vec3::ZERO, points[0].clone(),
+            Vec3::ZERO, points[1].clone(),
+            Vec3::ZERO, points[2].clone(),
+            Vec3::ZERO, points[3].clone(),
+            points[0].clone(), points[1].clone(),
+            points[1].clone(), points[2].clone(),
+            points[2].clone(), points[3].clone(),
+            points[3].clone(), points[0].clone(),
         ];
-
-        let normals = vec![[1.0, 1.0, 1.0]; linelist.len()];
-        let uvs = vec![[1.0, 1.0]; linelist.len()];
+        let normals = vec![[1.0, 1.0, 1.0]; vertices.len()];
+        let uvs = vec![[1.0, 1.0]; vertices.len()];
 
         let mut mesh = Mesh::new(PrimitiveTopology::LineList);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, linelist);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
         mesh
