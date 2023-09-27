@@ -161,14 +161,22 @@ impl From<CameraPrism> for Mesh {
     fn from(camera_prism: CameraPrism) -> Self {
         let points = camera_prism.get_points();
         let vertices = vec![
-            Vec3::ZERO, points[0].clone(),
-            Vec3::ZERO, points[1].clone(),
-            Vec3::ZERO, points[2].clone(),
-            Vec3::ZERO, points[3].clone(),
-            points[0].clone(), points[1].clone(),
-            points[1].clone(), points[2].clone(),
-            points[2].clone(), points[3].clone(),
-            points[3].clone(), points[0].clone(),
+            Vec3::ZERO,
+            points[0].clone(),
+            Vec3::ZERO,
+            points[1].clone(),
+            Vec3::ZERO,
+            points[2].clone(),
+            Vec3::ZERO,
+            points[3].clone(),
+            points[0].clone(),
+            points[1].clone(),
+            points[1].clone(),
+            points[2].clone(),
+            points[2].clone(),
+            points[3].clone(),
+            points[3].clone(),
+            points[0].clone(),
         ];
         let normals = vec![[1.0, 1.0, 1.0]; vertices.len()];
         let uvs = vec![[1.0, 1.0]; vertices.len()];
@@ -248,11 +256,7 @@ impl CameraArea {
             let mxz = (p.z - self.pos.z) / (p.x - self.pos.x); // xz slope
 
             let x = self.pos.x - (self.pos.y / mxy);
-            points[i] = Vec3::new(
-                x,
-                0.0,
-                mxz * (x - self.pos.x) + self.pos.z
-            );
+            points[i] = Vec3::new(x, 0.0, mxz * (x - self.pos.x) + self.pos.z);
         }
 
         points
