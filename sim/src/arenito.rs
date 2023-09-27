@@ -47,6 +47,10 @@ impl Plugin for ArenitoPlugin {
         app.insert_resource(ArenitoCamData {
             image_handle: None,
             material_handle: None,
+            offset: Vec3::new(0.75, 1.3, 0.0),
+            alpha: -40.0,
+            ha: 45.0,
+            va: 45.0,
         });
         // startup systems
         app.add_startup_system(arenito_cam_setup);
@@ -300,10 +304,14 @@ pub enum Arenito3D {
 #[derive(Component)]
 pub struct ArenitoCamera;
 
-#[derive(Resource)]
+#[derive(Resource, Debug)]
 pub struct ArenitoCamData {
     image_handle: Option<Handle<Image>>,
     material_handle: Option<Handle<StandardMaterial>>,
+    pub offset: Vec3,
+    pub alpha: f32,
+    pub va: f32,
+    pub ha: f32,
 }
 
 #[derive(Component)]
@@ -417,8 +425,10 @@ impl Arenito {
                 ));
 
                 // Arenito mounted camera
-                let t = Transform::from_xyz(0.75, 1.3, 0.0)
-                    .looking_to(Vec3::new(1.0, -0.5, 0.0), Vec3::Y);
+                let mut t =
+                    Transform::from_xyz(cam_data.offset.x, cam_data.offset.y, cam_data.offset.z)
+                        .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
+                t.rotate_z(cam_data.alpha.to_radians());
 
                 parent.spawn(Camera3dBundle {
                     camera: Camera {
@@ -430,7 +440,7 @@ impl Arenito {
                 });
 
                 parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(CameraArea::default())),
+                    mesh: meshes.add(Mesh::from(CameraArea::from_cam_data(&cam_data))),
                     material: materials.add(Color::WHITE.into()),
                     ..default()
                 });
