@@ -1,4 +1,5 @@
 use bevy::{prelude::*, render::render_resource::*};
+use crate::arenito::ArenitoCamData;
 
 /// An arrow.
 #[derive(Component)]
@@ -260,6 +261,16 @@ impl CameraArea {
         }
 
         points
+    }
+
+    /// Creates a CameraArea instance taking camera data from ArenitoCamData.
+    pub fn from_cam_data(cam_data: &ArenitoCamData) -> Self {
+        Self {
+            pos: cam_data.offset.clone(),
+            ha: cam_data.ha.to_radians(),
+            va: cam_data.va.to_radians(),
+            alpha: cam_data.alpha.to_radians(),
+        }
     }
 }
 
