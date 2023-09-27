@@ -204,16 +204,7 @@ impl CameraArea {
         }
     }
 
-    fn x_pos(&self, angle: f32) -> f32 {
-        let m = angle.tan();
-        self.pos.x - (self.pos.y / m)
-    }
-
-    fn z_pos(&self, angle: f32, x: f32) -> f32 {
-        let m = angle.tan();
-        self.pos.z - m * (x - self.pos.x)
-    }
-
+    /// Calculates the points that limit the camera's visible area.
     pub fn area_points(&self) -> Vec<Vec3> {
         // A and B are the closest points to the camera
         // in right-to-left order.
@@ -270,7 +261,7 @@ impl CameraArea {
 
 impl Default for CameraArea {
     fn default() -> Self {
-        Self::new(Vec3::new(0.75, 1.3, 0.0), 70.0, 45.0, -45.0)
+        Self::new(Vec3::new(0.75, 1.3, 0.0), 45.0, 45.0, -40.0)
     }
 }
 
@@ -279,8 +270,8 @@ impl From<CameraArea> for Mesh {
         let mut points = cam_area.area_points();
         points.push(points[0].clone());
 
-        let normals = vec![[1.0, 1.0, 1.0]; points.len()];
-        let uvs = vec![[1.0, 1.0]; points.len()];
+        let normals = vec![[1.0, 1.0, 1.0]; 5];
+        let uvs = vec![[1.0, 1.0]; 5];
 
         let mut mesh = Mesh::new(PrimitiveTopology::LineStrip);
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
