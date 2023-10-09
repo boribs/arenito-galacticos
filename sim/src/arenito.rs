@@ -381,7 +381,7 @@ impl Arenito {
                     Camera3dBundle {
                         camera: Camera {
                             target: RenderTarget::Image(
-                                img_processor.image_handle.clone().unwrap(),
+                                img_processor.image_handle.clone().unwrap(), // ????
                             ),
                             ..default()
                         },
@@ -392,7 +392,7 @@ impl Arenito {
                 ));
 
                 parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(CameraArea::from_img_processor(&img_processor))),
+                    mesh: meshes.add(Mesh::from(img_processor.get_visible_area())),
                     material: materials.add(Color::WHITE.into()),
                     ..default()
                 });
