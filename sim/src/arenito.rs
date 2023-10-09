@@ -52,9 +52,7 @@ impl Plugin for ArenitoPlugin {
             va: 45.0,
         });
         // startup systems
-        app.add_startup_system(arenito_cam_setup);
         app.add_startup_system(arenito_spawner);
-        app.add_startup_system(spawn_arenito_cam_plane);
         // systems
         app.add_system(arenito_mover);
         app.add_system(update_arenito_cam_plane_pos);
@@ -106,16 +104,22 @@ fn wire_spawner(
     );
 }
 
-/// Adds Arenito to the scene.
+/// Initializes the image processor.
+/// https://github.com/bevyengine/bevy/blob/main/examples/3d/render_to_texture.rs
+///
+/// Spawns Arenito and it's Plane. This plane displays whatever ArenitoCamera sees.
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut img_processor: ResMut<ImageProcessor>,
+    mut images: ResMut<Assets<Image>>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
 ) {
+    img_processor.init(&mut materials, &mut images);
+
     arenito.spawn(
         &mut commands,
         &mut materials,
@@ -124,6 +128,15 @@ fn arenito_spawner(
         &asset_server,
         &mut img_processor,
     );
+
+    commands.spawn((
+        PbrBundle {
+            mesh: meshes.add(shape::Plane::default().into()),
+            material: img_processor.material_handle.clone().unwrap(),
+            ..default()
+        },
+        ArenitoPlane,
+    ));
 }
 
 /// Moves the wires that indicate direction, speed and acceleration.
@@ -204,36 +217,10 @@ fn arenito_mover(
     // println!("{}", arenito.log());
 }
 
-/// Configures the ArenitoCamData struct to hold image and material handles.
-/// https://github.com/bevyengine/bevy/blob/main/examples/3d/render_to_texture.rs
-fn arenito_cam_setup(
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut images: ResMut<Assets<Image>>,
-    mut img_processor: ResMut<ImageProcessor>,
-) {
-    img_processor.init(&mut materials, &mut images);
-}
-
-/// Spawns the proyection plane. This plane's texture is whatever
-/// Arenito's camera sees.
-fn spawn_arenito_cam_plane(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    img_processor: Res<ImageProcessor>,
-) {
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(shape::Plane::default().into()),
-            material: img_processor.material_handle.clone().unwrap(),
-            ..default()
-        },
-        ArenitoPlane,
-    ));
-}
-
 /// Moves the plane relative to the main `Scene Camera`, such that
 /// Arenito's POV is always visible, even when the main camera moves.
 /// This is a hack, since I need to capture Arenito's camera output.
+/// TODO: Fix this thing.
 fn update_arenito_cam_plane_pos(
     mut scene_cam: Query<(&mut Transform, With<SceneCamera>)>,
     mut arenito_plane: Query<(&mut Transform, With<ArenitoPlane>, Without<SceneCamera>)>,
