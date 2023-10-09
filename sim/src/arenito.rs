@@ -1,4 +1,6 @@
-use crate::{spatial_awareness::FromGyro, static_shape::*, wire::*, SceneCamera};
+use crate::{
+    sensor::ImageProcessor, spatial_awareness::FromGyro, static_shape::*, wire::*, SceneCamera,
+};
 use bevy::{
     prelude::*,
     render::{
@@ -44,7 +46,7 @@ impl Plugin for ArenitoPlugin {
 
         // resources
         app.insert_resource(Arenito::new());
-        app.insert_resource(ArenitoCamData {
+        app.insert_resource(ImageProcessor {
             image_handle: None,
             material_handle: None,
             offset: Vec3::new(0.75, 1.3, 0.0),
@@ -113,7 +115,7 @@ fn arenito_spawner(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut cam_data: ResMut<ArenitoCamData>,
+    mut cam_data: ResMut<ImageProcessor>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
 ) {
@@ -176,7 +178,7 @@ fn arenito_mover(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut cam_data: ResMut<ArenitoCamData>,
+    mut cam_data: ResMut<ImageProcessor>,
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
@@ -210,7 +212,7 @@ fn arenito_mover(
 fn arenito_cam_setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut images: ResMut<Assets<Image>>,
-    mut cam_data: ResMut<ArenitoCamData>,
+    mut cam_data: ResMut<ImageProcessor>,
 ) {
     let size = Extent3d {
         width: 512,
@@ -254,7 +256,7 @@ fn arenito_cam_setup(
 fn spawn_arenito_cam_plane(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    cam_data: Res<ArenitoCamData>,
+    cam_data: Res<ImageProcessor>,
 ) {
     commands.spawn((
         PbrBundle {
@@ -306,16 +308,6 @@ pub struct ArenitoPlane;
 
 #[derive(Component)]
 pub struct ArenitoCamera;
-
-#[derive(Resource, Debug)]
-pub struct ArenitoCamData {
-    image_handle: Option<Handle<Image>>,
-    material_handle: Option<Handle<StandardMaterial>>,
-    pub offset: Vec3,
-    pub alpha: f32,
-    pub va: f32,
-    pub ha: f32,
-}
 
 #[derive(Component)]
 pub struct Arenito2D;
@@ -372,7 +364,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        cam_data: &mut ResMut<ArenitoCamData>,
+        cam_data: &mut ResMut<ImageProcessor>,
     ) {
         // This is 3D Arenito!
         commands
@@ -506,7 +498,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        cam_data: &mut ResMut<ArenitoCamData>,
+        cam_data: &mut ResMut<ImageProcessor>,
         arenito3d: &Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
