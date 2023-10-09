@@ -66,6 +66,22 @@ impl MPU6050 {
     }
 }
 
+/// This struct is going to be responsible for figuring out the relation
+/// between something seen on the camera and it's "real" position.
+/// TODO: This information will later be used to map the terrain and
+/// decide the best path to the can deposit (and other things).
+#[derive(Resource)]
+pub struct ImageProcessor {
+    // texture stuff
+    pub image_handle: Option<Handle<Image>>,
+    pub material_handle: Option<Handle<StandardMaterial>>,
+    // camera data
+    pub offset: Vec3,
+    pub alpha: f32,
+    pub va: f32,
+    pub ha: f32,
+}
+
 #[cfg(test)]
 mod sensor_read_tests {
     use super::*;
