@@ -168,5 +168,17 @@ def random_basic_movement_from_motion(n: int):
     for a in random_angles(n):
         arenito_basic_movement_from_motion(a, random(), 0.4)
 
+def slope(a, b):
+    """
+    Comparison in slopes from a -> b and from b -> a.
+    """
+    ax, ay = a
+    bx, by = b
+
+    ab = (ay - by) / (ax - bx)
+    ba = (by - ay) / (bx - by)
+    print(f'a->b: {ab}')
+    print(f'b->a: {ba}')
+
 if __name__ == '__main__':
     pass
