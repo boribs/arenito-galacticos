@@ -115,7 +115,7 @@ fn arenito_spawner(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut cam_data: ResMut<ImageProcessor>,
+    mut img_processor: ResMut<ImageProcessor>,
     asset_server: Res<AssetServer>,
     arenito: Res<Arenito>,
 ) {
@@ -125,7 +125,7 @@ fn arenito_spawner(
         &mut materials2d,
         &mut meshes,
         &asset_server,
-        &mut cam_data,
+        &mut img_processor,
     );
 }
 
@@ -178,7 +178,7 @@ fn arenito_mover(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut cam_data: ResMut<ImageProcessor>,
+    mut img_processor: ResMut<ImageProcessor>,
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
@@ -198,7 +198,7 @@ fn arenito_mover(
             &mut materials2d,
             &mut meshes,
             &asset_server,
-            &mut cam_data,
+            &mut img_processor,
             &arenito3d,
         );
     }
@@ -212,7 +212,7 @@ fn arenito_mover(
 fn arenito_cam_setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut images: ResMut<Assets<Image>>,
-    mut cam_data: ResMut<ImageProcessor>,
+    mut img_processor: ResMut<ImageProcessor>,
 ) {
     let size = Extent3d {
         width: 512,
@@ -247,8 +247,8 @@ fn arenito_cam_setup(
         ..default()
     });
 
-    cam_data.image_handle = Some(image_handle);
-    cam_data.material_handle = Some(material_handle);
+    img_processor.image_handle = Some(image_handle);
+    img_processor.material_handle = Some(material_handle);
 }
 
 /// Spawns the proyection plane. This plane's texture is whatever
@@ -256,12 +256,12 @@ fn arenito_cam_setup(
 fn spawn_arenito_cam_plane(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    cam_data: Res<ImageProcessor>,
+    img_processor: Res<ImageProcessor>,
 ) {
     commands.spawn((
         PbrBundle {
             mesh: meshes.add(shape::Plane::default().into()),
-            material: cam_data.material_handle.clone().unwrap(),
+            material: img_processor.material_handle.clone().unwrap(),
             ..default()
         },
         ArenitoPlane,
@@ -364,7 +364,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        cam_data: &mut ResMut<ImageProcessor>,
+        img_processor: &mut ResMut<ImageProcessor>,
     ) {
         // This is 3D Arenito!
         commands
@@ -421,14 +421,14 @@ impl Arenito {
 
                 // Arenito mounted camera
                 let mut t =
-                    Transform::from_xyz(cam_data.offset.x, cam_data.offset.y, cam_data.offset.z)
+                    Transform::from_xyz(img_processor.offset.x, img_processor.offset.y, img_processor.offset.z)
                         .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
-                t.rotate_z(cam_data.alpha.to_radians());
+                t.rotate_z(img_processor.alpha.to_radians());
 
                 parent.spawn((
                     Camera3dBundle {
                         camera: Camera {
-                            target: RenderTarget::Image(cam_data.image_handle.clone().unwrap()),
+                            target: RenderTarget::Image(img_processor.image_handle.clone().unwrap()),
                             ..default()
                         },
                         transform: t,
@@ -438,7 +438,7 @@ impl Arenito {
                 ));
 
                 parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(CameraArea::from_cam_data(&cam_data))),
+                    mesh: meshes.add(Mesh::from(CameraArea::from_img_processor(&img_processor))),
                     material: materials.add(Color::WHITE.into()),
                     ..default()
                 });
@@ -498,7 +498,7 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        cam_data: &mut ResMut<ImageProcessor>,
+        img_processor: &mut ResMut<ImageProcessor>,
         arenito3d: &Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
@@ -517,7 +517,7 @@ impl Arenito {
             materials2d,
             meshes,
             asset_server,
-            cam_data,
+            img_processor,
         );
     }
 
