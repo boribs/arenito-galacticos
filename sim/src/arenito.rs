@@ -262,7 +262,7 @@ fn spawn_arenito_cam_plane(
             material: cam_data.material_handle.clone().unwrap(),
             ..default()
         },
-        ArenitoCamera,
+        ArenitoPlane,
     ));
 }
 
@@ -271,23 +271,23 @@ fn spawn_arenito_cam_plane(
 /// This is a hack, since I need to capture Arenito's camera output.
 fn update_arenito_cam_plane_pos(
     mut scene_cam: Query<(&mut Transform, With<SceneCamera>)>,
-    mut arenito_cam: Query<(&mut Transform, With<ArenitoCamera>, Without<SceneCamera>)>,
+    mut arenito_plane: Query<(&mut Transform, With<ArenitoPlane>, Without<SceneCamera>)>,
 ) {
     let scene_cam = scene_cam.single_mut();
-    let mut arenito_cam = arenito_cam.single_mut();
+    let mut arenito_plane = arenito_plane.single_mut();
 
     let t = scene_cam.0.translation.normalize_or_zero() * 5.0;
-    arenito_cam.0.translation = scene_cam.0.translation - t + Vec3::Y;
+    arenito_plane.0.translation = scene_cam.0.translation - t + Vec3::Y;
 
-    arenito_cam.0.rotation = scene_cam.0.rotation;
-    arenito_cam
+    arenito_plane.0.rotation = scene_cam.0.rotation;
+    arenito_plane
         .0
         .rotate_around(scene_cam.0.translation, Quat::from_rotation_y(-0.25));
-    arenito_cam.0.rotate_y(PI);
-    arenito_cam.0.rotate_local_x(-0.7);
-    arenito_cam.0.rotate_x(-0.01);
+    arenito_plane.0.rotate_y(PI);
+    arenito_plane.0.rotate_local_x(-0.7);
+    arenito_plane.0.rotate_x(-0.01);
 
-    // println!("{:?}, {:?}", arenito_cam.0.translation, t);
+    // println!("{:?}", arenito_cam.single_mut().0.forward());
 }
 
 /* ---------------------------Arenito Plugin---------------------------- */
@@ -300,6 +300,9 @@ pub enum Arenito3D {
     LeftWheel,
     RightWheel,
 }
+
+#[derive(Component)]
+pub struct ArenitoPlane;
 
 #[derive(Component)]
 pub struct ArenitoCamera;
@@ -430,14 +433,17 @@ impl Arenito {
                         .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
                 t.rotate_z(cam_data.alpha.to_radians());
 
-                parent.spawn(Camera3dBundle {
-                    camera: Camera {
-                        target: RenderTarget::Image(cam_data.image_handle.clone().unwrap()),
+                parent.spawn((
+                    Camera3dBundle {
+                        camera: Camera {
+                            target: RenderTarget::Image(cam_data.image_handle.clone().unwrap()),
+                            ..default()
+                        },
+                        transform: t,
                         ..default()
                     },
-                    transform: t,
-                    ..default()
-                });
+                    ArenitoCamera,
+                ));
 
                 parent.spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(CameraArea::from_cam_data(&cam_data))),
@@ -1020,7 +1026,7 @@ mod arenito_tests {
         );
         arenito.update_pos(16);
 
-        println!("{}", arenito.acc);
+        // println!("{}", arenito.acc);
 
         let expected_vel = Vec3::new(0.88812, 0.0, 0.88812);
         let expected_acc = Vec3::new(2.47487, 0.0, 2.47487);
