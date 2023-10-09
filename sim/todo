@@ -18,6 +18,8 @@ Ambiente gráfico:
             O hilos? Solo las aristas de los polígonos, pues
     ☐ Movimiento de la cámara: rotación click n' drag
     ✔ Movimiento de las ruedas del Arenito @done(23-06-21 18:48)
+    ☐ Alineación del plano de proyección de la cámara del Arenito
+        Para que no se vea chueco.
 
 Simluación de movimiento:
     ✔ Físicas de movimiento: aceleración @done(23-06-21 18:48)
@@ -34,7 +36,7 @@ Noción espacial:
     ☐ Determinar posición de depósito de latas
     ☐ Determinar áreas sin explorar (Roombizar!)
 
-Inormación (Pantalla 2D):
-    ☐ Camino recorrido
+Información (Pantalla 2D):
+    ✔ Camino recorrido @done(23-10-09 12:29)
     ☐ Obstáculos recordados
     ☐ Área limitada
