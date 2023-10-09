@@ -133,6 +133,20 @@ impl ImageProcessor {
         self.image_handle = Some(image_handle);
         self.material_handle = Some(material_handle);
     }
+
+impl Default for ImageProcessor {
+    fn default() -> Self {
+        ImageProcessor {
+            image_handle: None,
+            material_handle: None,
+            texture_width: 0,
+            texture_height: 0,
+            offset: Vec3::ZERO,
+            alpha: 0.0,
+            ha: 0.0,
+            va: 0.0,
+        }
+    }
 }
 
 #[cfg(test)]

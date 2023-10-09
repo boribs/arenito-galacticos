@@ -42,14 +42,13 @@ impl Plugin for ArenitoPlugin {
         // resources
         app.insert_resource(Arenito::new());
         app.insert_resource(ImageProcessor {
-            image_handle: None,
-            material_handle: None,
             texture_width: 512,
             texture_height: 512,
             offset: Vec3::new(0.75, 1.3, 0.0),
             alpha: -40.0,
             ha: 45.0,
             va: 45.0,
+            ..default()
         });
         // startup systems
         app.add_startup_system(arenito_spawner);
