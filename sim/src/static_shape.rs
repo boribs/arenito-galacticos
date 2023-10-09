@@ -264,12 +264,12 @@ impl CameraArea {
     }
 
     /// Creates a CameraArea instance taking camera data from ArenitoCamData.
-    pub fn from_img_processor(cam_data: &ImageProcessor) -> Self {
+    pub fn from_img_processor(img_processor: &ImageProcessor) -> Self {
         Self {
-            pos: cam_data.offset.clone(),
-            ha: cam_data.ha.to_radians(),
-            va: cam_data.va.to_radians(),
-            alpha: cam_data.alpha.to_radians(),
+            pos: img_processor.offset.clone(),
+            ha: img_processor.ha.to_radians(),
+            va: img_processor.va.to_radians(),
+            alpha: img_processor.alpha.to_radians(),
         }
     }
 }

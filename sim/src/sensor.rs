@@ -1,5 +1,10 @@
 use crate::arenito::*;
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    render::render_resource::{
+        Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+    },
+};
 use rand::{prelude::thread_rng, Rng};
 
 /// This struct's purpose is to generalize "Error Vector" generation.
@@ -75,11 +80,59 @@ pub struct ImageProcessor {
     // texture stuff
     pub image_handle: Option<Handle<Image>>,
     pub material_handle: Option<Handle<StandardMaterial>>,
+    pub texture_width: u32,
+    pub texture_height: u32,
     // camera data
     pub offset: Vec3,
     pub alpha: f32,
     pub va: f32,
     pub ha: f32,
+}
+
+impl ImageProcessor {
+    /// Initializes image and material handlers.
+    /// Must be called before doing any image processing.
+    pub fn init(
+        &mut self,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+        images: &mut ResMut<Assets<Image>>,
+    ) {
+        let size = Extent3d {
+            width: self.texture_width,
+            height: self.texture_height,
+            ..default()
+        };
+
+        let mut image = Image {
+            texture_descriptor: TextureDescriptor {
+                label: None,
+                size,
+                dimension: TextureDimension::D2,
+                format: TextureFormat::Bgra8UnormSrgb,
+                mip_level_count: 1,
+                sample_count: 1,
+                usage: TextureUsages::TEXTURE_BINDING
+                    | TextureUsages::COPY_DST
+                    | TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[],
+            },
+            ..default()
+        };
+
+        // fill image.data with zeroes
+        image.resize(size);
+        let image_handle = images.add(image);
+
+        let material_handle = materials.add(StandardMaterial {
+            base_color_texture: Some(image_handle.clone()),
+            reflectance: 0.02,
+            unlit: true,
+            ..default()
+        });
+
+        self.image_handle = Some(image_handle);
+        self.material_handle = Some(material_handle);
+    }
 }
 
 #[cfg(test)]

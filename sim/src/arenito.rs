@@ -3,12 +3,7 @@ use crate::{
 };
 use bevy::{
     prelude::*,
-    render::{
-        camera::RenderTarget,
-        render_resource::{
-            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-        },
-    },
+    render::camera::RenderTarget,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use bevy_obj::*;
@@ -49,6 +44,8 @@ impl Plugin for ArenitoPlugin {
         app.insert_resource(ImageProcessor {
             image_handle: None,
             material_handle: None,
+            texture_width: 512,
+            texture_height: 512,
             offset: Vec3::new(0.75, 1.3, 0.0),
             alpha: -40.0,
             ha: 45.0,
@@ -214,41 +211,7 @@ fn arenito_cam_setup(
     mut images: ResMut<Assets<Image>>,
     mut img_processor: ResMut<ImageProcessor>,
 ) {
-    let size = Extent3d {
-        width: 512,
-        height: 512,
-        ..default()
-    };
-
-    let mut image = Image {
-        texture_descriptor: TextureDescriptor {
-            label: None,
-            size,
-            dimension: TextureDimension::D2,
-            format: TextureFormat::Bgra8UnormSrgb,
-            mip_level_count: 1,
-            sample_count: 1,
-            usage: TextureUsages::TEXTURE_BINDING
-                | TextureUsages::COPY_DST
-                | TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        },
-        ..default()
-    };
-
-    // fill image.data with zeroes
-    image.resize(size);
-    let image_handle = images.add(image);
-
-    let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(image_handle.clone()),
-        reflectance: 0.02,
-        unlit: true,
-        ..default()
-    });
-
-    img_processor.image_handle = Some(image_handle);
-    img_processor.material_handle = Some(material_handle);
+    img_processor.init(&mut materials, &mut images);
 }
 
 /// Spawns the proyection plane. This plane's texture is whatever
@@ -420,15 +383,20 @@ impl Arenito {
                 ));
 
                 // Arenito mounted camera
-                let mut t =
-                    Transform::from_xyz(img_processor.offset.x, img_processor.offset.y, img_processor.offset.z)
-                        .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
+                let mut t = Transform::from_xyz(
+                    img_processor.offset.x,
+                    img_processor.offset.y,
+                    img_processor.offset.z,
+                )
+                .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
                 t.rotate_z(img_processor.alpha.to_radians());
 
                 parent.spawn((
                     Camera3dBundle {
                         camera: Camera {
-                            target: RenderTarget::Image(img_processor.image_handle.clone().unwrap()),
+                            target: RenderTarget::Image(
+                                img_processor.image_handle.clone().unwrap(),
+                            ),
                             ..default()
                         },
                         transform: t,
