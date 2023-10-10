@@ -1,4 +1,4 @@
-use crate::arenito::*;
+use crate::{arenito::*, static_shape::CameraArea};
 use bevy::{
     prelude::*,
     render::render_resource::{
@@ -165,7 +165,7 @@ impl Default for ImageProcessor {
             material_handle: None,
             texture_width: 0,
             texture_height: 0,
-            offset: Vec3::ZERO,
+            offset: Vec3::new(0.75, 1.3, 0.0),
             alpha: 0.0,
             ha: 0.0,
             va: 0.0,
