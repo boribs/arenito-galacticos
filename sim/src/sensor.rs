@@ -88,8 +88,9 @@ pub struct ImageProcessor {
     pub va: f32,
     pub ha: f32,
     // projection stuff
-    pub long_side: f32,
-    pub short_side: f32,
+    pub trapeze_long_side: f32,
+    pub trapeze_short_side: f32,
+    pub trapeze_height: f32,
 }
 
 impl ImageProcessor {
@@ -137,7 +138,8 @@ impl ImageProcessor {
         self.material_handle = Some(material_handle);
     }
 
-    /// Calculates long and short sides of the visible area, returns CameraArea.
+    /// Calculates long and short sides of the visible area, as well as height.
+    /// Returns CameraArea.
     pub fn get_visible_area(&mut self) -> CameraArea {
         let area = CameraArea::from_img_processor(&self);
         let points = area.area_points();
@@ -145,8 +147,13 @@ impl ImageProcessor {
         // unsure as tu why 0 - a, 1 - b, ... relation is broken
         // but after plotting `points`, this is how we calculate
         // long and short sides of the trapeze
-        self.long_side = points[0].distance(points[1]);
-        self.short_side = points[3].distance(points[2]);
+        self.trapeze_long_side = points[0].distance(points[1]);
+        self.trapeze_short_side = points[3].distance(points[2]);
+        self.trapeze_height = {
+            let long = points[0] - points[1];
+            let short = points[3] - points[2];
+            short.distance(long)
+        };
 
         area
     }
@@ -162,8 +169,9 @@ impl Default for ImageProcessor {
             alpha: 0.0,
             ha: 0.0,
             va: 0.0,
-            long_side: 0.0,
-            short_side: 0.0,
+            trapeze_long_side: 0.0,
+            trapeze_short_side: 0.0,
+            trapeze_height: 0.0,
         }
     }
 }
