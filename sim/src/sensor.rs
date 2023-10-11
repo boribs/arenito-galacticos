@@ -264,3 +264,58 @@ mod sensor_read_tests {
 
     // No idea how to or what to test for gyro reads...
 }
+
+#[cfg(test)]
+mod image_processor_tests {
+    use super::*;
+
+    /// Helper function to initialize ImageProcessor quickly.
+    fn get_im(ha: f32, va: f32, alpha: f32, tw: u32, th: u32) -> ImageProcessor {
+        let mut im = ImageProcessor {
+            ha,
+            va,
+            alpha,
+            texture_width: tw,
+            texture_height: th,
+            ..default()
+        };
+        im.get_visible_area();
+        im
+    }
+
+    #[test]
+    fn point_projected_in_trapeze_1() {
+        let im = get_im(45.0, 45.0, -40.0, 512, 512);
+        // starting with a 512 x 512px image, projecting a point
+        // on it's center should result in a point in the middle
+        // of the trapeze.
+        // if the trapeze has a long side of 3.3088057, a short side
+        // of 1.121719 and a height of 2.1870866, then the point
+        // should be on (0, 1.0935433 [height / 2]).
+
+        assert_eq!(
+            im.project_point(256, 256),
+            Vec2::new(0.0, im.trapeze_height / 2.0)
+        )
+    }
+
+    #[test]
+    fn point_projected_in_trapeze_2() {
+        let im = get_im(45.0, 45.0, -40.0, 512, 512);
+
+        assert_eq!(
+            im.project_point(153, 256),
+            Vec2::new(-0.4456485, im.trapeze_height / 2.0)
+        )
+    }
+
+    #[test]
+    fn point_projected_in_trapeze_3() {
+        let im = get_im(45.0, 45.0, -40.0, 512, 512);
+
+        assert_eq!(
+            im.project_point(345, 210),
+            Vec2::new(0.35091836, 0.89704724)
+        )
+    }
+}
