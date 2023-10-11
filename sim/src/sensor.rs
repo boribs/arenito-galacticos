@@ -158,6 +158,65 @@ impl ImageProcessor {
         area
     }
 
+    /// Calculates a point's position on the visible area, based on it's position on
+    /// the texture.
+    /// The returned position is on a theoretical trapeze, which is aligned horizontally
+    /// on the origin, it's short side is on the y axis and it's long side is
+    /// somewhere on the y+ plane.
+    /// ```txt
+    ///
+    ///             |
+    ///     +-------|-------+        ↑
+    ///      \   p  |      /         | y > 0
+    ///       \     |     /          |
+    ///        +----O----+    --------------> x = y = 0
+    ///             |
+    ///             |
+    /// ```
+    pub fn project_point(&self, x: i32, z: i32) -> Vec2 {
+        let x = x - (self.texture_width as i32 / 2);
+
+        // horizontal position relative to center
+        let k = 2.0 * x as f32 / self.texture_width as f32;
+        // vertical position relative to bottom
+        let l = z as f32 / self.texture_height as f32;
+
+        // calculate position on trapeze
+        let (a, b) = (
+            Vec2::new(self.trapeze_long_side * k / 2.0, self.trapeze_height as f32),
+            Vec2::new(self.trapeze_short_side * k / 2.0, 0.0),
+        );
+
+        // calculate slope like this to facilitate checking for infinite slope
+        let m = a - b;
+        // y = wherever the point is vertically,
+        // that is: trapeze height * vertical position relative to bottom (l):
+        // y = trapeze_heigh * l
+        let y = self.trapeze_height * l;
+
+        if m.x == 0.0 {
+            // check for infinite slope
+            // this means that the point is in the middle
+            Vec2::new(0.0, y)
+        } else {
+            // no infinite slope
+            // considering that the line ecuation goes y - y_0 = m(x - x_0)
+            // and we're starting from `b`, we know that y_0 and x_0 are
+            // the components of `b`.
+            //
+            // given that we know `y`, `y_0` = 0 and `x_0` = b.x we can plug them
+            // on the equation:
+            // y - 0 = mx - mb.x
+            // y = mx - mb.x
+            // mx = y + mb.x
+            // x = y/m + b.x
+
+            let m = m.y / m.x;
+            Vec2::new((y / m) + b.x, y)
+        }
+    }
+}
+
 impl Default for ImageProcessor {
     fn default() -> Self {
         ImageProcessor {
