@@ -171,11 +171,11 @@ impl ImageProcessor {
     ///     +-------|-------+        ↑
     ///      \   p  |      /         | y > 0
     ///       \     |     /          |
-    ///        +----O----+    --------------> x = y = 0
+    ///        +----O----+    --------------> x = 0
     ///             |
     ///             |
     /// ```
-    pub fn project_point(&self, x: i32, z: i32) -> Vec2 {
+    pub fn point_to_trapeze(&self, x: i32, z: i32) -> Vec2 {
         let x = x - (self.texture_width as i32 / 2);
 
         // horizontal position relative to center
@@ -297,7 +297,7 @@ mod image_processor_tests {
         // should be on (0, 1.0935433 [height / 2]).
 
         assert_eq!(
-            im.project_point(256, 256),
+            im.point_to_trapeze(256, 256),
             Vec2::new(0.0, im.trapeze_height / 2.0)
         )
     }
@@ -307,7 +307,7 @@ mod image_processor_tests {
         let im = get_im(45.0, 45.0, -40.0, 512, 512);
 
         assert_eq!(
-            im.project_point(153, 256),
+            im.point_to_trapeze(153, 256),
             Vec2::new(-0.4456485, im.trapeze_height / 2.0)
         )
     }
@@ -317,7 +317,7 @@ mod image_processor_tests {
         let im = get_im(45.0, 45.0, -40.0, 512, 512);
 
         assert_eq!(
-            im.project_point(345, 210),
+            im.point_to_trapeze(345, 210),
             Vec2::new(0.35091836, 0.89704724)
         )
     }
