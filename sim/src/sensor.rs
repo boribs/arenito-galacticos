@@ -88,6 +88,7 @@ pub struct ImageProcessor {
     pub va: f32,
     pub ha: f32,
     // projection stuff
+    pub area_points: Vec<Vec3>, // I don't like that you have to be public.
     pub trapeze_long_side: f32,
     pub trapeze_short_side: f32,
     pub trapeze_height: f32,
@@ -139,19 +140,20 @@ impl ImageProcessor {
     }
 
     /// Calculates long and short sides of the visible area, as well as height.
+    /// Sets area_points.
     /// Returns CameraArea.
     pub fn get_visible_area(&mut self) -> CameraArea {
         let area = CameraArea::from_img_processor(&self);
-        let points = area.area_points();
+        self.area_points = area.area_points();
 
-        // unsure as tu why 0 - a, 1 - b, ... relation is broken
-        // but after plotting `points`, this is how we calculate
+        // unsure as to why 0 - a, 1 - b, ... relation is broken
+        // but after plotting `area_points`, this is how we calculate
         // long and short sides of the trapeze
-        self.trapeze_long_side = points[0].distance(points[1]);
-        self.trapeze_short_side = points[3].distance(points[2]);
+        self.trapeze_long_side = self.area_points[0].distance(self.area_points[1]);
+        self.trapeze_short_side = self.area_points[3].distance(self.area_points[2]);
         self.trapeze_height = {
-            let long = points[0] - points[1];
-            let short = points[3] - points[2];
+            let long = self.area_points[0] - self.area_points[1];
+            let short = self.area_points[3] - self.area_points[2];
             short.distance(long)
         };
 
@@ -228,6 +230,7 @@ impl Default for ImageProcessor {
             alpha: 0.0,
             ha: 0.0,
             va: 0.0,
+            area_points: Vec::new(),
             trapeze_long_side: 0.0,
             trapeze_short_side: 0.0,
             trapeze_height: 0.0,
