@@ -142,18 +142,18 @@ impl ImageProcessor {
     /// Calculates long and short sides of the visible area, as well as height.
     /// Sets area_points.
     /// Returns CameraArea.
-    pub fn get_visible_area(&mut self) -> CameraArea {
-        let area = CameraArea::from_img_processor(&self);
-        self.area_points = area.area_points();
+    pub fn get_visible_area(&mut self, arenito: &Arenito) -> CameraArea {
+        let mut area = CameraArea::from_img_processor(&self);
+        let area_points = area.compute_area(arenito.cam_offset);
 
         // unsure as to why 0 - a, 1 - b, ... relation is broken
         // but after plotting `area_points`, this is how we calculate
         // long and short sides of the trapeze
-        self.trapeze_long_side = self.area_points[0].distance(self.area_points[1]);
-        self.trapeze_short_side = self.area_points[3].distance(self.area_points[2]);
+        self.trapeze_long_side = area_points[0].distance(area_points[1]);
+        self.trapeze_short_side = area_points[3].distance(area_points[2]);
         self.trapeze_height = {
-            let long = self.area_points[0] - self.area_points[1];
-            let short = self.area_points[3] - self.area_points[2];
+            let long = area_points[0] - area_points[1];
+            let short = area_points[3] - area_points[2];
             short.distance(long)
         };
 
@@ -282,7 +282,7 @@ mod image_processor_tests {
             texture_height: th,
             ..default()
         };
-        im.get_visible_area();
+        im.get_visible_area(&Arenito::new());
         im
     }
 
