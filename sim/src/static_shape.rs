@@ -265,7 +265,7 @@ impl CameraArea {
         &self.points
     }
 
-    /// Creates a CameraArea instance taking camera data from ArenitoCamData.
+    /// Creates a CameraArea instance taking camera data from ImageProcessor.
     pub fn from_img_processor(img_processor: &ImageProcessor) -> Self {
         Self {
             ha: img_processor.ha.to_radians(),
