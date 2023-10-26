@@ -214,8 +214,8 @@ impl CameraArea {
     }
 
     /// Calculates the points that limit the camera's visible area.
-    /// Stores and returns `self.points`.
-    pub fn compute_area(&mut self, cam_pos: Vec3) -> Vec<Vec3> {
+    /// Stores `self.points`, returns a reference to it.
+    pub fn compute_area(&mut self, cam_pos: Vec3) -> &Vec<Vec3> {
         // A and B are the closest points to the camera
         // in right-to-left order.
         // C and D are in left-to-right order, further away.
@@ -262,7 +262,7 @@ impl CameraArea {
         }
 
         self.points = points;
-        self.points
+        &self.points
     }
 
     /// Creates a CameraArea instance taking camera data from ArenitoCamData.
@@ -284,7 +284,7 @@ impl Default for CameraArea {
 
 impl From<CameraArea> for Mesh {
     fn from(cam_area: CameraArea) -> Self {
-        let mut points = cam_area.area_points();
+        let mut points = cam_area.points;
         points.push(points[0].clone());
 
         let normals = vec![[1.0, 1.0, 1.0]; 5];
