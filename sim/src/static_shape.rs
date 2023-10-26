@@ -194,13 +194,13 @@ impl From<CameraPrism> for Mesh {
 #[derive(Component)]
 pub struct CameraArea {
     // Horizontal view angle, in degrees
-    ha: f32,
+    pub ha: f32,
     // Vertical view angle, in degrees
-    va: f32,
+    pub va: f32,
     // Camera's vertical rotation
-    alpha: f32,
+    pub alpha: f32,
     // Computed points - edges of visible area
-    points: Vec<Vec3>,
+    pub points: Vec<Vec3>,
 }
 
 impl CameraArea {
