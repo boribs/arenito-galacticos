@@ -214,7 +214,8 @@ impl CameraArea {
     }
 
     /// Calculates the points that limit the camera's visible area.
-    pub fn area_points(&self) -> Vec<Vec3> {
+    /// Stores and returns `self.points`.
+    pub fn compute_area(&mut self, cam_pos: Vec3) -> Vec<Vec3> {
         // A and B are the closest points to the camera
         // in right-to-left order.
         // C and D are in left-to-right order, further away.
@@ -230,7 +231,7 @@ impl CameraArea {
 
         for i in 0..points.len() {
             // rotate each point and move to correct position
-            let p = q.mul_vec3(points[i]) + self.pos;
+            let p = q.mul_vec3(points[i]) + cam_pos;
 
             // since it's about a 3d line, we have to consider two planes xy and xz.
             //
@@ -253,14 +254,15 @@ impl CameraArea {
             // and substitute the rest:
             // z = m(x - x_0) + z_0
 
-            let mxy = (p.y - self.pos.y) / (p.x - self.pos.x); // xy slope
-            let mxz = (p.z - self.pos.z) / (p.x - self.pos.x); // xz slope
+            let mxy = (p.y - cam_pos.y) / (p.x - cam_pos.x); // xy slope
+            let mxz = (p.z - cam_pos.z) / (p.x - cam_pos.x); // xz slope
 
-            let x = self.pos.x - (self.pos.y / mxy);
-            points[i] = Vec3::new(x, 0.0, mxz * (x - self.pos.x) + self.pos.z);
+            let x = cam_pos.x - (cam_pos.y / mxy);
+            points[i] = Vec3::new(x, 0.0, mxz * (x - cam_pos.x) + cam_pos.z);
         }
 
-        points
+        self.points = points;
+        self.points
     }
 
     /// Creates a CameraArea instance taking camera data from ArenitoCamData.
