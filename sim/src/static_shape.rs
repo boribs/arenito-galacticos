@@ -193,23 +193,23 @@ impl From<CameraPrism> for Mesh {
 /// Visualization of the area visible by Arneito's camera.
 #[derive(Component)]
 pub struct CameraArea {
-    // Camera's position
-    pos: Vec3,
     // Horizontal view angle, in degrees
     ha: f32,
     // Vertical view angle, in degrees
     va: f32,
     // Camera's vertical rotation
     alpha: f32,
+    // Computed points - edges of visible area
+    points: Vec<Vec3>,
 }
 
 impl CameraArea {
-    pub fn new(pos: Vec3, ha: f32, va: f32, alpha: f32) -> Self {
+    pub fn new(ha: f32, va: f32, alpha: f32) -> Self {
         Self {
-            pos,
             ha: ha.to_radians(),
             va: va.to_radians(),
             alpha: alpha.to_radians(),
+            points: Vec::new(),
         }
     }
 
@@ -266,17 +266,17 @@ impl CameraArea {
     /// Creates a CameraArea instance taking camera data from ArenitoCamData.
     pub fn from_img_processor(img_processor: &ImageProcessor) -> Self {
         Self {
-            pos: img_processor.offset.clone(),
             ha: img_processor.ha.to_radians(),
             va: img_processor.va.to_radians(),
             alpha: img_processor.alpha.to_radians(),
+            points: Vec::new(),
         }
     }
 }
 
 impl Default for CameraArea {
     fn default() -> Self {
-        Self::new(Vec3::new(0.75, 1.3, 0.0), 45.0, 45.0, -40.0)
+        Self::new(45.0, 45.0, -40.0)
     }
 }
 
