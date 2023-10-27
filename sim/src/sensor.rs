@@ -83,12 +83,8 @@ pub struct ImageProcessor {
     pub texture_width: u32,
     pub texture_height: u32,
     // camera data
-    pub offset: Vec3,
-    pub alpha: f32,
-    pub va: f32,
-    pub ha: f32,
+    pub cam_area: CameraArea,
     // projection stuff
-    pub area_points: Vec<Vec3>, // I don't like that you have to be public.
     pub trapeze_long_side: f32,
     pub trapeze_short_side: f32,
     pub trapeze_height: f32,
@@ -142,9 +138,8 @@ impl ImageProcessor {
     /// Calculates long and short sides of the visible area, as well as height.
     /// Sets area_points.
     /// Returns CameraArea.
-    pub fn get_visible_area(&mut self, arenito: &Arenito) -> CameraArea {
-        let mut area = CameraArea::from_img_processor(&self);
-        let area_points = area.compute_area(arenito.cam_offset);
+    pub fn get_visible_area(&mut self, arenito: &Arenito) -> &CameraArea {
+        let area_points = self.cam_area.compute_area(arenito.cam_offset);
 
         // unsure as to why 0 - a, 1 - b, ... relation is broken
         // but after plotting `area_points`, this is how we calculate
@@ -157,7 +152,8 @@ impl ImageProcessor {
             short.distance(long)
         };
 
-        area
+        &self.cam_area
+    }
     }
 
     /// Calculates a point's position on the visible area, based on it's position on
@@ -226,11 +222,7 @@ impl Default for ImageProcessor {
             material_handle: None,
             texture_width: 0,
             texture_height: 0,
-            offset: Vec3::new(0.75, 1.3, 0.0),
-            alpha: 0.0,
-            ha: 0.0,
-            va: 0.0,
-            area_points: Vec::new(),
+            cam_area: CameraArea::default(),
             trapeze_long_side: 0.0,
             trapeze_short_side: 0.0,
             trapeze_height: 0.0,
@@ -275,9 +267,7 @@ mod image_processor_tests {
     /// Helper function to initialize ImageProcessor quickly.
     fn get_im(ha: f32, va: f32, alpha: f32, tw: u32, th: u32) -> ImageProcessor {
         let mut im = ImageProcessor {
-            ha,
-            va,
-            alpha,
+            cam_area: CameraArea::new(ha, va, alpha),
             texture_width: tw,
             texture_height: th,
             ..default()
