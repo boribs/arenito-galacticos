@@ -387,7 +387,7 @@ impl Arenito {
                     ArenitoCamera,
                 ));
 
-                img_processor.get_visible_area(&self);
+                img_processor.compute_area(&self);
                 parent.spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(img_processor.get_mesh())),
                     material: materials.add(Color::WHITE.into()),

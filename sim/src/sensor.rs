@@ -138,7 +138,7 @@ impl ImageProcessor {
 
     /// Calculates long and short sides of the visible area, as well as height.
     /// Returns self.
-    pub fn get_visible_area(&mut self, arenito: &Arenito) -> &Self {
+    pub fn compute_area(&mut self, arenito: &Arenito) -> &Self {
         self.cam_area.compute_area(arenito.cam_offset);
         self
     }
@@ -274,7 +274,7 @@ mod image_processor_tests {
             texture_height: th,
             ..default()
         };
-        im.get_visible_area(&Arenito::new());
+        im.compute_area(&Arenito::new());
         im
     }
 
