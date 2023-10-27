@@ -279,6 +279,7 @@ pub struct Arenito {
     pub acc: Vec3,
     pub rot: Vec3,
     pub state: ArenitoState,
+    pub cam_offset: Vec3,
 }
 
 impl Arenito {
@@ -294,6 +295,7 @@ impl Arenito {
             acc: Vec3::ZERO,
             rot: Vec3::ZERO,
             state: ArenitoState::STILL,
+            cam_offset: Vec3::new(0.75, 1.3, 0.0),
         }
     }
 
@@ -366,13 +368,10 @@ impl Arenito {
                 ));
 
                 // Arenito mounted camera
-                let mut t = Transform::from_xyz(
-                    img_processor.offset.x,
-                    img_processor.offset.y,
-                    img_processor.offset.z,
-                )
-                .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
-                t.rotate_z(img_processor.alpha.to_radians());
+                let mut t =
+                    Transform::from_xyz(self.cam_offset.x, self.cam_offset.y, self.cam_offset.z)
+                        .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
+                t.rotate_z(img_processor.cam_area.alpha);
 
                 parent.spawn((
                     Camera3dBundle {
