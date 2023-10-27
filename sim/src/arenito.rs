@@ -44,10 +44,7 @@ impl Plugin for ArenitoPlugin {
         app.insert_resource(ImageProcessor {
             texture_width: 512,
             texture_height: 512,
-            offset: Vec3::new(0.75, 1.3, 0.0),
-            alpha: -40.0,
-            ha: 45.0,
-            va: 45.0,
+            cam_area: CameraArea::new(45.0, 45.0, -40.0),
             ..default()
         });
         // startup systems
