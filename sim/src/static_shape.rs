@@ -269,19 +269,3 @@ impl Default for CameraArea {
         Self::new(45.0, 45.0, -40.0)
     }
 }
-
-impl From<CameraArea> for Mesh {
-    fn from(cam_area: CameraArea) -> Self {
-        let mut points = cam_area.points;
-        points.push(points[0].clone());
-
-        let normals = vec![[1.0, 1.0, 1.0]; 5];
-        let uvs = vec![[1.0, 1.0]; 5];
-
-        let mut mesh = Mesh::new(PrimitiveTopology::LineStrip);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-        mesh
-    }
-}
