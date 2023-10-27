@@ -154,6 +154,20 @@ impl ImageProcessor {
 
         &self.cam_area
     }
+
+    /// Returns the mesh of the trapeze (Arenito's camera's visible area).
+    pub fn get_mesh(&self) -> Mesh {
+        let mut points = self.cam_area.points.clone();
+        points.push(points[0].clone());
+
+        let normals = vec![[1.0, 1.0, 1.0]; 5];
+        let uvs = vec![[1.0, 1.0]; 5];
+
+        let mut mesh = Mesh::new(PrimitiveTopology::LineStrip);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+        mesh
     }
 
     /// Calculates a point's position on the visible area, based on it's position on
