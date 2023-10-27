@@ -2,7 +2,8 @@ use crate::{arenito::*, static_shape::CameraArea};
 use bevy::{
     prelude::*,
     render::render_resource::{
-        Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+        Extent3d, PrimitiveTopology, TextureDescriptor, TextureDimension, TextureFormat,
+        TextureUsages,
     },
 };
 use rand::{prelude::thread_rng, Rng};
