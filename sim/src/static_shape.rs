@@ -1,4 +1,3 @@
-use crate::sensor::ImageProcessor;
 use bevy::{prelude::*, render::render_resource::*};
 
 /// An arrow.
@@ -263,16 +262,6 @@ impl CameraArea {
 
         self.points = points;
         &self.points
-    }
-
-    /// Creates a CameraArea instance taking camera data from ImageProcessor.
-    pub fn from_img_processor(img_processor: &ImageProcessor) -> Self {
-        Self {
-            ha: img_processor.ha.to_radians(),
-            va: img_processor.va.to_radians(),
-            alpha: img_processor.alpha.to_radians(),
-            points: Vec::new(),
-        }
     }
 }
 
