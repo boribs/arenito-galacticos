@@ -85,7 +85,7 @@ pub struct ImageProcessor {
     pub texture_height: u32,
     // camera data
     pub cam_area: CameraArea,
-    // projection stuff
+    // distance from arenito's center to the trapeze's short side's
     pub trapeze_long_side: f32,
     pub trapeze_short_side: f32,
     pub trapeze_height: f32,
@@ -137,23 +137,10 @@ impl ImageProcessor {
     }
 
     /// Calculates long and short sides of the visible area, as well as height.
-    /// Sets area_points.
-    /// Returns CameraArea.
-    pub fn get_visible_area(&mut self, arenito: &Arenito) -> &CameraArea {
-        let area_points = self.cam_area.compute_area(arenito.cam_offset);
-
-        // unsure as to why 0 - a, 1 - b, ... relation is broken
-        // but after plotting `area_points`, this is how we calculate
-        // long and short sides of the trapeze
-        self.trapeze_long_side = area_points[0].distance(area_points[1]);
-        self.trapeze_short_side = area_points[3].distance(area_points[2]);
-        self.trapeze_height = {
-            let long = area_points[0] - area_points[1];
-            let short = area_points[3] - area_points[2];
-            short.distance(long)
-        };
-
-        &self.cam_area
+    /// Returns self.
+    pub fn get_visible_area(&mut self, arenito: &Arenito) -> &Self {
+        self.cam_area.compute_area(arenito.cam_offset);
+        self
     }
 
     /// Returns the mesh of the trapeze (Arenito's camera's visible area).
@@ -196,8 +183,8 @@ impl ImageProcessor {
 
         // calculate position on trapeze
         let (a, b) = (
-            Vec2::new(self.trapeze_long_side * k / 2.0, self.trapeze_height as f32),
-            Vec2::new(self.trapeze_short_side * k / 2.0, 0.0),
+            Vec2::new(self.cam_area.long_side * k / 2.0, self.cam_area.height as f32),
+            Vec2::new(self.cam_area.short_side * k / 2.0, 0.0),
         );
 
         // calculate slope like this to facilitate checking for infinite slope
@@ -205,7 +192,7 @@ impl ImageProcessor {
         // y = wherever the point is vertically,
         // that is: trapeze height * vertical position relative to bottom (l):
         // y = trapeze_heigh * l
-        let y = self.trapeze_height * l;
+        let y = self.cam_area.height * l;
 
         if m.x == 0.0 {
             // check for infinite slope
@@ -303,7 +290,7 @@ mod image_processor_tests {
 
         assert_eq!(
             im.point_to_trapeze(256, 256),
-            Vec2::new(0.0, im.trapeze_height / 2.0)
+            Vec2::new(0.0, im.cam_area.height / 2.0)
         )
     }
 
@@ -313,7 +300,7 @@ mod image_processor_tests {
 
         assert_eq!(
             im.point_to_trapeze(153, 256),
-            Vec2::new(-0.4456485, im.trapeze_height / 2.0)
+            Vec2::new(-0.4456485, im.cam_area.height / 2.0)
         )
     }
 

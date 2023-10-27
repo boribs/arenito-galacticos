@@ -197,8 +197,13 @@ pub struct CameraArea {
     pub va: f32,
     // Camera's vertical rotation
     pub alpha: f32,
-    // Computed points - edges of visible area
+    // Computed:
+    // Edges of visible area
     pub points: Vec<Vec3>,
+    // Trapeze size
+    pub long_side: f32,
+    pub short_side: f32,
+    pub height: f32,
 }
 
 impl CameraArea {
@@ -208,10 +213,14 @@ impl CameraArea {
             va: va.to_radians(),
             alpha: alpha.to_radians(),
             points: Vec::new(),
+            long_side: 0.0,
+            short_side: 0.0,
+            height: 0.0,
         }
     }
 
-    /// Calculates the points (edges) that limit the camera's visible area.
+    /// Calculates the points (edges) that limit the camera's visible area,
+    /// as well as the size of the trapeze.
     /// Stores `self.points`, returns a reference to it.
     pub fn compute_area(&mut self, cam_pos: Vec3) -> &Vec<Vec3> {
         // A and B are the closest points to the camera
@@ -260,6 +269,16 @@ impl CameraArea {
         }
 
         self.points = points;
+
+        // Calculate size
+        self.long_side = self.points[0].distance(self.points[1]);
+        self.short_side = self.points[3].distance(self.points[2]);
+        self.height = {
+            let long = self.points[0] - self.points[1];
+            let short = self.points[3] - self.points[2];
+            short.distance(long)
+        };
+
         &self.points
     }
 }
