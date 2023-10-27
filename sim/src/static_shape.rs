@@ -157,7 +157,6 @@ impl Default for CameraPrism {
 }
 
 impl From<CameraPrism> for Mesh {
-    /// Creates a default CameraPrism looking in the default Z- direction.
     fn from(camera_prism: CameraPrism) -> Self {
         let points = camera_prism.get_points();
         let vertices = vec![
@@ -212,7 +211,7 @@ impl CameraArea {
         }
     }
 
-    /// Calculates the points that limit the camera's visible area.
+    /// Calculates the points (edges) that limit the camera's visible area.
     /// Stores `self.points`, returns a reference to it.
     pub fn compute_area(&mut self, cam_pos: Vec3) -> &Vec<Vec3> {
         // A and B are the closest points to the camera
