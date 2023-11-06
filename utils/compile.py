@@ -9,7 +9,10 @@ def find_port() -> str:
             if 'Unknown' not in line:
                 ports.append(line)
 
-    return ports[0][0]
+    if len(ports) == 0:
+        raise Exception('No Arduinos detected.')
+    elif len(ports) > 1:
+        raise Exception('More than one Arduino connected!')
 
 def main():
     try:
