@@ -1,7 +1,7 @@
 import subprocess, sys
 
 def find_port() -> str:
-    out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
+    out = subprocess.run(['arduino-cli', 'board', 'list'], capture_output=True, text=True)
     ports = []
     for line in out.stdout.split('\n')[1:]:
         if line:
