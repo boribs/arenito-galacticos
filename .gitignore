@@ -141,3 +141,6 @@ log.txt
 
 # PDFs
 /pdf
+
+# Vscode
+.vscode
