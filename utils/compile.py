@@ -1,6 +1,6 @@
 import subprocess, sys
 
-def find_port() -> str:
+def find_arduino() -> [str, str]:
     out = subprocess.run(['arduino-cli', 'board', 'list'], capture_output=True, text=True)
     ports = []
     for line in out.stdout.split('\n')[1:]:
@@ -14,6 +14,8 @@ def find_port() -> str:
     elif len(ports) > 1:
         raise Exception('More than one Arduino connected!')
 
+    return ports[0][0], ports[0][7]
+
 def main():
     try:
         filepath = sys.argv[1]
@@ -21,26 +23,26 @@ def main():
         print('Must provide file to compile and upload!')
         exit(1)
 
-    port = find_port()
+    port, model = find_arduino()
 
     out = subprocess.run([
         'arduino-cli', 'compile', '-p', port,
-        '--fqbn', 'arduino:avr:mega',
+        '--fqbn', model,
         filepath
         ],
         capture_output=True,
         text=True,
     )
-    print(out.stdout)
+    print(out.stdout if out.stdout else out.stderr)
     out = subprocess.run([
         'arduino-cli', 'upload', '-p', port,
-        '--fqbn', 'arduino:avr:mega',
+        '--fqbn', model,
         filepath
         ],
         capture_output=True,
         text=True,
     )
-    print(out.stdout)
+    print(out.stdout if out.stdout else out.stderr)
 
 if __name__ == '__main__':
     main()
