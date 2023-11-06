@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, sys
 
 def find_port() -> str:
     out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
@@ -12,11 +12,18 @@ def find_port() -> str:
     return ports[0][0]
 
 def main():
+    try:
+        filepath = sys.argv[1]
+    except:
+        print('Must provide file to compile and upload!')
+        exit(1)
+
     port = find_port()
+
     out = subprocess.run([
         'arduino-cli', 'compile', '-p', port,
         '--fqbn', 'arduino:avr:mega',
-        '/Users/boristoteles/Documents/tmr23/arenito/arduino/arenito/arenito.ino'
+        filepath
         ],
         capture_output=True,
         text=True,
@@ -25,7 +32,7 @@ def main():
     out = subprocess.run([
         'arduino-cli', 'upload', '-p', port,
         '--fqbn', 'arduino:avr:mega',
-        '/Users/boristoteles/Documents/tmr23/arenito/arduino/arenito/arenito.ino'
+        filepath
         ],
         capture_output=True,
         text=True,
