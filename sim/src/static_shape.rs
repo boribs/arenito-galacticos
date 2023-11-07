@@ -273,11 +273,7 @@ impl CameraArea {
         // Calculate size
         self.long_side = self.points[0].distance(self.points[1]);
         self.short_side = self.points[3].distance(self.points[2]);
-        self.height = {
-            let long = self.points[0] - self.points[1];
-            let short = self.points[3] - self.points[2];
-            short.distance(long)
-        };
+        self.height = self.points[0].x - self.points[2].x;
 
         &self.points
     }

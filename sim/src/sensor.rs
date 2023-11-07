@@ -285,7 +285,7 @@ mod image_processor_tests {
         // on it's center should result in a point in the middle
         // of the trapeze.
         // if the trapeze has a long side of 3.3088057, a short side
-        // of 1.121719 and a height of 2.1870866, then the point
+        // of 1.121719 and a height of 3.4463365, then the point
         // should be on (0, 1.0935433 [height / 2]).
 
         assert_eq!(
@@ -310,7 +310,7 @@ mod image_processor_tests {
 
         assert_eq!(
             im.point_to_trapeze(345, 210),
-            Vec2::new(0.35091836, 0.89704724)
+            Vec2::new(0.35091836, 1.4135364)
         )
     }
 }
