@@ -86,9 +86,6 @@ pub struct ImageProcessor {
     // camera data
     pub cam_area: CameraArea,
     // distance from arenito's center to the trapeze's short side's
-    pub trapeze_long_side: f32,
-    pub trapeze_short_side: f32,
-    pub trapeze_height: f32,
 }
 
 impl ImageProcessor {
@@ -225,9 +222,6 @@ impl Default for ImageProcessor {
             texture_width: 0,
             texture_height: 0,
             cam_area: CameraArea::default(),
-            trapeze_long_side: 0.0,
-            trapeze_short_side: 0.0,
-            trapeze_height: 0.0,
         }
     }
 }
