@@ -133,7 +133,7 @@ impl ImageProcessor {
         self.material_handle = Some(material_handle);
     }
 
-    /// Calculates long and short sides of the visible area, as well as height.
+    /// Calculates dimensions of visible area.
     /// Returns self.
     pub fn compute_area(&mut self, arenito: &Arenito) -> &Self {
         self.cam_area.compute_area(arenito.cam_offset);
@@ -180,7 +180,10 @@ impl ImageProcessor {
 
         // calculate position on trapeze
         let (a, b) = (
-            Vec2::new(self.cam_area.long_side * k / 2.0, self.cam_area.height as f32),
+            Vec2::new(
+                self.cam_area.long_side * k / 2.0,
+                self.cam_area.height as f32,
+            ),
             Vec2::new(self.cam_area.short_side * k / 2.0, 0.0),
         );
 
