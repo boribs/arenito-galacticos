@@ -282,20 +282,20 @@ mod image_processor_tests {
     use super::*;
 
     /// Helper function to initialize ImageProcessor quickly.
-    fn get_im(ha: f32, va: f32, alpha: f32, tw: u32, th: u32) -> ImageProcessor {
+    fn get_im(a: &Arenito, ha: f32, va: f32, alpha: f32, tw: u32, th: u32) -> ImageProcessor {
         let mut im = ImageProcessor {
             cam_area: CameraArea::new(ha, va, alpha),
             texture_width: tw,
             texture_height: th,
             ..default()
         };
-        im.compute_area(&Arenito::new());
+        im.compute_area(a);
         im
     }
 
     #[test]
     fn point_projected_in_trapeze_1() {
-        let im = get_im(45.0, 45.0, -40.0, 512, 512);
+        let im = get_im(&Arenito::new(), 45.0, 45.0, -40.0, 512, 512);
         // starting with a 512 x 512px image, projecting a point
         // on it's center should result in a point in the middle
         // of the trapeze.
@@ -311,7 +311,7 @@ mod image_processor_tests {
 
     #[test]
     fn point_projected_in_trapeze_2() {
-        let im = get_im(45.0, 45.0, -40.0, 512, 512);
+        let im = get_im(&Arenito::new(), 45.0, 45.0, -40.0, 512, 512);
 
         assert_eq!(
             im.point_to_trapeze(153, 256),
@@ -321,7 +321,7 @@ mod image_processor_tests {
 
     #[test]
     fn point_projected_in_trapeze_3() {
-        let im = get_im(45.0, 45.0, -40.0, 512, 512);
+        let im = get_im(&Arenito::new(), 45.0, 45.0, -40.0, 512, 512);
 
         assert_eq!(
             im.point_to_trapeze(345, 210),
