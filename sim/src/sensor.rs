@@ -328,4 +328,28 @@ mod image_processor_tests {
             Vec2::new(0.35091836, 1.4135364)
         )
     }
+
+    #[test]
+    fn point_from_theoretical_to_real_1() {
+        let a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(256, 256);
+
+        assert_eq!(
+            im.project_point(p, &a),
+            im.cam_area.center + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0)
+        )
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_2() {
+        let a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(345, 210);
+
+        assert_eq!(
+            im.project_point(p, &a),
+            im.cam_area.center + Vec3::new(im.cam_area.height * 0.41015625, 0.0, 0.35091836)
+        )
+    }
 }
