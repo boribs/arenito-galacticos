@@ -352,4 +352,66 @@ mod image_processor_tests {
             im.cam_area.center + Vec3::new(im.cam_area.height * 0.41015625, 0.0, 0.35091836)
         )
     }
+
+    #[test]
+    fn point_from_theoretical_to_real_3() {
+        let mut a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(345, 210);
+
+        // move Arenito
+        let fwd = Vec3::new(10.0, 0.0, 0.0);
+        a.center += fwd;
+
+        assert_eq!(
+            im.project_point(p, &a),
+            im.cam_area.center
+                + Vec3::new(im.cam_area.height * 0.41015625, 0.0, 0.35091836)
+                + fwd
+        )
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_4() {
+        let mut a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(256, 256);
+
+        // start from non-rotated point
+        let expected = im.cam_area.center + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0);
+        // then rotate
+        let expected = Quat::from_euler(EulerRot::XYZ, 0.0, f32::to_radians(15.0), 0.0)
+                .mul_vec3(expected);
+
+        a.rot = Vec3::new(0.0, f32::to_radians(15.0), 0.0);
+        assert_eq!(
+            im.project_point(p, &a),
+            expected
+        )
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_5() {
+        let mut a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(256, 256);
+
+        // move Arenito
+        let fwd = Vec3::new(-5.0, 0.0, 0.0);
+        a.center += fwd;
+
+        // start from non-rotated point
+        let expected = im.cam_area.center
+            + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0);
+        // then rotate
+        let expected = Quat::from_euler(EulerRot::XYZ, 0.0, f32::to_radians(-45.0), 0.0)
+                .mul_vec3(expected)
+                + fwd;
+
+        a.rot = Vec3::new(0.0, f32::to_radians(-45.0), 0.0);
+        assert_eq!(
+            im.project_point(p, &a),
+            expected
+        )
+    }
 }
