@@ -215,6 +215,24 @@ impl ImageProcessor {
             Vec2::new((y / m) + b.x, y)
         }
     }
+
+    /// Proyects the point on the theoretical trapeze into the "real" one.
+    /// That is, moves the theoretical trapeze into the real one's position.
+    pub fn project_point(&self, point: Vec2, arenito: &Arenito) -> Vec3 {
+        // starting from Arenito's position, we know that it's visible area's
+        // center (the middle of the short side of the trapeze) is located
+        // `dist_to_trapeze` forward, so we just translate the point (d, 0, 0)
+        // where d = `dist_to_trapeze` and rotate by arenito's rotation.
+
+        let point = Vec3::new(point.y, 0.0, point.x) + self.cam_area.center;
+
+        println!("{}, c:{}", point, self.cam_area.center);
+
+        let c = Vec3::new(arenito.center.x, 0.0, arenito.center.z);
+        let q = Quat::from_euler(EulerRot::XYZ, 0.0, arenito.rot.y, 0.0);
+
+        q.mul_vec3(point) + c
+    }
 }
 
 impl Default for ImageProcessor {
