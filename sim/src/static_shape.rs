@@ -204,6 +204,7 @@ pub struct CameraArea {
     pub long_side: f32,
     pub short_side: f32,
     pub height: f32,
+    pub center: Vec3,
 }
 
 impl CameraArea {
@@ -216,6 +217,7 @@ impl CameraArea {
             long_side: 0.0,
             short_side: 0.0,
             height: 0.0,
+            center: Vec3::ZERO,
         }
     }
 
@@ -274,6 +276,12 @@ impl CameraArea {
         self.long_side = self.points[0].distance(self.points[1]);
         self.short_side = self.points[3].distance(self.points[2]);
         self.height = self.points[0].x - self.points[2].x;
+
+        self.center = Vec3::new(
+            self.points[2].x,
+            0.0,
+            (self.points[2].z + self.points[3].z) / 2.0,
+        );
 
         &self.points
     }
