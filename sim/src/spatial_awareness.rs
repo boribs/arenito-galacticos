@@ -35,7 +35,7 @@ fn wirepath_init(
     WirePath::spawn(
         Vec3::new(0.0, 0.0, 2.0),
         Vec3::new(0.0, 0.0, 2.0),
-        [0.0, 0.0, 1.0],
+        [0.92, 0.55, 0.21],
         A,
         &mut commands,
         &mut meshes,
