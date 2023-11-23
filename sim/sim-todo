@@ -40,3 +40,8 @@ Información (Pantalla 2D):
     ✔ Camino recorrido @done(23-10-09 12:29)
     ☐ Obstáculos recordados
     ☐ Área limitada
+
+IA:
+    ☐ Capturar frames (requiere cambiar a bevy 0.12)
+    ☐ Pipear frames a `arenito.py`
+        ☐ Adaptar `arenito.py` para recibir imágenes a través del pipe

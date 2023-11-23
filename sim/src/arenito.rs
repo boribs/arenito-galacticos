@@ -31,12 +31,13 @@ pub struct ArenitoPlugin {
 impl Plugin for ArenitoPlugin {
     fn build(&self, app: &mut App) {
         if !app.is_plugin_added::<ObjPlugin>() {
-            app.add_plugin(ObjPlugin);
+            app.add_plugins(ObjPlugin);
         }
 
         // indicator wires
         if self.show_wires {
-            app.add_startup_system(wire_spawner).add_system(wire_mover);
+            app.add_systems(Startup, wire_spawner)
+                .add_systems(Update, wire_mover);
         }
 
         // resources
@@ -48,10 +49,10 @@ impl Plugin for ArenitoPlugin {
             ..default()
         });
         // startup systems
-        app.add_startup_system(arenito_spawner);
+        app.add_systems(Startup, arenito_spawner);
         // systems
-        app.add_system(arenito_mover);
-        app.add_system(update_arenito_cam_plane_pos);
+        app.add_systems(Update, arenito_mover);
+        app.add_systems(Update, update_arenito_cam_plane_pos);
     }
 }
 

@@ -20,9 +20,9 @@ impl Plugin for SpatialAwarenessPlugin {
         // resources
         app.insert_resource(CalculatedMovement::new());
         // startup systems
-        app.add_startup_system(wirepath_init);
+        app.add_systems(Startup, wirepath_init);
         // systems
-        app.add_system(path_finder);
+        app.add_systems(Update, path_finder);
     }
 }
 
@@ -35,7 +35,7 @@ fn wirepath_init(
     WirePath::spawn(
         Vec3::new(0.0, 0.0, 2.0),
         Vec3::new(0.0, 0.0, 2.0),
-        [0.0, 0.0, 1.0],
+        [0.92, 0.55, 0.21],
         A,
         &mut commands,
         &mut meshes,
