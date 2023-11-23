@@ -19,10 +19,10 @@ pub struct DataCamera;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(ArenitoPlugin { show_wires: false })
-        .add_plugin(SpatialAwarenessPlugin)
-        .add_startup_system(setup)
-        .add_system(set_camera_viewports)
+        .add_plugins(ArenitoPlugin { show_wires: false })
+        .add_plugins(SpatialAwarenessPlugin)
+        .add_systems(Startup, setup)
+        .add_systems(Update, set_camera_viewports)
         .run();
 }
 
@@ -45,6 +45,19 @@ fn setup(
         ..default()
     });
 
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
+        material: materials.add(Color::WHITE.into()),
+        transform: Transform::from_xyz(3.1499052, 0.0, 0.3850749),
+        ..default()
+    });
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
+        material: materials.add(Color::RED.into()),
+        transform: Transform::from_xyz(1.4267371, 0.0, 0.0),
+        ..default()
+    });
+
     commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,
@@ -57,7 +70,7 @@ fn setup(
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(8.1, 4.0, 0.0)
+            transform: Transform::from_xyz(8.01, 4.0, 0.0)
                 .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
             camera: Camera {
                 order: 1,

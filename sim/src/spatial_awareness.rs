@@ -20,9 +20,9 @@ impl Plugin for SpatialAwarenessPlugin {
         // resources
         app.insert_resource(CalculatedMovement::new());
         // startup systems
-        app.add_startup_system(wirepath_init);
+        app.add_systems(Startup, wirepath_init);
         // systems
-        app.add_system(path_finder);
+        app.add_systems(Update, path_finder);
     }
 }
 

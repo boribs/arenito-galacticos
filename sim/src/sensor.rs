@@ -226,8 +226,6 @@ impl ImageProcessor {
 
         let point = Vec3::new(point.y, 0.0, point.x) + self.cam_area.center;
 
-        println!("{}, c:{}", point, self.cam_area.center);
-
         let c = Vec3::new(arenito.center.x, 0.0, arenito.center.z);
         let q = Quat::from_euler(EulerRot::XYZ, 0.0, arenito.rot.y, 0.0);
 
