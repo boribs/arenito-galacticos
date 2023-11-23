@@ -363,9 +363,7 @@ mod image_processor_tests {
 
         assert_eq!(
             im.project_point(p, &a),
-            im.cam_area.center
-                + Vec3::new(im.cam_area.height * 0.41015625, 0.0, 0.35091836)
-                + fwd
+            im.cam_area.center + Vec3::new(im.cam_area.height * 0.41015625, 0.0, 0.35091836) + fwd
         )
     }
 
@@ -378,14 +376,11 @@ mod image_processor_tests {
         // start from non-rotated point
         let expected = im.cam_area.center + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0);
         // then rotate
-        let expected = Quat::from_euler(EulerRot::XYZ, 0.0, f32::to_radians(15.0), 0.0)
-                .mul_vec3(expected);
+        let expected =
+            Quat::from_euler(EulerRot::XYZ, 0.0, f32::to_radians(15.0), 0.0).mul_vec3(expected);
 
         a.rot = Vec3::new(0.0, f32::to_radians(15.0), 0.0);
-        assert_eq!(
-            im.project_point(p, &a),
-            expected
-        )
+        assert_eq!(im.project_point(p, &a), expected)
     }
 
     #[test]
@@ -399,17 +394,13 @@ mod image_processor_tests {
         a.center += fwd;
 
         // start from non-rotated point
-        let expected = im.cam_area.center
-            + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0);
+        let expected = im.cam_area.center + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0);
         // then rotate
         let expected = Quat::from_euler(EulerRot::XYZ, 0.0, f32::to_radians(-45.0), 0.0)
-                .mul_vec3(expected)
-                + fwd;
+            .mul_vec3(expected)
+            + fwd;
 
         a.rot = Vec3::new(0.0, f32::to_radians(-45.0), 0.0);
-        assert_eq!(
-            im.project_point(p, &a),
-            expected
-        )
+        assert_eq!(im.project_point(p, &a), expected)
     }
 }

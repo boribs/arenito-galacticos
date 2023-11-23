@@ -36,7 +36,8 @@ impl Plugin for ArenitoPlugin {
 
         // indicator wires
         if self.show_wires {
-            app.add_systems(Startup, wire_spawner).add_systems(Update, wire_mover);
+            app.add_systems(Startup, wire_spawner)
+                .add_systems(Update, wire_mover);
         }
 
         // resources
