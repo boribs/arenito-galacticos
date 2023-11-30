@@ -1,5 +1,5 @@
 use crate::{
-    sensor::ImageProcessor, spatial_awareness::FromGyro, static_shape::*, wire::*, SceneCamera,
+    sensor::ImageProcessor, static_shape::*, wire::*,
 };
 use bevy::{
     prelude::*,
@@ -8,7 +8,7 @@ use bevy::{
     window::{Window, WindowRef, WindowResolution},
 };
 use bevy_obj::*;
-use std::f32::consts::{PI, TAU};
+use std::f32::consts::TAU;
 
 const FRIC_K: f32 = 0.5;
 pub const SCALE_2D: f32 = 100.0;
@@ -45,13 +45,10 @@ impl Plugin for ArenitoPlugin {
         app.add_systems(Startup, arenito_spawner);
         // systems
         app.add_systems(Update, arenito_mover);
-        app.add_systems(Update, update_arenito_cam_plane_pos);
     }
 }
 
-/// Initializes the image processor.
-///
-/// Spawns Arenito and it's Plane. This plane displays whatever ArenitoCamera sees.
+/// Spawns Arenito and initializes image processor.
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -72,15 +69,6 @@ fn arenito_spawner(
         &asset_server,
         &mut img_processor,
     );
-
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(shape::Plane::default().into()),
-            material: img_processor.material_handle.clone().unwrap(),
-            ..default()
-        },
-        ArenitoPlane,
-    ));
 }
 /// Reads user input and makes Arenito move.
 fn arenito_mover(
@@ -117,33 +105,7 @@ fn arenito_mover(
     arenito.update(time.delta().as_millis(), arenito3d, arenito2d);
     // println!("{}", arenito.log());
 }
-
-/// Moves the plane relative to the main `Scene Camera`, such that
-/// Arenito's POV is always visible, even when the main camera moves.
-/// This is a hack, since I need to capture Arenito's camera output.
-/// TODO: delete this
-fn update_arenito_cam_plane_pos(
-    mut scene_cam: Query<(&mut Transform, With<SceneCamera>)>,
-    mut arenito_plane: Query<(&mut Transform, With<ArenitoPlane>, Without<SceneCamera>)>,
-) {
-    let scene_cam = scene_cam.single_mut();
-    let mut arenito_plane = arenito_plane.single_mut();
-
-    let t = scene_cam.0.translation.normalize_or_zero() * 5.0;
-    arenito_plane.0.translation = scene_cam.0.translation - t + Vec3::Y;
-
-    arenito_plane.0.rotation = scene_cam.0.rotation;
-    arenito_plane
-        .0
-        .rotate_around(scene_cam.0.translation, Quat::from_rotation_y(-0.25));
-    arenito_plane.0.rotate_y(PI);
-    arenito_plane.0.rotate_local_x(-0.7);
-    arenito_plane.0.rotate_x(-0.01);
-
-    // println!("{:?}", arenito_cam.single_mut().0.forward());
-}
-
-/* ---------------------------Arenito Plugin---------------------------- */
+/* --------------------------/Arenito Plugin---------------------------- */
 
 /// Component used as an identifier for the different
 /// body parts in 3D Arenito.
@@ -153,10 +115,6 @@ pub enum Arenito3D {
     LeftWheel,
     RightWheel,
 }
-
-// TODO: delete this
-#[derive(Component)]
-pub struct ArenitoPlane;
 
 #[derive(Component)]
 pub struct ArenitoCamera;

@@ -74,8 +74,8 @@ impl MPU6050 {
 
 /// This struct is going to be responsible for figuring out the relation
 /// between something seen on the camera and it's "real" position.
-/// TODO: This information will later be used to map the terrain and
-/// decide the best path to the can deposit (and other things).
+/// TODO: This does not belong in here! Should be implemented in Arenito's
+/// AI routine (arenito.py).
 #[derive(Resource)]
 pub struct ImageProcessor {
     // texture stuff
