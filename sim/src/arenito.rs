@@ -65,6 +65,7 @@ enum WireComponent {
     ROTATION,
 }
 
+// TODO: delete this
 /// Adds Arenito's indicator wires to the scene.
 fn wire_spawner(
     mut commands: Commands,
@@ -103,7 +104,6 @@ fn wire_spawner(
 }
 
 /// Initializes the image processor.
-/// https://github.com/bevyengine/bevy/blob/main/examples/3d/render_to_texture.rs
 ///
 /// Spawns Arenito and it's Plane. This plane displays whatever ArenitoCamera sees.
 fn arenito_spawner(
@@ -137,6 +137,7 @@ fn arenito_spawner(
     ));
 }
 
+// TODO: delete this
 /// Moves the wires that indicate direction, speed and acceleration.
 fn wire_mover(
     arenito: ResMut<Arenito>,
@@ -218,7 +219,7 @@ fn arenito_mover(
 /// Moves the plane relative to the main `Scene Camera`, such that
 /// Arenito's POV is always visible, even when the main camera moves.
 /// This is a hack, since I need to capture Arenito's camera output.
-/// TODO: Fix this thing.
+/// TODO: delete this
 fn update_arenito_cam_plane_pos(
     mut scene_cam: Query<(&mut Transform, With<SceneCamera>)>,
     mut arenito_plane: Query<(&mut Transform, With<ArenitoPlane>, Without<SceneCamera>)>,
@@ -251,6 +252,7 @@ pub enum Arenito3D {
     RightWheel,
 }
 
+// TODO: delete this
 #[derive(Component)]
 pub struct ArenitoPlane;
 
@@ -404,6 +406,8 @@ impl Arenito {
                     ArenitoCamera,
                 ));
 
+                // Area computation has to be done here, to spawn the mesh that
+                // displays Arenito's FOV.
                 img_processor.compute_area(&self);
                 parent.spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(img_processor.get_mesh())),
@@ -459,6 +463,7 @@ impl Arenito {
     /// Resets the state of Arenito.
     /// This includes despawning and spawning the models. It was easier than
     /// resetting everything to it's original state.
+    /// TODO: Fix this
     pub fn reset(
         &mut self,
         commands: &mut Commands,
@@ -549,7 +554,7 @@ impl Arenito {
         if self.state == ArenitoState::FORWARD {
             self.center += d;
 
-            return (d, dl);
+            return (d, dl); // maybe return in a more rustesque way
         } else {
             let theta = dl * self.state as isize as f32;
             self.rot.y = (self.rot.y + theta) % TAU;
@@ -621,6 +626,7 @@ impl Arenito {
                     wheel.rotate_local_z(l);
                 }
 
+                // TODO: Change arenito2d's query to remove `a2d.0`...
                 let c = a2d.0.translation.clone();
                 a2d.0.translation -= c;
                 a2d.0.rotate_around(Vec3::ZERO, Quat::from_rotation_z(l));

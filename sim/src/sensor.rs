@@ -158,7 +158,7 @@ impl ImageProcessor {
     /// Calculates a point's position on the visible area, based on it's position on
     /// the texture.
     /// The returned position is on a theoretical trapeze, which is aligned horizontally
-    /// on the origin, it's short side is on the y axis and it's long side is
+    /// on the origin, it's short side is on the x axis and it's long side is
     /// somewhere on the y+ plane.
     /// ```txt
     ///

@@ -43,6 +43,7 @@ fn wirepath_init(
     );
 }
 
+// TOOD: Move this to sensor.rs
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
 /// Tailored specifically for this simulator's application it's assumed
@@ -117,7 +118,7 @@ pub fn path_finder(
     let gyro = MPU6050::read_rot(&arenito);
 
     // Previous movement values are stored in CalculatedMovement resource.
-    // Initially, thay're set to 0. That is, Arenito initially is not moving.
+    // Initially, thay're set to 0. That is, Arenito is not moving, initially.
 
     // Since the accelerometer only outputs ranges between 0 and 1024 a conversion
     // is needed to get the "real" acceleration direction vector.
