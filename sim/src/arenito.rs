@@ -5,6 +5,7 @@ use bevy::{
     prelude::*,
     render::camera::RenderTarget,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+    window::{Window, WindowRef, WindowResolution},
 };
 use bevy_obj::*;
 use std::f32::consts::{PI, TAU};
@@ -259,6 +260,9 @@ pub struct ArenitoCamera;
 #[derive(Component)]
 pub struct Arenito2D;
 
+#[derive(Component)]
+pub struct ArenitoCamWindow;
+
 /// Describes Arenito's state.
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum ArenitoState {
@@ -280,7 +284,7 @@ pub struct Arenito {
     pub acc: Vec3,
     pub rot: Vec3,
     pub state: ArenitoState,
-    pub cam_offset: Vec3,
+    pub cam_offset: Vec3, // cam pos relative to Arenito's center
 }
 
 impl Arenito {
@@ -374,12 +378,24 @@ impl Arenito {
                         .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
                 t.rotate_z(img_processor.cam_area.alpha);
 
+                // second window
+                let window = parent
+                    .spawn((
+                        Window {
+                            title: "Arenito view".to_owned(),
+                            visible: true,
+                            resolution: WindowResolution::new(512.0, 512.0),
+                            resizable: false,
+                            ..default()
+                        },
+                        ArenitoCamWindow,
+                    ))
+                    .id();
+
                 parent.spawn((
                     Camera3dBundle {
                         camera: Camera {
-                            target: RenderTarget::Image(
-                                img_processor.image_handle.clone().unwrap(), // ????
-                            ),
+                            target: RenderTarget::Window(WindowRef::Entity(window)),
                             ..default()
                         },
                         transform: t,

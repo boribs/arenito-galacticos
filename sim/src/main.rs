@@ -7,7 +7,7 @@ pub mod wire;
 use arenito::ArenitoPlugin;
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig, prelude::*, render::camera::Viewport,
-    window::WindowResized,
+    window::ExitCondition,
 };
 use spatial_awareness::*;
 
@@ -18,7 +18,10 @@ pub struct DataCamera;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.build().set(WindowPlugin {
+            exit_condition: ExitCondition::OnPrimaryClosed,
+            ..default()
+        }))
         .add_plugins((ArenitoPlugin { show_wires: false }, SpatialAwarenessPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, set_camera_viewports)
@@ -90,8 +93,7 @@ fn setup(
 /// Dynamically resizes viewport widths according to window size.
 /// This needs to be done every frame.
 fn set_camera_viewports(
-    windows: Query<&Window>,
-    mut resize_events: EventReader<WindowResized>,
+    mut window: Query<&Window, Without<arenito::ArenitoCamWindow>>,
     mut right_camera: Query<&mut Camera, With<DataCamera>>,
     mut left_camera: Query<&mut Camera, (With<SceneCamera>, Without<DataCamera>)>,
 ) {
@@ -101,27 +103,25 @@ fn set_camera_viewports(
     // system for initial setup.
     // https://github.com/bevyengine/bevy/blob/main/examples/2d/2d_shapes.rs
     // https://github.com/bevyengine/bevy/blob/main/examples/3d/split_screen.rs
-    for resize_event in resize_events.read() {
-        let window = windows.get(resize_event.window).unwrap();
-        let (w, h) = (
-            window.resolution.physical_width(),
-            window.resolution.physical_height(),
-        );
-        let lw = 3 * w / 5;
-        let rw = w - lw;
+    let window = window.single_mut();
+    let (w, h) = (
+        window.resolution.physical_width(),
+        window.resolution.physical_height(),
+    );
+    let lw = 3 * w / 5;
+    let rw = w - lw;
 
-        let mut left_camera = left_camera.single_mut();
-        left_camera.viewport = Some(Viewport {
-            physical_position: UVec2::new(0, 0),
-            physical_size: UVec2::new(lw, h),
-            ..default()
-        });
+    let mut left_camera = left_camera.single_mut();
+    left_camera.viewport = Some(Viewport {
+        physical_position: UVec2::new(0, 0),
+        physical_size: UVec2::new(lw, h),
+        ..default()
+    });
 
-        let mut right_camera = right_camera.single_mut();
-        right_camera.viewport = Some(Viewport {
-            physical_position: UVec2::new(lw, 0),
-            physical_size: UVec2::new(rw, h),
-            ..default()
-        });
-    }
+    let mut right_camera = right_camera.single_mut();
+    right_camera.viewport = Some(Viewport {
+        physical_position: UVec2::new(lw, 0),
+        physical_size: UVec2::new(rw, h),
+        ..default()
+    });
 }
