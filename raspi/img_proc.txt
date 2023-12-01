@@ -1,0 +1,206 @@
+/// Calculates a point's position on the visible area, based on it's position on
+/// the texture.
+/// The returned position is on a theoretical trapeze, which is aligned horizontally
+/// on the origin, it's short side is on the x axis and it's long side is
+/// somewhere on the y+ plane.
+/// ```txt
+///
+///             |
+///     +-------|-------+        ↑
+///      \   p  |      /         | y > 0
+///       \     |     /          |
+///        +----O----+    --------------> x = 0
+///             |
+///             |
+/// ```
+pub fn point_to_trapeze(&self, x: i32, z: i32) -> Vec2 {
+    let x = x - (self.texture_width as i32 / 2);
+
+    // horizontal position relative to center
+    let k = 2.0 * x as f32 / self.texture_width as f32;
+    // vertical position relative to bottom
+    let l = z as f32 / self.texture_height as f32;
+
+    // calculate position on trapeze
+    let (a, b) = (
+        Vec2::new(
+            self.cam_area.long_side * k / 2.0,
+            self.cam_area.height as f32,
+        ),
+        Vec2::new(self.cam_area.short_side * k / 2.0, 0.0),
+    );
+
+    // calculate slope like this to facilitate checking for infinite slope
+    let m = a - b;
+    // y = wherever the point is vertically,
+    // that is: trapeze height * vertical position relative to bottom (l):
+    // y = trapeze_heigh * l
+    let y = self.cam_area.height * l;
+
+    if m.x == 0.0 {
+        // check for infinite slope
+        // this means that the point is in the middle
+        Vec2::new(0.0, y)
+    } else {
+        // no infinite slope
+        // considering that the line ecuation goes y - y_0 = m(x - x_0)
+        // and we're starting from `b`, we know that y_0 and x_0 are
+        // the components of `b`.
+        //
+        // given that we know `y`, `y_0` = 0 and `x_0` = b.x we can plug them
+        // on the equation:
+        // y - 0 = mx - mb.x
+        // y = mx - mb.x
+        // mx = y + mb.x
+        // x = y/m + b.x
+
+        let m = m.y / m.x;
+        Vec2::new((y / m) + b.x, y)
+    }
+}
+
+/// Proyects the point on the theoretical trapeze into the "real" one.
+/// That is, moves the theoretical trapeze into the real one's position.
+pub fn project_point(&self, point: Vec2, arenito: &Arenito) -> Vec3 {
+    // starting from Arenito's position, we know that it's visible area's
+    // center (the middle of the short side of the trapeze) is located
+    // `dist_to_trapeze` forward, so we just translate the point (d, 0, 0)
+    // where d = `dist_to_trapeze` and rotate by arenito's rotation.
+
+    let point = Vec3::new(point.y, 0.0, point.x) + self.cam_area.center;
+
+    let c = Vec3::new(arenito.center.x, 0.0, arenito.center.z);
+    let q = Quat::from_euler(EulerRot::XYZ, 0.0, arenito.rot.y, 0.0);
+
+    q.mul_vec3(point) + c
+}
+
+// tests
+mod image_processor_tests {
+    use super::*;
+
+    /// Helper function to initialize ImageProcessor quickly.
+    fn get_im(a: &Arenito, ha: f32, va: f32, alpha: f32, tw: u32, th: u32) -> ImageProcessor {
+        let mut im = ImageProcessor {
+            cam_area: CameraArea::new(ha, va, alpha),
+            texture_width: tw,
+            texture_height: th,
+            ..default()
+        };
+        // im.compute_area(a);
+        im
+    }
+
+    #[test]
+    fn point_projected_in_trapeze_1() {
+        let im = get_im(&Arenito::new(), 45.0, 45.0, -40.0, 512, 512);
+        // starting with a 512 x 512px image, projecting a point
+        // on it's center should result in a point in the middle
+        // of the trapeze.
+        // if the trapeze has a long side of 3.3088057, a short side
+        // of 1.121719 and a height of 3.4463365, then the point
+        // should be on (0, 1.0935433 [height / 2]).
+
+        assert_eq!(
+            im.point_to_trapeze(256, 256),
+            Vec2::new(0.0, im.cam_area.height / 2.0)
+        )
+    }
+
+    #[test]
+    fn point_projected_in_trapeze_2() {
+        let im = get_im(&Arenito::new(), 45.0, 45.0, -40.0, 512, 512);
+
+        assert_eq!(
+            im.point_to_trapeze(153, 256),
+            Vec2::new(-0.4456485, im.cam_area.height / 2.0)
+        )
+    }
+
+    #[test]
+    fn point_projected_in_trapeze_3() {
+        let im = get_im(&Arenito::new(), 45.0, 45.0, -40.0, 512, 512);
+
+        assert_eq!(
+            im.point_to_trapeze(345, 210),
+            Vec2::new(0.35091836, 1.4135364)
+        )
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_1() {
+        let a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(256, 256);
+
+        assert_eq!(
+            im.project_point(p, &a),
+            im.cam_area.center + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0)
+        )
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_2() {
+        let a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(345, 210);
+
+        assert_eq!(
+            im.project_point(p, &a),
+            im.cam_area.center + Vec3::new(im.cam_area.height * 0.41015625, 0.0, 0.35091836)
+        )
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_3() {
+        let mut a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(345, 210);
+
+        // move Arenito
+        let fwd = Vec3::new(10.0, 0.0, 0.0);
+        a.center += fwd;
+
+        assert_eq!(
+            im.project_point(p, &a),
+            im.cam_area.center + Vec3::new(im.cam_area.height * 0.41015625, 0.0, 0.35091836) + fwd
+        )
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_4() {
+        let mut a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(256, 256);
+
+        // start from non-rotated point
+        let expected = im.cam_area.center + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0);
+        // then rotate
+        let expected =
+            Quat::from_euler(EulerRot::XYZ, 0.0, f32::to_radians(15.0), 0.0).mul_vec3(expected);
+
+        a.rot = Vec3::new(0.0, f32::to_radians(15.0), 0.0);
+        assert_eq!(im.project_point(p, &a), expected)
+    }
+
+    #[test]
+    fn point_from_theoretical_to_real_5() {
+        let mut a = Arenito::new();
+        let im = get_im(&a, 45.0, 45.0, -40.0, 512, 512);
+        let p = im.point_to_trapeze(256, 256);
+
+        // move Arenito
+        let fwd = Vec3::new(-5.0, 0.0, 0.0);
+        a.center += fwd;
+
+        // start from non-rotated point
+        let expected = im.cam_area.center + Vec3::new(im.cam_area.height / 2.0, 0.0, 0.0);
+        // then rotate
+        let expected = Quat::from_euler(EulerRot::XYZ, 0.0, f32::to_radians(-45.0), 0.0)
+            .mul_vec3(expected)
+            + fwd;
+
+        a.rot = Vec3::new(0.0, f32::to_radians(-45.0), 0.0);
+        assert_eq!(im.project_point(p, &a), expected)
+    }
+}
