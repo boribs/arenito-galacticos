@@ -23,7 +23,10 @@ pub const SCALE_2D: f32 = 100.0;
 /// - Arenito mover system
 ///
 /// *It also requires that `ObjPlugin` is added.
-pub struct ArenitoPlugin;
+pub struct ArenitoPlugin {
+    pub img_width: f32,
+    pub img_height: f32,
+}
 
 impl Plugin for ArenitoPlugin {
     fn build(&self, app: &mut App) {
@@ -31,7 +34,7 @@ impl Plugin for ArenitoPlugin {
             app.add_plugins(ObjPlugin);
         }
 
-        app.insert_resource(Arenito::new())
+        app.insert_resource(Arenito::new(self.img_width, self.img_height))
             .add_systems(Startup, arenito_spawner)
             .add_systems(Update, arenito_mover);
     }
@@ -131,6 +134,8 @@ pub struct Arenito {
     pub state: ArenitoState,
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
+    img_width: f32,
+    img_height: f32,
 }
 
 impl Arenito {
@@ -139,7 +144,7 @@ impl Arenito {
     pub const MAX_VELOCITY: f32 = 3.0;
 
     /// Returns an empty, non-spawned Arenito.
-    pub fn new() -> Self {
+    pub fn new(img_width: f32, img_height: f32) -> Self {
         Arenito {
             center: Vec3::new(0.0, 0.5, 0.0),
             vel: Vec3::ZERO,
@@ -148,6 +153,8 @@ impl Arenito {
             state: ArenitoState::STILL,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
+            img_width,
+            img_height,
         }
     }
 
@@ -232,7 +239,7 @@ impl Arenito {
                         Window {
                             title: "Arenito view".to_owned(),
                             visible: true,
-                            resolution: WindowResolution::new(512.0, 512.0),
+                            resolution: WindowResolution::new(self.img_width, self.img_height),
                             resizable: false,
                             ..default()
                         },

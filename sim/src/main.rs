@@ -22,7 +22,13 @@ fn main() {
             exit_condition: ExitCondition::OnPrimaryClosed,
             ..default()
         }))
-        .add_plugins((ArenitoPlugin, SpatialAwarenessPlugin))
+        .add_plugins((
+            ArenitoPlugin {
+                img_width: 512.0,
+                img_height: 512.0,
+            },
+            SpatialAwarenessPlugin,
+        ))
         .add_systems(Startup, setup)
         .add_systems(Update, set_camera_viewports)
         .run();
