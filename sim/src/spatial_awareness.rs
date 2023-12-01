@@ -1,3 +1,6 @@
+// This is very cool and all but shoud be moved to Arenito's AI
+
+
 use crate::{arenito::SCALE_2D, arenito::*, sensor::FromGyro, sensor::MPU6050, wire::*};
 use bevy::{prelude::*, sprite::Mesh2dHandle};
 

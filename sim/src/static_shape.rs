@@ -281,7 +281,6 @@ impl CameraArea {
             0.0,
             (self.points[2].z + self.points[3].z) / 2.0,
         );
-
     }
 
     pub fn get_mesh(&self) -> Mesh {

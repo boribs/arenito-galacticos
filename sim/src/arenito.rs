@@ -1,6 +1,4 @@
-use crate::{
-    static_shape::*, wire::*,
-};
+use crate::{static_shape::*, wire::*};
 use bevy::{
     prelude::*,
     render::camera::RenderTarget,
