@@ -86,6 +86,15 @@ impl MPU6050 {
     }
 }
 
+/// Camera sensor. This one is responsible for capturing the image and
+/// sending it to Arenito's AI process.
+pub struct Camera;
+
+impl Camera {
+    /// Takes a screenshot of Arenito's Camera View and writes it
+    /// to the shared memory?
+    pub fn export_image() {}
+}
 
 #[cfg(test)]
 mod sensor_read_tests {
@@ -101,7 +110,7 @@ mod sensor_read_tests {
     #[test]
     fn sensor_acc_reads_dont_go_to_negative_values() {
         let mut rng = thread_rng();
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
 
         for _ in 0..100 {
             arenito.acc = Vec3::new(

@@ -158,6 +158,12 @@ impl Arenito {
         }
     }
 
+    /// Method for rapid object initialization, where camera output
+    /// data is not needed.
+    pub fn test() -> Self {
+        Self::new(0.0, 0.0)
+    }
+
     /// Spawns Arenito (body cube and wheels) into the scene.
     ///
     /// Arenito's model is a cube (parent) with four wheels (children).
@@ -512,7 +518,7 @@ mod arenito_tests {
 
     impl Arenito {
         pub fn vel_acc(vel: Vec3, acc: Vec3, cen: Vec3) -> Self {
-            let mut arenito = Arenito::new();
+            let mut arenito = Arenito::test();
             arenito.vel = vel;
             arenito.acc = acc;
             arenito.center = cen;
@@ -539,7 +545,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_arenito_doesnt_move_with_0_acceleration_and_velocity() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
 
         // look angle really doesn't matter, but I guess it's
         // useful to make a point?
@@ -560,7 +566,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_positive_x() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.forward();
         arenito.update_pos(16);
 
@@ -573,7 +579,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_positive_xz() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = FRAC_PI_4;
         arenito.forward();
         arenito.update_pos(16);
@@ -587,7 +593,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_positive_z() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = FRAC_PI_2;
         arenito.forward();
         arenito.update_pos(16);
@@ -602,7 +608,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_negative_x_positive_z() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 3.0 * FRAC_PI_4;
         arenito.forward();
         arenito.update_pos(16);
@@ -616,7 +622,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_negative_x() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = PI;
         arenito.forward();
         arenito.update_pos(16);
@@ -630,7 +636,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_negative_x_negative_z() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 5.0 * FRAC_PI_4;
         arenito.forward();
         arenito.update_pos(16);
@@ -644,7 +650,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_negative_z() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 3.0 * FRAC_PI_2;
         arenito.forward();
         arenito.update_pos(16);
@@ -658,7 +664,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_negative_z_positive_x() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 7.0 * FRAC_PI_4;
         arenito.forward();
         arenito.update_pos(16);
@@ -672,7 +678,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_1() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 0.1234;
         arenito.forward();
         arenito.update_pos(16);
@@ -686,7 +692,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_2() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 0.38;
         arenito.forward();
         arenito.update_pos(16);
@@ -700,7 +706,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_3() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 4.7551;
         arenito.forward();
         arenito.update_pos(16);
@@ -714,7 +720,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_4() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = -6.1362;
         arenito.forward();
         arenito.update_pos(16);
@@ -728,7 +734,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_5() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = -0.713244;
         arenito.forward();
         arenito.update_pos(16);
@@ -742,7 +748,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_6() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 3.70245;
         arenito.forward();
         arenito.update_pos(16);
@@ -756,7 +762,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_7() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = -1.4037;
         arenito.forward();
         arenito.update_pos(16);
@@ -770,7 +776,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_8() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = -1.4037;
         arenito.forward();
         arenito.update_pos(16);
@@ -784,7 +790,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_9() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 1.65394;
         arenito.forward();
         arenito.update_pos(16);
@@ -798,7 +804,7 @@ mod arenito_tests {
 
     #[test]
     fn flat_surface_absolute_rest_random_angle_10() {
-        let mut arenito = Arenito::new();
+        let mut arenito = Arenito::test();
         arenito.rot.y = 0.52525;
         arenito.forward();
         arenito.update_pos(16);
