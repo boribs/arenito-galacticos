@@ -1,5 +1,5 @@
 use crate::{
-    sensor::ImageProcessor, static_shape::*, wire::*,
+    static_shape::*, wire::*,
 };
 use bevy::{
     prelude::*,
@@ -33,41 +33,27 @@ impl Plugin for ArenitoPlugin {
             app.add_plugins(ObjPlugin);
         }
 
-        // resources
-        app.insert_resource(Arenito::new());
-        app.insert_resource(ImageProcessor {
-            texture_width: 512,
-            texture_height: 512,
-            cam_area: CameraArea::new(45.0, 45.0, -40.0),
-            ..default()
-        });
-        // startup systems
-        app.add_systems(Startup, arenito_spawner);
-        // systems
-        app.add_systems(Update, arenito_mover);
+        app.insert_resource(Arenito::new())
+            .add_systems(Startup, arenito_spawner)
+            .add_systems(Update, arenito_mover);
     }
 }
 
-/// Spawns Arenito and initializes image processor.
+/// Spawns Arenito.
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut img_processor: ResMut<ImageProcessor>,
-    mut images: ResMut<Assets<Image>>,
     asset_server: Res<AssetServer>,
-    arenito: Res<Arenito>,
+    mut arenito: ResMut<Arenito>,
 ) {
-    img_processor.init(&mut materials, &mut images);
-
     arenito.spawn(
         &mut commands,
         &mut materials,
         &mut materials2d,
         &mut meshes,
         &asset_server,
-        &mut img_processor,
     );
 }
 /// Reads user input and makes Arenito move.
@@ -77,7 +63,6 @@ fn arenito_mover(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut img_processor: ResMut<ImageProcessor>,
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
@@ -97,7 +82,7 @@ fn arenito_mover(
             &mut materials2d,
             &mut meshes,
             &asset_server,
-            &mut img_processor,
+            // &mut img_processor,
             &arenito3d,
         );
     }
@@ -147,6 +132,7 @@ pub struct Arenito {
     pub rot: Vec3,
     pub state: ArenitoState,
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
+    pub cam_area: CameraArea,
 }
 
 impl Arenito {
@@ -163,6 +149,7 @@ impl Arenito {
             rot: Vec3::ZERO,
             state: ArenitoState::STILL,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
+            cam_area: CameraArea::default(),
         }
     }
 
@@ -173,14 +160,15 @@ impl Arenito {
     /// rotate each wheel), facilitating significantly rotating the wheels
     /// on the z axis when moving forward or rotating.
     pub fn spawn(
-        &self,
+        &mut self,
         commands: &mut Commands,
         materials: &mut ResMut<Assets<StandardMaterial>>,
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        img_processor: &mut ResMut<ImageProcessor>,
     ) {
+        self.cam_area.compute_area(self.cam_offset);
+
         // This is 3D Arenito!
         commands
             .spawn((
@@ -238,7 +226,7 @@ impl Arenito {
                 let mut t =
                     Transform::from_xyz(self.cam_offset.x, self.cam_offset.y, self.cam_offset.z)
                         .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
-                t.rotate_z(img_processor.cam_area.alpha);
+                t.rotate_z(self.cam_area.alpha);
 
                 // second window
                 let window = parent
@@ -268,9 +256,8 @@ impl Arenito {
 
                 // Area computation has to be done here, to spawn the mesh that
                 // displays Arenito's FOV.
-                img_processor.compute_area(&self);
                 parent.spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(img_processor.get_mesh())),
+                    mesh: meshes.add(self.cam_area.get_mesh()),
                     material: materials.add(Color::WHITE.into()),
                     ..default()
                 });
@@ -331,7 +318,6 @@ impl Arenito {
         materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        img_processor: &mut ResMut<ImageProcessor>,
         arenito3d: &Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
@@ -350,7 +336,7 @@ impl Arenito {
             materials2d,
             meshes,
             asset_server,
-            img_processor,
+            // img_processor,
         );
     }
 
