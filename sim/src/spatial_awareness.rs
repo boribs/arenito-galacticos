@@ -1,4 +1,4 @@
-use crate::{arenito::SCALE_2D, arenito::*, sensor::MPU6050, wire::*};
+use crate::{arenito::SCALE_2D, arenito::*, sensor::FromGyro, sensor::MPU6050, wire::*};
 use bevy::{prelude::*, sprite::Mesh2dHandle};
 
 /// A plugin for Arenito's Spatial Awareness systems.
@@ -17,12 +17,9 @@ impl Plugin for SpatialAwarenessPlugin {
             panic!("This plugin requires ArenitoPlugin!");
         }
 
-        // resources
-        app.insert_resource(CalculatedMovement::new());
-        // startup systems
-        app.add_systems(Startup, wirepath_init);
-        // systems
-        app.add_systems(Update, path_finder);
+        app.insert_resource(CalculatedMovement::new())
+            .add_systems(Startup, wirepath_init)
+            .add_systems(Update, path_finder);
     }
 }
 
@@ -41,27 +38,6 @@ fn wirepath_init(
         &mut meshes,
         &mut materials,
     );
-}
-
-// TOOD: Move this to sensor.rs
-/// This trait aims to unify the calculation of a direction vector from
-/// the output of MPU6050's gyroscope.
-/// Tailored specifically for this simulator's application it's assumed
-/// that the X+ axis points (initially) forwards and it controls the roll
-/// of Arenito.
-///
-/// To determine the direction only the yaw and the pitch are considered.
-/// That means that the y (yaw) and z (pitch) components of the gyro values
-/// are used.
-pub trait FromGyro {
-    fn from_gyro(gyro: &Vec3) -> Vec3;
-}
-
-impl FromGyro for Vec3 {
-    /// Creates a unit vector from a rotation vector.
-    fn from_gyro(gyro: &Vec3) -> Vec3 {
-        Vec3::new(gyro.y.cos(), gyro.z.sin(), gyro.y.sin())
-    }
 }
 
 /// This struct is used when calculating how much Arenito has moved
