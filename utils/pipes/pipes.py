@@ -3,7 +3,7 @@
 # Once it writes something, this process becomes reader.
 
 from enum import Enum, auto
-import posix, time
+import posix, time, os
 
 class State(Enum):
     READER = auto()
@@ -24,20 +24,23 @@ create_pipe(PIPE_PATH)
 
 state = State.WRITER
 
-while True:
-    print(state)
-    match state:
-        case State.WRITER:
-            with open(PIPE_PATH, 'w') as pout:
-                for i in range(10):
-                    time.sleep(.1)
-                    pout.write(f'{i}')
-                    print('writing', i)
+try:
+    while True:
+        print(state)
+        match state:
+            case State.WRITER:
+                with open(PIPE_PATH, 'w') as pout:
+                    for i in range(10):
+                        time.sleep(.1)
+                        pout.write(f'{i}')
+                        print('writing', i)
 
-            state = State.READER
+                state = State.READER
 
-        case State.READER:
-            with open(PIPE_PATH, 'r') as pipe:
-                print('read:', pipe.read())
+            case State.READER:
+                with open(PIPE_PATH, 'r') as pipe:
+                    print('read:', pipe.read())
 
-            state = State.WRITER
+                state = State.WRITER
+except:
+    os.remove(PIPE_PATH)
