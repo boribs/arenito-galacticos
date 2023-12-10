@@ -1,0 +1,47 @@
+Ambiente gráfico:
+    ####################### ########################
+    # Panel A             # # Panel B              #
+    #                     # #                      #
+    #                     # #                      #
+    #  Simulación bonita  # #   Mapeo del camino   #
+    #  e interactiva:     # #   recorrido e info   #
+    #  ajuste de sensores,# # recordada (barreras, #
+    #   latas y depósito  # #   agua, depósito)    #
+    #                     # #                      #
+    ####################### ########################
+
+    ✔ Visualización del mapa y del Arenito @done(23-06-21 18:48)
+        El mapa consiste de una superficie no uniforme (arena)
+        rodeada de un plano azul (agua)
+        ✔ Visualización con texturas @done(23-06-21 18:48)
+        ✔ Visualización de alambres @done(23-06-21 18:48)
+            O hilos? Solo las aristas de los polígonos, pues
+    ☐ Movimiento de la cámara: rotación click n' drag
+    ✔ Movimiento de las ruedas del Arenito @done(23-06-21 18:48)
+    ☐ Alineación del plano de proyección de la cámara del Arenito
+        Para que no se vea chueco.
+
+Simluación de movimiento:
+    ✔ Físicas de movimiento: aceleración @done(23-06-21 18:48)
+    ☐ Rotación del robot según la posición de las llantas respecto a la arena
+
+Simulación de sensores:
+    ✔ Determinar movimiento según lectura de sensores (terreno plano) @done(23-07-09 16:26)
+    ☐ Determinar movimiento según lectura de sensores (terreno no uniforme)
+    ☐ Sensor de proximidad
+    ☐ Detector de colores (cámara)
+
+Noción espacial:
+    ☐ Determinar posiciones de obstáculos
+    ☐ Determinar posición de depósito de latas
+    ☐ Determinar áreas sin explorar (Roombizar!)
+
+Información (Pantalla 2D):
+    ✔ Camino recorrido @done(23-10-09 12:29)
+    ☐ Obstáculos recordados
+    ☐ Área limitada
+
+IA:
+    ☐ Capturar frames (requiere cambiar a bevy 0.12)
+    ☐ Pipear frames a `arenito.py`
+        ☐ Adaptar `arenito.py` para recibir imágenes a través del pipe
