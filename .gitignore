@@ -136,3 +136,11 @@ dmypy.json
 
 # DS_Store???
 .DS_Store
+
+log.txt
+
+# PDFs
+/pdf
+
+# Vscode
+.vscode
