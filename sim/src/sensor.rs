@@ -1,6 +1,11 @@
 use crate::arenito::*;
 use bevy::prelude::*;
 use rand::{prelude::thread_rng, Rng};
+use std::fs::File;
+use std::io::prelude::*;
+use std::{thread, thread::JoinHandle};
+
+const PIPE_PATH: &str = "../pipes/pipe";
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -86,14 +91,68 @@ impl MPU6050 {
     }
 }
 
-/// Camera sensor. This one is responsible for capturing the image and
-/// sending it to Arenito's AI process.
-pub struct Camera;
+/// Move instruction abstraction.
+/// TODO: Maybe use arenito::ArenitoState instead?
+#[derive(Debug, Clone)]
+pub enum MoveInstruction {
+    FORWARD,
+    LEFT,
+    RIGHT,
+}
 
-impl Camera {
-    /// Takes a screenshot of Arenito's Camera View and writes it
-    /// to the shared memory?
-    pub fn export_image() {}
+/// Responsible for interacting with Arenito's AI process.
+/// Reads pipe and determines move instruction.
+#[derive(Resource)]
+pub struct SimInterface {
+    pub move_instr: Option<MoveInstruction>,
+    thread: Option<JoinHandle<String>>,
+}
+
+impl SimInterface {
+    pub fn new() -> Self {
+        Self {
+            move_instr: None,
+            thread: None,
+        }
+    }
+
+    /// Takes a screenshot of Arenito's Camera View and pipes it.
+    pub fn export_image() {
+        todo!("Exporting images not implemented")
+    }
+
+    pub fn get_instruction(&mut self) -> Option<MoveInstruction> {
+        self.read_pipe();
+
+        let instr = self.move_instr.clone();
+        self.move_instr = None;
+
+        instr
+    }
+
+    fn read_pipe(&mut self) {
+        if self.thread.is_none() {
+            self.thread = Some(thread::spawn(|| {
+                let mut cin = String::new();
+                let pipe = File::open(PIPE_PATH);
+
+                let _ = pipe
+                    .as_ref()
+                    .expect("can't open pipe!")
+                    .read_to_string(&mut cin);
+
+                cin
+            }));
+        } else if self.thread.as_ref().unwrap().is_finished() {
+            let input = self.thread.take().map(JoinHandle::join).unwrap().unwrap();
+            self.move_instr = SimInterface::parse_input(input);
+            self.thread = None;
+        }
+    }
+
+    fn parse_input(input: String) -> Option<MoveInstruction> {
+        Some(MoveInstruction::FORWARD)
+    }
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-use crate::{static_shape::*, wire::*};
+use crate::{sensor::SimInterface, static_shape::*, wire::*};
 use bevy::{
     prelude::*,
     render::camera::RenderTarget,
@@ -35,8 +35,9 @@ impl Plugin for ArenitoPlugin {
         }
 
         app.insert_resource(Arenito::new(self.img_width, self.img_height))
+            .insert_resource(SimInterface::new())
             .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, arenito_mover);
+            .add_systems(Update, (arenito_mover, arenito_pipe_mover));
     }
 }
 
@@ -57,6 +58,7 @@ fn arenito_spawner(
         &asset_server,
     );
 }
+
 /// Reads user input and makes Arenito move.
 fn arenito_mover(
     time: Res<Time>,
@@ -90,6 +92,13 @@ fn arenito_mover(
 
     arenito.update(time.delta().as_millis(), arenito3d, arenito2d);
     // println!("{}", arenito.log());
+}
+
+fn arenito_pipe_mover(mut sim_interface: ResMut<SimInterface>) {
+    match sim_interface.get_instruction() {
+        Some(val) => println!("{:?}", val),
+        None => println!("No instruction"),
+    }
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
