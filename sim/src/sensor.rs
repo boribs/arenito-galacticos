@@ -102,16 +102,12 @@ pub enum MoveInstruction {
 /// Reads pipe and determines move instruction.
 #[derive(Resource)]
 pub struct SimInterface {
-    pub move_instr: Option<MoveInstruction>,
     thread: Option<JoinHandle<String>>,
 }
 
 impl SimInterface {
     pub fn new() -> Self {
-        Self {
-            move_instr: None,
-            thread: None,
-        }
+        Self { thread: None }
     }
 
     /// Takes a screenshot of Arenito's Camera View and pipes it.
@@ -120,15 +116,16 @@ impl SimInterface {
     }
 
     pub fn get_instruction(&mut self) -> Option<MoveInstruction> {
-        self.read_pipe();
+        let input = self.read_pipe();
 
-        let instr = self.move_instr.clone();
-        self.move_instr = None;
+        if input.is_none() {
+            return None;
+        }
 
-        instr
+        SimInterface::parse_input(input.unwrap())
     }
 
-    fn read_pipe(&mut self) {
+    fn read_pipe(&mut self) -> Option<String> {
         if self.thread.is_none() {
             self.thread = Some(thread::spawn(|| {
                 let mut cin = String::new();
@@ -144,9 +141,11 @@ impl SimInterface {
         } else if self.thread.as_ref().unwrap().is_finished() {
             // https://stackoverflow.com/questions/57670145/how-to-store-joinhandle-of-a-thread-to-close-it-later
             let input = self.thread.take().map(JoinHandle::join).unwrap().unwrap();
-            self.move_instr = SimInterface::parse_input(input);
             self.thread = None;
+            return Some(input);
         }
+
+        None
     }
 
     fn parse_input(input: String) -> Option<MoveInstruction> {
