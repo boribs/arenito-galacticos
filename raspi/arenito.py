@@ -4,6 +4,7 @@ import sys
 import subprocess
 import numpy as np
 import math
+import argparse
 from enum import Enum, auto
 
 RES_X = 640
@@ -232,9 +233,11 @@ def main(port: str):
             send_roam_instruction(ser, hsv_frame)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        port = find_port()
-    else:
-        port = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('port', nargs='?')
+    parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
+
+    args = parser.parse_args()
+    port = args.port or find_port()
 
     main(port)
