@@ -1,9 +1,7 @@
 use crate::arenito::*;
 use bevy::prelude::*;
 use rand::{prelude::thread_rng, Rng};
-use std::fs::File;
-use std::io::prelude::*;
-use std::{thread, thread::JoinHandle};
+use std::{fs::File, io::prelude::*, thread, thread::JoinHandle};
 
 const PIPE_PATH: &str = "../pipes/pipe";
 
@@ -144,6 +142,7 @@ impl SimInterface {
                 cin
             }));
         } else if self.thread.as_ref().unwrap().is_finished() {
+            // https://stackoverflow.com/questions/57670145/how-to-store-joinhandle-of-a-thread-to-close-it-later
             let input = self.thread.take().map(JoinHandle::join).unwrap().unwrap();
             self.move_instr = SimInterface::parse_input(input);
             self.thread = None;

@@ -1,4 +1,8 @@
-use crate::{sensor::SimInterface, static_shape::*, wire::*};
+use crate::{
+    sensor::{MoveInstruction, SimInterface},
+    static_shape::*,
+    wire::*,
+};
 use bevy::{
     prelude::*,
     render::camera::RenderTarget,
@@ -94,10 +98,14 @@ fn arenito_mover(
     // println!("{}", arenito.log());
 }
 
-fn arenito_pipe_mover(mut sim_interface: ResMut<SimInterface>) {
-    match sim_interface.get_instruction() {
-        Some(val) => println!("{:?}", val),
-        None => println!("No instruction"),
+fn arenito_pipe_mover(mut sim_interface: ResMut<SimInterface>, mut arenito: ResMut<Arenito>) {
+    let instr = sim_interface.get_instruction();
+    if instr.is_some() {
+        match instr.unwrap() {
+            MoveInstruction::FORWARD => arenito.forward(),
+            MoveInstruction::LEFT => arenito.rotate(ArenitoState::LEFT),
+            MoveInstruction::RIGHT => arenito.rotate(ArenitoState::RIGHT),
+        }
     }
 }
 /* --------------------------/Arenito Plugin---------------------------- */
