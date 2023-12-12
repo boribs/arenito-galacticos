@@ -16,7 +16,6 @@ CENTRO_INF = None
 # Posición del punto máximo para la tolerancia al agua
 R_DOT = None
 
-
 # Límites centrales para determinar si una lata está
 # "en el centro"
 CENTRO_X_MIN = None
@@ -79,11 +78,18 @@ def reachable(
     return white_px < MIN_PX_WATER
 
 def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
+    """
+    Finds the positions of every can by applying a color filter to the image and
+    calling SimpleBlobDetector's `detect()` method.
+
+    Returns only reachable positions.
+    """
+
     lower = np.array([0, 0, 69])
     upper = np.array([175, 255, 255])
 
     # Este borde es necesario porque sino no detecta las latas cerca
-    # de las esquinas de la imagen:)
+    # de las esquinas de la imagen
     img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -115,6 +121,11 @@ def _send_serial_instr(ser: serial.Serial, instr: Instruction):
         ))
 
 def send_move_instruction(ser: serial.Serial, det: tuple[int]):
+    """
+    Sends a move to left, right or forward instruction
+    to the Arduino board, depending on the detection's position.
+    """
+
     global lr_count
 
     x, _ = det
@@ -147,6 +158,10 @@ def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
         lr_count = 0
 
 def find_port() -> str:
+    """
+    Finds out where the Arduino borad is connected. Requires `arduino-cli`.
+    """
+
     out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
     ports = []
     for line in out.stdout.split('\n')[1:]:
