@@ -114,7 +114,7 @@ impl SimInterface {
         todo!("Exporting images not implemented")
     }
 
-    /// Reads input from pipe and parses.
+    /// Reads input from pipe and parses. Returns movement direction.
     pub fn listen(&mut self) -> Option<ArenitoState> {
         let input = self.read_pipe();
         if input.is_some() {
@@ -162,8 +162,24 @@ impl SimInterface {
         None
     }
 
+    /// Parses input string.
+    /// Expected input has the following syntax:
+    /// mv:<dir>
+    /// where <dir> can be one of the following:
+    ///     fw - forward
+    ///     l  - left
+    ///     r  - right
     fn parse_input(input: &String) -> Result<SimInstruction, ()> {
-        // Ok(SimInstruction::Move(ArenitoState::LEFT))
+        if input.starts_with("mv:") {
+            let (_, dir) = input.split_at(3);
+            return match dir {
+                "fw" => Ok(SimInstruction::Move(ArenitoState::FORWARD)),
+                "l" => Ok(SimInstruction::Move(ArenitoState::LEFT)),
+                "r" => Ok(SimInstruction::Move(ArenitoState::RIGHT)),
+                _ => Err(())
+            }
+        }
+
         Err(())
     }
 }
