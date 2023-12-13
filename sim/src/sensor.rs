@@ -92,10 +92,9 @@ impl MPU6050 {
 /// Move instruction abstraction.
 /// TODO: Maybe use arenito::ArenitoState instead?
 #[derive(Debug, Clone)]
-pub enum MoveInstruction {
-    FORWARD,
-    LEFT,
-    RIGHT,
+pub enum SimInstruction {
+    Move(ArenitoState),
+    ScreenShot,
 }
 
 /// Responsible for interacting with Arenito's AI process.
@@ -115,16 +114,31 @@ impl SimInterface {
         todo!("Exporting images not implemented")
     }
 
-    pub fn get_instruction(&mut self) -> Option<MoveInstruction> {
+    /// Reads input from pipe and parses.
+    pub fn listen(&mut self) -> Option<ArenitoState> {
         let input = self.read_pipe();
+        if input.is_some() {
+            let input = input.unwrap();
+            let instr = SimInterface::parse_input(&input);
+            if instr.is_err() {
+                println!("Cannot parse: '{}'", &input);
+                return None;
+            }
 
-        if input.is_none() {
-            return None;
+            match instr.unwrap() {
+                SimInstruction::Move(dir) => {
+                    return Some(dir);
+                }
+                SimInstruction::ScreenShot => {
+                    return None;
+                }
+            };
         }
 
-        SimInterface::parse_input(input.unwrap())
+        None
     }
 
+    /// Reads pipe content.
     fn read_pipe(&mut self) -> Option<String> {
         if self.thread.is_none() {
             self.thread = Some(thread::spawn(|| {
@@ -148,8 +162,9 @@ impl SimInterface {
         None
     }
 
-    fn parse_input(input: String) -> Option<MoveInstruction> {
-        Some(MoveInstruction::FORWARD)
+    fn parse_input(input: &String) -> Result<SimInstruction, ()> {
+        // Ok(SimInstruction::Move(ArenitoState::LEFT))
+        Err(())
     }
 }
 

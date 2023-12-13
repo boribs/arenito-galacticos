@@ -1,8 +1,4 @@
-use crate::{
-    sensor::{MoveInstruction, SimInterface},
-    static_shape::*,
-    wire::*,
-};
+use crate::{sensor::SimInterface, static_shape::*, wire::*};
 use bevy::{
     prelude::*,
     render::camera::RenderTarget,
@@ -98,13 +94,14 @@ fn arenito_mover(
     // println!("{}", arenito.log());
 }
 
+/// Gets movement instruction from AI. Moves accordingly.
+/// TODO: Change name
 fn arenito_pipe_mover(mut sim_interface: ResMut<SimInterface>, mut arenito: ResMut<Arenito>) {
-    let instr = sim_interface.get_instruction();
+    let instr = sim_interface.listen();
     if instr.is_some() {
         match instr.unwrap() {
-            MoveInstruction::FORWARD => arenito.forward(),
-            MoveInstruction::LEFT => arenito.rotate(ArenitoState::LEFT),
-            MoveInstruction::RIGHT => arenito.rotate(ArenitoState::RIGHT),
+            ArenitoState::FORWARD => arenito.forward(),
+            dir => arenito.rotate(dir),
         }
     }
 }
