@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use rand::{prelude::thread_rng, Rng};
 use std::{fs::File, io::prelude::*, thread, thread::JoinHandle};
 
-const PIPE_PATH: &str = "../pipes/pipe";
+const INSTRUCTION_PIPE_PATH: &str = "../pipes/instrpipe";
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -90,7 +90,6 @@ impl MPU6050 {
 }
 
 /// Move instruction abstraction.
-/// TODO: Maybe use arenito::ArenitoState instead?
 #[derive(Debug, Clone)]
 pub enum SimInstruction {
     Move(ArenitoState),
@@ -143,7 +142,7 @@ impl SimInterface {
         if self.thread.is_none() {
             self.thread = Some(thread::spawn(|| {
                 let mut cin = String::new();
-                let pipe = File::open(PIPE_PATH);
+                let pipe = File::open(INSTRUCTION_PIPE_PATH);
 
                 let _ = pipe
                     .as_ref()
