@@ -112,7 +112,7 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
 
     return im_with_keypoints, sorted(detections, key=_dist)
 
-def _send_serial_instr(ser: serial.Serial | None, instr: Instruction):
+def _send_instr(ser: serial.Serial | None, instr: Instruction):
     """
     Function that converts the instruction type to a
     stream of characters, readable by the Arduino board.
@@ -142,11 +142,11 @@ def send_move_instruction(ser: serial.Serial | None, det: tuple[int]):
     x, _ = det
 
     if CENTRO_X_MAX <= x:
-        _send_serial_instr(ser, Instruction.LEFT)
+        _send_instr(ser, Instruction.LEFT)
     elif CENTRO_X_MIN >= x:
-        _send_serial_instr(ser, Instruction.RIGHT)
+        _send_instr(ser, Instruction.RIGHT)
     else:
-        _send_serial_instr(ser, Instruction.FORWARD) # está centrado, avanza
+        _send_instr(ser, Instruction.FORWARD) # está centrado, avanza
 
     lr_count = 0
 
@@ -158,14 +158,14 @@ def send_roam_instruction(ser: serial.Serial | None, hsv_frame: np.ndarray):
     global lr_count
 
     if reachable(hsv_frame, R_DOT):                   # si puede, avanza
-        _send_serial_instr(ser, Instruction.FORWARD)
+        _send_instr(ser, Instruction.FORWARD)
     else:                                             # si no, gira
-        _send_serial_instr(ser, Instruction.RIGHT)
+        _send_instr(ser, Instruction.RIGHT)
 
     lr_count += 1
 
     if lr_count == LR_COUNT_MAX:
-        _send_serial_instr(ser, Instruction.LONG_RIGHT)
+        _send_instr(ser, Instruction.LONG_RIGHT)
         lr_count = 0
 
 def get_image(mode: str, cap: cv2.VideoCapture | None) -> tuple[bool, cv2.typing.MatLike]:
