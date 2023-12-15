@@ -1,11 +1,14 @@
 import serial
-import cv2
-import sys
+import cv2, cv2.typing
 import subprocess
 import numpy as np
 import math
 import argparse
 from enum import Enum, auto
+from PIL import Image
+
+INSTRUCTION_PIPE_PATH = '../pipes/instrpipe'
+IMAGE_PIPE_PATH = '../pipes/imgpipe'
 
 RES_X = 640
 RES_Y = 380
@@ -39,6 +42,7 @@ class Instruction(Enum):
     RIGHT = auto()
     BACK = auto()
     LONG_RIGHT = auto()
+    SCREENSHOT = auto()
 
 INSTRUCTION_MAP = {
     Instruction.FORWARD: 'a',
@@ -46,6 +50,7 @@ INSTRUCTION_MAP = {
     Instruction.RIGHT: 'd',
     Instruction.BACK: 'r',
     Instruction.LONG_RIGHT: 'l',
+    Instruction.SCREENSHOT: 'ss',
 }
 
 def _dist(det: tuple[int]):
@@ -107,20 +112,26 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
 
     return im_with_keypoints, sorted(detections, key=_dist)
 
-def _send_serial_instr(ser: serial.Serial, instr: Instruction):
+def _send_serial_instr(ser: serial.Serial | None, instr: Instruction):
     """
     Function that converts the instruction type to a
     stream of characters, readable by the Arduino board.
     """
-    p = ser.read()
-    if p:
-        print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
-        ser.write(bytes(
-            INSTRUCTION_MAP[instr],
-            'utf-8'
-        ))
 
-def send_move_instruction(ser: serial.Serial, det: tuple[int]):
+    if isinstance(ser, serial.Serial):
+        p = ser.read()
+        if p:
+            print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
+            ser.write(bytes(
+                INSTRUCTION_MAP[instr],
+                'utf-8'
+            ))
+    else:
+        with open(INSTRUCTION_PIPE_PATH, 'w') as pout:
+            print(f'Enviando {INSTRUCTION_MAP[instr]}')
+            pout.write(f'mv:{INSTRUCTION_MAP[instr]}')
+
+def send_move_instruction(ser: serial.Serial | None, det: tuple[int]):
     """
     Sends a move to left, right or forward instruction
     to the Arduino board, depending on the detection's position.
@@ -139,7 +150,7 @@ def send_move_instruction(ser: serial.Serial, det: tuple[int]):
 
     lr_count = 0
 
-def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
+def send_roam_instruction(ser: serial.Serial | None, hsv_frame: np.ndarray):
     """
     Function strictly responsible for determining movement
     when no can detections are made.
@@ -157,6 +168,19 @@ def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
         _send_serial_instr(ser, Instruction.LONG_RIGHT)
         lr_count = 0
 
+def get_image(mode: str, cap: cv2.VideoCapture | None) -> tuple[bool, cv2.typing.MatLike]:
+    if mode != 'sim':
+        ok, frame = cap.read()
+        frame = cv2.resize(frame, (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
+        return (ok, frame)
+    else:
+        with open(INSTRUCTION_PIPE_PATH, 'w') as pout:
+            pout.write(INSTRUCTION_MAP[Instruction.SCREENSHOT])
+
+        with open(IMAGE_PIPE_PATH, 'rb') as pin:
+            im = Image.frombytes('RGB', (1024, 1024), pin.read())
+            return True, np.array(im)
+
 def find_port() -> str:
     """
     Finds out where the Arduino borad is connected. Requires `arduino-cli`.
@@ -172,7 +196,7 @@ def find_port() -> str:
 
     return ports[0][0]
 
-def main(port: str):
+def main(mode: str):
     global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
     cap = cv2.VideoCapture(0)
@@ -188,11 +212,14 @@ def main(port: str):
 
     detector = cv2.SimpleBlobDetector_create(params)
 
-    ser = serial.Serial(
-        port=port,
-        baudrate=115200,
-        timeout=0.05,
-    )
+    if mode != 'sim':
+        ser = serial.Serial(
+            port=mode,
+            baudrate=115200,
+            timeout=0.05,
+        )
+    else:
+        ser = None
 
     # Cálculos relativos a la resolución de la imagen
     # solo se realizan una vez, al mero inicio
@@ -205,8 +232,7 @@ def main(port: str):
     CENTRO_X_MAX = RES_X // 2 + MARGEN_X
 
     while True:
-        ok, frame = cap.read()
-        frame = cv2.resize(frame, (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
+        ok, frame = get_image(mode, cap)
 
         if not ok:
             print('error')
@@ -253,6 +279,9 @@ if __name__ == '__main__':
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
 
     args = parser.parse_args()
-    port = args.port or find_port()
+    if args.sim:
+        port = 'sim'
+    else:
+        port = args.port or find_port()
 
     main(port)
