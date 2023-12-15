@@ -263,7 +263,7 @@ impl Arenito {
                     .spawn((
                         Window {
                             title: "Arenito view".to_owned(),
-                            visible: true,
+                            visible: false,
                             resolution: WindowResolution::new(self.img_width, self.img_height),
                             resizable: false,
                             ..default()
