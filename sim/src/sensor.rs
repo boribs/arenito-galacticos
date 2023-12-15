@@ -196,9 +196,9 @@ impl SimInterface {
         if input.starts_with("mv:") {
             let (_, dir) = input.split_at(3);
             return match dir {
-                "fw" => Ok(SimInstruction::Move(ArenitoState::FORWARD)),
-                "l" => Ok(SimInstruction::Move(ArenitoState::LEFT)),
-                "r" => Ok(SimInstruction::Move(ArenitoState::RIGHT)),
+                "a" => Ok(SimInstruction::Move(ArenitoState::FORWARD)),
+                "i" => Ok(SimInstruction::Move(ArenitoState::LEFT)),
+                "d" => Ok(SimInstruction::Move(ArenitoState::RIGHT)),
                 _ => Err(())
             }
         } else if input == "ss" {
