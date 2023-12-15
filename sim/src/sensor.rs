@@ -108,9 +108,23 @@ impl SimInterface {
         Self { thread: None }
     }
 
-    /// Takes a screenshot of Arenito's Camera View and pipes it.
-    pub fn export_image() {
-        todo!("Exporting images not implemented")
+    /// Takes a screenshot of Arenito's Camera and pipes it.
+    fn export_image(
+        screenshot_manager: &mut  ResMut<ScreenshotManager>,
+        window: &Entity,
+    ) {
+        let _ = screenshot_manager.take_screenshot(*window, move |img| match img.try_into_dynamic() {
+            Ok(dyn_img) => {
+                let img = dyn_img.to_rgb8();
+
+                let pipe = File::create(IMAGE_PIPE_PATH);
+                let _ = pipe
+                    .as_ref()
+                    .expect("Could not open pipe")
+                    .write_all(&img.into_raw());
+            }
+            Err(_) => {println!("Cannot save screenshot!")},
+        });
     }
 
     /// Reads input from pipe and parses. Returns movement direction.
