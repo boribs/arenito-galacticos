@@ -1,9 +1,10 @@
 use crate::arenito::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
 use rand::{prelude::thread_rng, Rng};
 use std::{fs::File, io::prelude::*, thread, thread::JoinHandle};
 
 const INSTRUCTION_PIPE_PATH: &str = "../pipes/instrpipe";
+const IMAGE_PIPE_PATH: &str = "../pipes/imgpipe";
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -128,7 +129,11 @@ impl SimInterface {
     }
 
     /// Reads input from pipe and parses. Returns movement direction.
-    pub fn listen(&mut self) -> Option<ArenitoState> {
+    pub fn listen(
+        &mut self,
+        screenshot_manager: &mut ResMut<ScreenshotManager>,
+        window: &Entity,
+    ) -> Option<ArenitoState> {
         let input = self.read_pipe();
         if input.is_some() {
             let input = input.unwrap();
@@ -143,6 +148,7 @@ impl SimInterface {
                     return Some(dir);
                 }
                 SimInstruction::ScreenShot => {
+                    SimInterface::export_image(screenshot_manager, window);
                     return None;
                 }
             };
@@ -182,6 +188,10 @@ impl SimInterface {
     ///     fw - forward
     ///     l  - left
     ///     r  - right
+    ///
+    /// Will also accept
+    /// ss
+    /// requesting Arenito's Camera's screen shot
     fn parse_input(input: &String) -> Result<SimInstruction, ()> {
         if input.starts_with("mv:") {
             let (_, dir) = input.split_at(3);
@@ -191,6 +201,8 @@ impl SimInterface {
                 "r" => Ok(SimInstruction::Move(ArenitoState::RIGHT)),
                 _ => Err(())
             }
+        } else if input == "ss" {
+            return Ok(SimInstruction::ScreenShot);
         }
 
         Err(())

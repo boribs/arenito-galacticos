@@ -1,7 +1,7 @@
 use crate::{sensor::SimInterface, static_shape::*, wire::*};
 use bevy::{
     prelude::*,
-    render::camera::RenderTarget,
+    render::{camera::RenderTarget, view::screenshot::ScreenshotManager},
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     window::{Window, WindowRef, WindowResolution},
 };
@@ -96,8 +96,13 @@ fn arenito_mover(
 
 /// Gets movement instruction from AI. Moves accordingly.
 /// TODO: Change name
-fn arenito_pipe_mover(mut sim_interface: ResMut<SimInterface>, mut arenito: ResMut<Arenito>) {
-    let instr = sim_interface.listen();
+fn arenito_pipe_mover(
+    mut sim_interface: ResMut<SimInterface>,
+    mut screenshot_manager: ResMut<ScreenshotManager>,
+    mut arenito: ResMut<Arenito>,
+    window: Query<Entity, With<ArenitoCamWindow>>,
+) {
+    let instr = sim_interface.listen(&mut screenshot_manager, &window.single());
     if instr.is_some() {
         match instr.unwrap() {
             ArenitoState::FORWARD => arenito.forward(),
