@@ -78,7 +78,7 @@ fn setup(
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(8.01, 4.0, 0.0)
+            transform: Transform::from_xyz(0.01, 40.0, 0.0)
                 .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
             camera: Camera {
                 order: 1,

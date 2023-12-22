@@ -46,4 +46,5 @@ IA:
     ✔ Recibir instrucciones de movimiento a través del pipe @done(23-12-14 15:42)
     ✔ Enviar screenshot a través del pipe. @done(23-12-14 20:36)
     ☐ Pipear frames a `arenito.py`
-        ☐ Adaptar `arenito.py` para recibir imágenes a través del pipe
+        ✘ Adaptar `arenito.py` para recibir imágenes a través del pipe @cancelled(23-12-21 18:57)
+        ☐ Adaptar `arenito.py` para recibir imágenes a través de memoria compartida
