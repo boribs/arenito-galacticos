@@ -110,6 +110,14 @@ impl AISimAddr {
         }
     }
 
+    pub fn write(&mut self, bytes: &Vec<u8>) {
+        unsafe {
+            for i in 0..bytes.len() {
+                *(self.0.add(i)) = bytes[i];
+            }
+        }
+    }
+
     pub fn get(&self) -> u8 {
         unsafe { *self.0 }
     }
@@ -129,6 +137,18 @@ impl AISimAddr {
 /// - SIM_FRAME_WAIT
 /// - AI_MOVE_INSTRUCTION
 /// - SIM_AKNOWLEDGE_INSTRUCTION
+///
+/// ---
+/// ## Memory footprint:
+/// The first byte is always the synchronization byte.
+/// The rest depend on the sync byte:
+///
+/// When sync is AI_MOVE_INSTRUCTION:
+///   The next byte (second) is the movement instruction.
+///
+/// When sync is SIM_AKNOWLEDGE_INSTRUCTION, after AI_FRAME_REQUEST:
+///   The following IMG_SIZE bytes are raw image data.
+/// The image sent is of size (1024, 1024).
 #[derive(Resource)]
 pub struct AISimMem {
     sync_byte: AISimAddr,
@@ -141,10 +161,19 @@ impl AISimMem {
     const SIM_FRAME_WAIT: u8 = 2;
     const AI_MOVE_INSTRUCTION: u8 = 3;
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
+
     // movement instruction constants
     const MOV_FORWARD: u8 = 10;
     const MOV_LEFT: u8 = 11;
     const MOV_RIGHT: u8 = 12;
+
+    // memory footprint
+    // how much memory is used for synchronization
+    const SYNC_SIZE: usize = 1;
+    // min size required to store image, found experimentally
+    const IMG_SIZE: usize = 3_145_728;
+    // sync byte + img size
+    pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
 
     pub fn new(shmem: &Shmem) -> Self {
         unsafe {
@@ -173,14 +202,18 @@ impl AISimMem {
 
         // can't use directly `self.sync_byte`, thank you borrow checker.
         let mut sync_byte = self.sync_byte.clone();
+        let mut memspace = self.memspace.clone();
 
         let _ =
             screenshot_manager.take_screenshot(*window, move |img| match img.try_into_dynamic() {
                 Ok(dyn_img) => {
-                    let img = dyn_img.to_rgb8();
+                    let img_raw = dyn_img.to_rgb8().into_raw();
 
-                    // write image
-                    // img.into_raw()
+                    if img_raw.len() != AISimMem::IMG_SIZE {
+                        panic!("different image size!");
+                    }
+
+                    memspace.write(&img_raw);
                     sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
                 }
                 Err(_) => {
@@ -210,8 +243,8 @@ impl AISimMem {
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None
-                },
-            }
+                }
+            },
             _ => None,
         }
     }
