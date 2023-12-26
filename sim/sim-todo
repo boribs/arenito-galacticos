@@ -48,3 +48,12 @@ IA:
     ☐ Pipear frames a `arenito.py`
         ✘ Adaptar `arenito.py` para recibir imágenes a través del pipe @cancelled(23-12-21 18:57)
         ☐ Adaptar `arenito.py` para recibir imágenes a través de memoria compartida
+            ☐ Lidiar con multiprocess.shared_memory
+              Actualmente tiene un bug donde se elimina el bloque de memoria
+              compartida al morir el proceso que la creó.
+              La prpuesta es que la simulación cree el bloque y sea esta misma que la limpie.
+              La IA solo se comunicará a través del bloque de memoria compartida.
+                El ID de la memoria compartida se guarda en un archivo de texto
+                que comparte nombre con el parámetro flink.
+                Flink (rust) y name (python) no son la misma cosa...
+              Toca hacer pruebas.
