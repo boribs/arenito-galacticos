@@ -136,10 +136,15 @@ pub struct AISimMem {
 }
 
 impl AISimMem {
+    // sync constants
     const AI_FRAME_REQUEST: u8 = 1;
     const SIM_FRAME_WAIT: u8 = 2;
     const AI_MOVE_INSTRUCTION: u8 = 3;
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
+    // movement instruction constants
+    const MOV_FORWARD: u8 = 10;
+    const MOV_LEFT: u8 = 11;
+    const MOV_RIGHT: u8 = 12;
 
     pub fn new(shmem: &Shmem) -> Self {
         unsafe {
@@ -186,10 +191,27 @@ impl AISimMem {
 
     /// Returns the instruction for the simulation to execute.
     /// Returns None if there's none.
+    ///
+    /// If sync byte is `AI_MOVE_INSTRUCTION`:
+    /// The next byte (memspace) is the movement instruction:
+    /// - MOV_FORWARD
+    /// - MOV_LEFT
+    /// - MOV_RIGHT
+    /// Any other memspace value will result in a None
+    ///
+    /// If sync byte is `AI_FRAME_REQUEST` no more bytes are checked.
     pub fn get_instruction(&self) -> Option<SimInstruction> {
         match self.sync_byte.get() {
             AISimMem::AI_FRAME_REQUEST => Some(SimInstruction::ScreenShot),
-            AISimMem::AI_MOVE_INSTRUCTION => todo!("read move instruction!"),
+            AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
+                AISimMem::MOV_FORWARD => Some(SimInstruction::Move(ArenitoState::FORWARD)),
+                AISimMem::MOV_LEFT => Some(SimInstruction::Move(ArenitoState::LEFT)),
+                AISimMem::MOV_RIGHT => Some(SimInstruction::Move(ArenitoState::RIGHT)),
+                other => {
+                    println!("Unrecognized movement instruction '{}'", other);
+                    None
+                },
+            }
             _ => None,
         }
     }
@@ -278,6 +300,47 @@ mod ai_sim_mem_tests {
     #[test]
     fn test_get_instruction_frame_wait() {
         let mut buf: Vec<u8> = vec![AISimMem::SIM_FRAME_WAIT, 0];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(None, aisim.get_instruction());
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_forward() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_FORWARD];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(
+            Some(SimInstruction::Move(ArenitoState::FORWARD)),
+            aisim.get_instruction()
+        );
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_left() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_LEFT];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(
+            Some(SimInstruction::Move(ArenitoState::LEFT)),
+            aisim.get_instruction()
+        );
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_right() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_RIGHT];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(
+            Some(SimInstruction::Move(ArenitoState::RIGHT)),
+            aisim.get_instruction()
+        );
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_other_value_is_none() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, 45];
         let aisim = AISimMem::from_buf(&mut buf);
 
         assert_eq!(None, aisim.get_instruction());
