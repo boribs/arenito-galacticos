@@ -1,3 +1,7 @@
+"""
+Prueba de sincronización entre procesos.
+"""
+
 from multiprocessing import shared_memory, resource_tracker
 import time
 
@@ -22,31 +26,53 @@ def remove_shm_from_resource_tracker():
     if "shared_memory" in resource_tracker._CLEANUP_FUNCS:
         del resource_tracker._CLEANUP_FUNCS["shared_memory"]
 
+class AISimMem:
+    CAN_WRITE_RUST = 45
+    CAN_WRITE_PYTHON = 75
+    END = 100
 
-def printmem(mem: shared_memory.SharedMemory):
-    print(bytes(mem.buf[:10]))
+    def __init__(self, mem: shared_memory.SharedMemory):
+        self.mem = mem
+        self.done_writing() # signal ready!
+
+    def can_write(self) -> bool:
+        return self.mem.buf[0] == AISimMem.CAN_WRITE_PYTHON
+
+    def done_writing(self):
+        self.mem.buf[0] = AISimMem.CAN_WRITE_RUST
+
+    def signaled_end(self) -> bool:
+        return self.mem.buf[0] == AISimMem.END
+
+    def write_byte(self, val: int):
+        self.mem.buf[2] = val
+
+    def read_byte(self) -> int:
+        return self.mem.buf[1]
+
+    def show(self):
+        print(bytes(self.mem.buf[:10]))
 
 remove_shm_from_resource_tracker() # Python 3.12 and under
-with open('shmem/shmem_test_2') as f:
+with open('shmem/shmem_test') as f:
     osid = f.read()[1:]
 
 mem = shared_memory.SharedMemory(create=False, name=osid)
 val = 100
 
-mem.buf[0] = 45
+aisim = AISimMem(mem)
 
 while True:
-    arr = bytearray(mem.buf)
-    if arr[0] == 75:
-        print(arr[:10])
-        arr[2] = val
+    if aisim.can_write():
+        aisim.show()
+        aisim.write_byte(val)
+
+        print(f'rust left val: {aisim.read_byte()}')
         val = (val + 1) % 255
 
-        print(f'rust left val: {arr[1]}')
-        arr[0] = 45
-        mem.buf[:] = arr
+        aisim.done_writing()
 
-    elif arr[0] == 100:
+    elif aisim.signaled_end():
         break
 
 mem.close()
