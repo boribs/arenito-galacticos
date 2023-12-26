@@ -1,7 +1,7 @@
 use crate::arenito::*;
 use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
 use rand::{prelude::thread_rng, Rng};
-use shared_memory::*;
+use shared_memory::Shmem;
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -111,9 +111,7 @@ impl AISimAddr {
     }
 
     pub fn get(&self) -> u8 {
-        unsafe {
-            *self.0
-        }
+        unsafe { *self.0 }
     }
 }
 
@@ -142,6 +140,17 @@ impl AISimMem {
     const SIM_FRAME_WAIT: u8 = 2;
     const AI_MOVE_INSTRUCTION: u8 = 3;
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
+
+    pub fn new(shmem: &Shmem) -> Self {
+        unsafe {
+            let ptr = shmem.as_ptr();
+
+            Self {
+                sync_byte: AISimAddr(ptr),
+                memspace: AISimAddr(ptr.add(1)),
+            }
+        }
+    }
 
     /// Sets the sync flag of the mapping.
     fn set_sync_flag(&mut self, flag: u8) {
@@ -181,7 +190,7 @@ impl AISimMem {
         match self.sync_byte.get() {
             AISimMem::AI_FRAME_REQUEST => Some(SimInstruction::ScreenShot),
             AISimMem::AI_MOVE_INSTRUCTION => todo!("read move instruction!"),
-            _ => None
+            _ => None,
         }
     }
 
