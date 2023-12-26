@@ -1,4 +1,8 @@
-use crate::{sensor::SimInterface, static_shape::*, wire::*};
+use crate::{
+    sensor::{AISimMem, SimInstruction},
+    static_shape::*,
+    wire::*,
+};
 use bevy::{
     prelude::*,
     render::{camera::RenderTarget, view::screenshot::ScreenshotManager},
@@ -35,9 +39,8 @@ impl Plugin for ArenitoPlugin {
         }
 
         app.insert_resource(Arenito::new(self.img_width, self.img_height))
-            .insert_resource(SimInterface::new())
             .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, (arenito_mover, arenito_pipe_mover));
+            .add_systems(Update, (arenito_mover, arenito_ai_mover));
     }
 }
 
@@ -94,20 +97,28 @@ fn arenito_mover(
     // println!("{}", arenito.log());
 }
 
-/// Gets movement instruction from AI. Moves accordingly.
-/// TODO: Change name
-fn arenito_pipe_mover(
-    mut sim_interface: ResMut<SimInterface>,
+/// Gets movement instruction from AI and executes.
+fn arenito_ai_mover(
     mut screenshot_manager: ResMut<ScreenshotManager>,
     mut arenito: ResMut<Arenito>,
+    mut aisim: ResMut<AISimMem>,
     window: Query<Entity, With<ArenitoCamWindow>>,
 ) {
-    let instr = sim_interface.listen(&mut screenshot_manager, &window.single());
-    if instr.is_some() {
-        match instr.unwrap() {
-            ArenitoState::FORWARD => arenito.forward(),
-            dir => arenito.rotate(dir),
-        }
+    if let Some(instr) = aisim.get_instruction() {
+        match instr {
+            SimInstruction::Move(dir) => {
+                match dir {
+                    ArenitoState::FORWARD => arenito.forward(),
+                    ArenitoState::LEFT => arenito.rotate(ArenitoState::LEFT),
+                    ArenitoState::RIGHT => arenito.rotate(ArenitoState::RIGHT),
+                    _ => {}
+                };
+                aisim.confirm_instruction();
+            }
+            SimInstruction::ScreenShot => {
+                aisim.export_frame(&mut screenshot_manager, &window.single());
+            }
+        };
     }
 }
 /* --------------------------/Arenito Plugin---------------------------- */
