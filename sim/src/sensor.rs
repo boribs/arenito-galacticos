@@ -88,7 +88,7 @@ impl MPU6050 {
 }
 
 /// Move instruction abstraction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SimInstruction {
     Move(ArenitoState),
     ScreenShot,
@@ -232,4 +232,62 @@ mod sensor_read_tests {
     }
 
     // No idea how to or what to test for gyro reads...
+}
+
+#[cfg(test)]
+mod ai_sim_mem_tests {
+    use super::*;
+
+    impl AISimMem {
+        fn from_buf(buf: &mut Vec<u8>) -> Self {
+            unsafe {
+                Self {
+                    sync_byte: AISimAddr(buf.as_mut_ptr()),
+                    memspace: AISimAddr(buf.as_mut_ptr().add(1)),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_aisimaddr_set() {
+        let mut buf: Vec<u8> = vec![0];
+        let mut ptr = AISimAddr(buf.as_mut_ptr());
+        ptr.set(45);
+
+        assert_eq!(buf[0], 45);
+    }
+
+    #[test]
+    fn test_aisimaddr_get() {
+        let mut buf: Vec<u8> = vec![103];
+        let ptr = AISimAddr(buf.as_mut_ptr());
+
+        assert_eq!(ptr.get(), 103);
+    }
+
+    #[test]
+    fn test_get_instruction_frame_request() {
+        // mock buffer, to avoid actual shared memory
+        let mut buf: Vec<u8> = vec![AISimMem::AI_FRAME_REQUEST, 0];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(Some(SimInstruction::ScreenShot), aisim.get_instruction());
+    }
+
+    #[test]
+    fn test_get_instruction_frame_wait() {
+        let mut buf: Vec<u8> = vec![AISimMem::SIM_FRAME_WAIT, 0];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(None, aisim.get_instruction());
+    }
+
+    #[test]
+    fn test_get_instruction_aknowledge_instruction() {
+        let mut buf: Vec<u8> = vec![AISimMem::SIM_AKNOWLEDGE_INSTRUCTION, 0];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(None, aisim.get_instruction());
+    }
 }
