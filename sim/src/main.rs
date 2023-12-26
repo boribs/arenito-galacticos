@@ -7,7 +7,7 @@ pub mod wire;
 use arenito::ArenitoPlugin;
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig, prelude::*, render::camera::Viewport,
-    window::ExitCondition,
+    window::ExitCondition, winit::WinitSettings,
 };
 use sensor::AISimMem;
 use shared_memory::*;
@@ -37,6 +37,10 @@ fn main() {
             exit_condition: ExitCondition::OnPrimaryClosed,
             ..default()
         }))
+        .insert_resource(WinitSettings {
+            return_from_run: true,
+            ..default()
+        })
         .insert_resource(AISimMem::new(&shmem))
         .add_plugins((
             ArenitoPlugin {
@@ -48,8 +52,6 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, set_camera_viewports)
         .run();
-
-    // TODO: Make sure to unlink shared memory when exiting!
 }
 
 fn setup(
