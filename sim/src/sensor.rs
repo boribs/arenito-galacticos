@@ -1,10 +1,7 @@
 use crate::arenito::*;
 use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
 use rand::{prelude::thread_rng, Rng};
-use std::{fs::File, io::prelude::*, thread, thread::JoinHandle};
-
-const INSTRUCTION_PIPE_PATH: &str = "../pipes/instrpipe";
-const IMAGE_PIPE_PATH: &str = "../pipes/imgpipe";
+use shared_memory::*;
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -97,115 +94,104 @@ pub enum SimInstruction {
     ScreenShot,
 }
 
-/// Responsible for interacting with Arenito's AI process.
-/// Reads pipe and determines move instruction.
-#[derive(Resource)]
-pub struct SimInterface {
-    thread: Option<JoinHandle<String>>,
+/// Wrapper struct to store raw pointers to shared memory.
+/// This is needed in order to be able to store pointers in `AISimMem`.
+#[derive(Clone)]
+pub struct AISimAddr(*mut u8);
+
+// https://doc.rust-lang.org/nomicon/send-and-sync.html
+unsafe impl Send for AISimAddr {}
+unsafe impl Sync for AISimAddr {}
+
+impl AISimAddr {
+    pub fn set(&mut self, val: u8) {
+        unsafe {
+            *self.0 = val;
+        }
+    }
+
+    pub fn get(&self) -> u8 {
+        unsafe {
+            *self.0
+        }
+    }
 }
 
-impl SimInterface {
-    pub fn new() -> Self {
-        Self { thread: None }
+/// Responsible for interacting with Arenito's AI process.
+/// Communicates through shared memory.
+///
+/// The shared memory block serves as both the communication
+/// and the sync channel.
+/// The first byte is used to syncrchronize the simulation,
+/// as well as the AI, indicatin which process has write permission.
+/// The rest of the block is to send data.
+///
+/// The sync flags (constants) indicate the steps of communication:
+/// - AI_FRAME_REQUEST
+/// - SIM_FRAME_WAIT
+/// - AI_MOVE_INSTRUCTION
+/// - SIM_AKNOWLEDGE_INSTRUCTION
+#[derive(Resource)]
+pub struct AISimMem {
+    sync_byte: AISimAddr,
+    memspace: AISimAddr,
+}
+
+impl AISimMem {
+    const AI_FRAME_REQUEST: u8 = 1;
+    const SIM_FRAME_WAIT: u8 = 2;
+    const AI_MOVE_INSTRUCTION: u8 = 3;
+    const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
+
+    /// Sets the sync flag of the mapping.
+    fn set_sync_flag(&mut self, flag: u8) {
+        self.sync_byte.set(flag);
     }
 
-    /// Takes a screenshot of Arenito's Camera and pipes it.
-    fn export_image(
-        screenshot_manager: &mut  ResMut<ScreenshotManager>,
-        window: &Entity,
-    ) {
-        let _ = screenshot_manager.take_screenshot(*window, move |img| match img.try_into_dynamic() {
-            Ok(dyn_img) => {
-                let img = dyn_img.to_rgb8();
-
-                let pipe = File::create(IMAGE_PIPE_PATH);
-                let _ = pipe
-                    .as_ref()
-                    .expect("Could not open pipe")
-                    .write_all(&img.into_raw());
-            }
-            Err(_) => {println!("Cannot save screenshot!")},
-        });
-    }
-
-    /// Reads input from pipe and parses. Returns movement direction.
-    pub fn listen(
+    /// Takes a screenshot of Arenito's Camera and writes it to the shared memory block.
+    pub fn export_frame(
         &mut self,
         screenshot_manager: &mut ResMut<ScreenshotManager>,
         window: &Entity,
-    ) -> Option<ArenitoState> {
-        let input = self.read_pipe();
-        if input.is_some() {
-            let input = input.unwrap();
-            let instr = SimInterface::parse_input(&input);
-            if instr.is_err() {
-                println!("Cannot parse: '{}'", &input);
-                return None;
-            }
+    ) {
+        // prevent multiple screenshot requests
+        self.set_sync_flag(AISimMem::SIM_FRAME_WAIT);
 
-            match instr.unwrap() {
-                SimInstruction::Move(dir) => {
-                    return Some(dir);
-                }
-                SimInstruction::ScreenShot => {
-                    SimInterface::export_image(screenshot_manager, window);
-                    return None;
-                }
-            };
-        }
+        // can't use directly `self.sync_byte`, thank you borrow checker.
+        let mut sync_byte = self.sync_byte.clone();
 
-        None
+        let _ =
+            screenshot_manager.take_screenshot(*window, move |img| match img.try_into_dynamic() {
+                Ok(dyn_img) => {
+                    let img = dyn_img.to_rgb8();
+
+                    // write image
+                    // img.into_raw()
+                    sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
+                }
+                Err(_) => {
+                    println!("Cannot send screenshot!")
+                }
+            });
     }
 
-    /// Reads pipe content.
-    fn read_pipe(&mut self) -> Option<String> {
-        if self.thread.is_none() {
-            self.thread = Some(thread::spawn(|| {
-                let mut cin = String::new();
-                let pipe = File::open(INSTRUCTION_PIPE_PATH);
-
-                let _ = pipe
-                    .as_ref()
-                    .expect("can't open pipe!")
-                    .read_to_string(&mut cin);
-
-                cin
-            }));
-        } else if self.thread.as_ref().unwrap().is_finished() {
-            // https://stackoverflow.com/questions/57670145/how-to-store-joinhandle-of-a-thread-to-close-it-later
-            let input = self.thread.take().map(JoinHandle::join).unwrap().unwrap();
-            self.thread = None;
-            return Some(input);
+    /// Returns the instruction for the simulation to execute.
+    /// Returns None if there's none.
+    pub fn get_instruction(&self) -> Option<SimInstruction> {
+        match self.sync_byte.get() {
+            AISimMem::AI_FRAME_REQUEST => Some(SimInstruction::ScreenShot),
+            AISimMem::AI_MOVE_INSTRUCTION => todo!("read move instruction!"),
+            _ => None
         }
-
-        None
     }
 
-    /// Parses input string.
-    /// Expected input has the following syntax:
-    /// mv:<dir>
-    /// where <dir> can be one of the following:
-    ///     fw - forward
-    ///     l  - left
-    ///     r  - right
+    /// Sets the sync flag to `SIM_AKNOWLEDGE_INSTRUCTION`.
+    /// Indicates to the AI that the simulation is done processing the message and
+    /// is ready to read another instruction.
     ///
-    /// Will also accept
-    /// ss
-    /// requesting Arenito's Camera's screen shot
-    fn parse_input(input: &String) -> Result<SimInstruction, ()> {
-        if input.starts_with("mv:") {
-            let (_, dir) = input.split_at(3);
-            return match dir {
-                "a" => Ok(SimInstruction::Move(ArenitoState::FORWARD)),
-                "i" => Ok(SimInstruction::Move(ArenitoState::LEFT)),
-                "d" => Ok(SimInstruction::Move(ArenitoState::RIGHT)),
-                _ => Err(())
-            }
-        } else if input == "ss" {
-            return Ok(SimInstruction::ScreenShot);
-        }
-
-        Err(())
+    /// Must be called after writing data.
+    pub fn confirm_instruction(&mut self) {
+        self.sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
     }
 }
 
