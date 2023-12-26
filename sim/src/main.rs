@@ -20,7 +20,11 @@ pub struct DataCamera;
 
 fn main() {
     let flink = "shmem_arenito";
-    let shmem: Shmem = match ShmemConf::new().size(100).flink(flink).create() {
+    let shmem: Shmem = match ShmemConf::new()
+        .size(AISimMem::MIN_REQUIRED_MEMORY)
+        .flink(flink)
+        .create()
+    {
         Ok(m) => {
             println!("created successfully");
             m
