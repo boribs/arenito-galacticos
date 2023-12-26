@@ -353,4 +353,13 @@ mod ai_sim_mem_tests {
 
         assert_eq!(None, aisim.get_instruction());
     }
+
+    #[test]
+    fn test_confirm_instruction() {
+        let mut buf: Vec<u8> = vec![100, 101, 102, 103];
+        let mut aisim = AISimMem::from_buf(&mut buf);
+
+        aisim.confirm_instruction();
+        assert_eq!(buf[0], AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
+    }
 }
