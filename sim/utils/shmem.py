@@ -46,12 +46,20 @@ class AISimMem:
     def write_byte(self, val: int):
         self.mem.buf[0] = val
 
+    def write_mov_instruction(self, val: int):
+        self.mem.buf[1] = val
+
     def read_byte(self) -> int:
         return self.mem.buf[0]
 
     def wait_confirmation(self):
         while self.mem.buf[0] != AISimMem.SIM_AKNOWLEDGE_INSTRUCTION:
             pass
+
+def mv(aisim: AISimMem, mov: int):
+    aisim.write_mov_instruction(mov)
+    aisim.write_byte(AISimMem.AI_MOVE_INSTRUCTION)
+    aisim.wait_confirmation()
 
 remove_shm_from_resource_tracker() # Python 3.12 and under
 
@@ -63,16 +71,24 @@ aisim = AISimMem(mem)
 
 # constantly ask for images!
 while True:
-    # I don't like this delay
-    if cv2.waitKey(1) == 27:
-        break
+    # aisim.write_mov_instruction(AISimMem.MOV_FORWARD)
+    # aisim.write_byte(AISimMem.AI_MOVE_INSTRUCTION)
 
-    aisim.write_byte(AISimMem.AI_FRAME_REQUEST)
-    aisim.wait_confirmation()
+    # # I don't like this delay
+    # if cv2.waitKey(1) == 27:
+    #     break
 
-    im = Image.frombytes('RGB', (1024, 1024), aisim.mem.buf[1:3145728 + 1])
-    # for some reason blue and red channels are swapped?
-    r, g, b = im.split()
-    im = Image.merge('RGB', (b, g, r))
+    # aisim.wait_confirmation()
 
-    cv2.imshow('sakldhjf', np.array(im))
+    for _ in range(3):
+        mv(aisim, AISimMem.MOV_FORWARD)
+
+    for _ in range(10):
+        mv(aisim, AISimMem.MOV_LEFT)
+
+    # im = Image.frombytes('RGB', (1024, 1024), aisim.mem.buf[1:3145728 + 1])
+    # # for some reason blue and red channels are swapped?
+    # r, g, b = im.split()
+    # im = Image.merge('RGB', (b, g, r))
+
+    # cv2.imshow('sakldhjf', np.array(im))
