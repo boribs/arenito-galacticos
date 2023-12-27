@@ -188,12 +188,6 @@ impl Arenito {
         }
     }
 
-    /// Method for rapid object initialization, where camera output
-    /// data is not needed.
-    pub fn test() -> Self {
-        Self::new(0.0, 0.0)
-    }
-
     /// Spawns Arenito (body cube and wheels) into the scene.
     ///
     /// Arenito's model is a cube (parent) with four wheels (children).
@@ -270,6 +264,7 @@ impl Arenito {
                 t.rotate_z(self.cam_area.alpha);
 
                 // second window
+                // needed to capture Arenito's camera view.
                 let window = parent
                     .spawn((
                         Window {
@@ -547,7 +542,14 @@ mod arenito_tests {
     const F32_DIFF: f32 = 0.001;
 
     impl Arenito {
-        pub fn vel_acc(vel: Vec3, acc: Vec3, cen: Vec3) -> Self {
+        /// Method for rapid object initialization, where camera output
+        /// data is not needed.
+        pub fn test() -> Self {
+            Self::new(0.0, 0.0)
+        }
+
+        /// Initializes Arenito with some velocity and acceleration.
+        fn vel_acc(vel: Vec3, acc: Vec3, cen: Vec3) -> Self {
             let mut arenito = Arenito::test();
             arenito.vel = vel;
             arenito.acc = acc;
