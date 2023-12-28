@@ -1,11 +1,9 @@
-import serial
 import cv2, cv2.typing
 import subprocess
 import numpy as np
 import math
 import argparse
-from enum import Enum, auto
-from PIL import Image
+from arenito_com import *
 
 RES_X = 640
 RES_Y = 380
@@ -32,23 +30,6 @@ MIN_PX_WATER = 50
 # buscando latas
 lr_count = 0
 LR_COUNT_MAX = 20
-
-class Instruction(Enum):
-    FORWARD = auto()
-    LEFT = auto()
-    RIGHT = auto()
-    BACK = auto()
-    LONG_RIGHT = auto()
-    SCREENSHOT = auto()
-
-INSTRUCTION_MAP = {
-    Instruction.FORWARD: 'a',
-    Instruction.LEFT: 'i',
-    Instruction.RIGHT: 'd',
-    Instruction.BACK: 'r',
-    Instruction.LONG_RIGHT: 'l',
-    Instruction.SCREENSHOT: 'ss',
-}
 
 def _dist(det: tuple[int]):
     x1, y1 = CENTRO_INF
@@ -109,36 +90,7 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
 
     return im_with_keypoints, sorted(detections, key=_dist)
 
-def __send_instr_arduino(ser: serial.Serial, instr):
-    """
-    Sends instruction to arduino board through serial interface.
-    """
-
-    # Arduino sends an ok message when its ready to receive an instruction.
-    # Wait for ok message
-    p = ser.read()
-
-    # Then send instruction
-    if p:
-        print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
-        ser.write(bytes(
-            INSTRUCTION_MAP[instr],
-            'utf-8'
-        ))
-
-def __send_instr_sim(instr: Instruction):
-    pass
-
-def _send_instr(ser: serial.Serial | None, instr: Instruction):
-    """
-    Function that converts the instruction type to a
-    stream of characters, readable by the Arduino board.
-    """
-
-    if isinstance(ser, serial.Serial):
-        __send_instr_arduino(ser, instr)
-
-def send_move_instruction(ser: serial.Serial | None, det: tuple[int]):
+def send_move_instruction(com: ArenitoComms, det: tuple[int]):
     """
     Sends a move to left, right or forward instruction
     to the Arduino board, depending on the detection's position.
@@ -149,37 +101,35 @@ def send_move_instruction(ser: serial.Serial | None, det: tuple[int]):
     x, _ = det
 
     if CENTRO_X_MAX <= x:
-        _send_instr(ser, Instruction.LEFT)
+        com.send_instruction(Instruction.LEFT)
     elif CENTRO_X_MIN >= x:
-        _send_instr(ser, Instruction.RIGHT)
-    else:
-        _send_instr(ser, Instruction.FORWARD) # está centrado, avanza
+        com.send_instruction(Instruction.RIGHT)
+    else: # está centrado, avanza
+        com.send_instruction(Instruction.FORWARD)
 
     lr_count = 0
 
-def send_roam_instruction(ser: serial.Serial | None, hsv_frame: np.ndarray):
+def send_roam_instruction(com: ArenitoComms, hsv_frame: np.ndarray):
     """
     Function strictly responsible for determining movement
     when no can detections are made.
     """
+
     global lr_count
 
     if reachable(hsv_frame, R_DOT):                   # si puede, avanza
-        _send_instr(ser, Instruction.FORWARD)
+        com.send_instruction(Instruction.FORWARD)
     else:                                             # si no, gira
-        _send_instr(ser, Instruction.RIGHT)
+        com.send_instruction(Instruction.RIGHT)
 
     lr_count += 1
 
     if lr_count == LR_COUNT_MAX:
-        _send_instr(ser, Instruction.LONG_RIGHT)
+        com.send_instruction(Instruction.LONG_RIGHT)
         lr_count = 0
 
-def get_image(mode: str, cap: cv2.VideoCapture | None) -> tuple[bool, cv2.typing.MatLike]:
-    if mode != 'sim':
-        ok, frame = cap.read()
-        frame = cv2.resize(frame, (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
-        return (ok, frame)
+def get_image(com: ArenitoComms) -> cv2.typing.MatLike:
+    return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
 def find_port() -> str:
     """
@@ -196,10 +146,11 @@ def find_port() -> str:
 
     return ports[0][0]
 
-def main(mode: str):
+def main(com: ArenitoComms):
     global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
-    cap = cv2.VideoCapture(0)
+    com.init_video()
+
     params = cv2.SimpleBlobDetector_Params()
     params.filterByArea = True
     params.minArea = 500
@@ -212,15 +163,6 @@ def main(mode: str):
 
     detector = cv2.SimpleBlobDetector_create(params)
 
-    if mode != 'sim':
-        ser = serial.Serial(
-            port=mode,
-            baudrate=115200,
-            timeout=0.05,
-        )
-    else:
-        ser = None
-
     # Cálculos relativos a la resolución de la imagen
     # solo se realizan una vez, al mero inicio
     CENTRO_INF = (RES_X // 2, RES_Y)
@@ -232,11 +174,7 @@ def main(mode: str):
     CENTRO_X_MAX = RES_X // 2 + MARGEN_X
 
     while True:
-        ok, frame = get_image(mode, cap)
-
-        if not ok:
-            print('error')
-            break
+        frame = get_image(com)
 
         if cv2.waitKey(1) == 27:
             break
