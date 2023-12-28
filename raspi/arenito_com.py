@@ -217,6 +217,10 @@ class SimInterface:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
 
+        elif instr == Instruction.LONG_RIGHT: # long right = right
+            self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
+            self.set_mov_instruction(ord(INSTRUCTION_MAP[Instruction.RIGHT]))
+
         else:
             raise Exception(f'unsoported instruction {instr}')
 
