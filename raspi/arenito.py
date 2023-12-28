@@ -207,19 +207,24 @@ def main(com: ArenitoComms):
 
         if detections:
             det = detections[0]
-            send_move_instruction(ser, det)
+            send_move_instruction(com, det)
         else:
-            send_roam_instruction(ser, hsv_frame)
+            send_roam_instruction(com, hsv_frame)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('port', nargs='?')
+    parser.add_argument('port', nargs='?', type=str)
+    parser.add_argument('baudrate', nargs='?', type=int, default=115200)
+    parser.add_argument('timeout', nargs='?', type=float, default=0.5)
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
+
+    com = ArenitoComms()
 
     args = parser.parse_args()
     if args.sim:
-        port = 'sim'
+        pass
     else:
         port = args.port or find_port()
+        com.connect_serial(port, args.baudrate, args.timeout)
 
-    main(port)
+    main(com)
