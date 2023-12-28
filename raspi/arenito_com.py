@@ -1,4 +1,4 @@
-import serial
+import serial, subprocess
 from cv2 import VideoCapture
 from cv2.typing import MatLike
 from enum import Enum, auto
@@ -31,6 +31,21 @@ class ArenitoComms:
         self.serial: serial.Serial = None
         self.video_capture: VideoCapture = None
 
+    def find_port() -> str:
+        """
+        Finds out where the Arduino borad is connected. Requires `arduino-cli`.
+        """
+
+        out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
+        ports = []
+        for line in out.stdout.split('\n')[1:]:
+            if line:
+                line = list(map(lambda n: n.strip(), line.split()))
+                if 'Unknown' not in line:
+                    ports.append(line)
+
+        return ports[0][0]
+
     def init_video(self, device_index: int = 0):
         """
         Initializes the capture device.
@@ -42,6 +57,9 @@ class ArenitoComms:
         """
         Establishes serial communication.
         """
+
+        if port is None:
+            port = ArenitoComms.find_port()
 
         self.serial = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
 

@@ -1,5 +1,4 @@
 import cv2, cv2.typing
-import subprocess
 import numpy as np
 import math
 import argparse
@@ -131,21 +130,6 @@ def send_roam_instruction(com: ArenitoComms, hsv_frame: np.ndarray):
 def get_image(com: ArenitoComms) -> cv2.typing.MatLike:
     return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
-def find_port() -> str:
-    """
-    Finds out where the Arduino borad is connected. Requires `arduino-cli`.
-    """
-
-    out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
-    ports = []
-    for line in out.stdout.split('\n')[1:]:
-        if line:
-            line = list(map(lambda n: n.strip(), line.split()))
-            if 'Unknown' not in line:
-                ports.append(line)
-
-    return ports[0][0]
-
 def main(com: ArenitoComms):
     global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
@@ -213,7 +197,7 @@ def main(com: ArenitoComms):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('port', nargs='?', type=str)
+    parser.add_argument('port', nargs='?', type=str, default=None)
     parser.add_argument('baudrate', nargs='?', type=int, default=115200)
     parser.add_argument('timeout', nargs='?', type=float, default=0.5)
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
@@ -224,7 +208,6 @@ if __name__ == '__main__':
     if args.sim:
         pass
     else:
-        port = args.port or find_port()
-        com.connect_serial(port, args.baudrate, args.timeout)
+        com.connect_serial(args.port, args.baudrate, args.timeout)
 
     main(com)
