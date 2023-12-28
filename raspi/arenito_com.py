@@ -150,8 +150,11 @@ class SimInterface:
 
     def attach(self, flink: str):
         """
+        Attaches to simulation's shared memory.
         """
 
+        # Simulation creates a file on flink (path).
+        # Its contents are the name of the shared memory mapping.
         with open(flink, 'r') as f:
             osid = f.read()[1:]
 
@@ -159,30 +162,38 @@ class SimInterface:
 
     def close(self):
         """
+        Closes access to shared memory.
+        TODO: Call this on close.
         """
 
         self.mem.close()
 
     def get_sync_byte(self) -> int:
         """
+        Reads sync byte.
         """
 
         return self.mem.buf[0]
 
     def set_sync_byte(self, val: int):
         """
+        Sets sync byte.
         """
 
         self.mem.buf[0] = val
 
     def set_mov_instruction(self, val: int):
         """
+        Sets second byte. This should be called only
+        when setting a movement instruction.
         """
 
         self.mem.buf[1] = val
 
-    def get_image(self) -> memoryview:
+    def get_image(self) -> MatLike:
         """
+        Requests a frame and does some processing for the image
+        to be usable by AI.
         """
 
         self.send_instruction(Instruction.SCREENSHOT)
@@ -201,6 +212,7 @@ class SimInterface:
 
     def wait_confirmation(self):
         """
+        Stalls until sync byte equals SimInterface.SIM_AKNOWLEDGE_INSTRUCTION.
         """
 
         while self.mem.buf[0] != SimInterface.SIM_AKNOWLEDGE_INSTRUCTION:
@@ -208,6 +220,7 @@ class SimInterface:
 
     def send_instruction(self, instr: Instruction):
         """
+        Sends an instruction to the simulation.
         """
 
         if instr == Instruction.SCREENSHOT:
