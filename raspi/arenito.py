@@ -1,10 +1,8 @@
-import serial
-import cv2
-import sys
-import subprocess
+import cv2, cv2.typing
 import numpy as np
 import math
-from enum import Enum, auto
+import argparse
+from arenito_com import *
 
 RES_X = 640
 RES_Y = 380
@@ -14,7 +12,6 @@ CENTRO_INF = None
 
 # Posición del punto máximo para la tolerancia al agua
 R_DOT = None
-
 
 # Límites centrales para determinar si una lata está
 # "en el centro"
@@ -32,21 +29,6 @@ MIN_PX_WATER = 50
 # buscando latas
 lr_count = 0
 LR_COUNT_MAX = 20
-
-class Instruction(Enum):
-    FORWARD = auto()
-    LEFT = auto()
-    RIGHT = auto()
-    BACK = auto()
-    LONG_RIGHT = auto()
-
-INSTRUCTION_MAP = {
-    Instruction.FORWARD: 'a',
-    Instruction.LEFT: 'i',
-    Instruction.RIGHT: 'd',
-    Instruction.BACK: 'r',
-    Instruction.LONG_RIGHT: 'l',
-}
 
 def _dist(det: tuple[int]):
     x1, y1 = CENTRO_INF
@@ -78,11 +60,18 @@ def reachable(
     return white_px < MIN_PX_WATER
 
 def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
+    """
+    Finds the positions of every can by applying a color filter to the image and
+    calling SimpleBlobDetector's `detect()` method.
+
+    Returns only reachable positions.
+    """
+
     lower = np.array([0, 0, 69])
     upper = np.array([175, 255, 255])
 
     # Este borde es necesario porque sino no detecta las latas cerca
-    # de las esquinas de la imagen:)
+    # de las esquinas de la imagen
     img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -100,66 +89,50 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
 
     return im_with_keypoints, sorted(detections, key=_dist)
 
-def _send_serial_instr(ser: serial.Serial, instr: Instruction):
+def send_move_instruction(com: ArenitoComms, det: tuple[int]):
     """
-    Function that converts the instruction type to a
-    stream of characters, readable by the Arduino board.
+    Sends a move to left, right or forward instruction
+    to the Arduino board, depending on the detection's position.
     """
-    p = ser.read()
-    if p:
-        print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
-        ser.write(bytes(
-            INSTRUCTION_MAP[instr],
-            'utf-8'
-        ))
 
-def send_move_instruction(ser: serial.Serial, det: tuple[int]):
     global lr_count
 
     x, _ = det
 
     if CENTRO_X_MAX <= x:
-        _send_serial_instr(ser, Instruction.LEFT)
+        com.send_instruction(Instruction.LEFT)
     elif CENTRO_X_MIN >= x:
-        _send_serial_instr(ser, Instruction.RIGHT)
-    else:
-        _send_serial_instr(ser, Instruction.FORWARD) # está centrado, avanza
+        com.send_instruction(Instruction.RIGHT)
+    else: # está centrado, avanza
+        com.send_instruction(Instruction.FORWARD)
 
     lr_count = 0
 
-def send_roam_instruction(ser: serial.Serial, hsv_frame: np.ndarray):
+def send_roam_instruction(com: ArenitoComms, hsv_frame: np.ndarray):
     """
     Function strictly responsible for determining movement
     when no can detections are made.
     """
+
     global lr_count
 
     if reachable(hsv_frame, R_DOT):                   # si puede, avanza
-        _send_serial_instr(ser, Instruction.FORWARD)
+        com.send_instruction(Instruction.FORWARD)
     else:                                             # si no, gira
-        _send_serial_instr(ser, Instruction.RIGHT)
+        com.send_instruction(Instruction.RIGHT)
 
     lr_count += 1
 
     if lr_count == LR_COUNT_MAX:
-        _send_serial_instr(ser, Instruction.LONG_RIGHT)
+        com.send_instruction(Instruction.LONG_RIGHT)
         lr_count = 0
 
-def find_port() -> str:
-    out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
-    ports = []
-    for line in out.stdout.split('\n')[1:]:
-        if line:
-            line = list(map(lambda n: n.strip(), line.split()))
-            if 'Unknown' not in line:
-                ports.append(line)
+def get_image(com: ArenitoComms) -> cv2.typing.MatLike:
+    return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
-    return ports[0][0]
-
-def main(port: str):
+def main(com: ArenitoComms):
     global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
-    cap = cv2.VideoCapture(0)
     params = cv2.SimpleBlobDetector_Params()
     params.filterByArea = True
     params.minArea = 500
@@ -172,12 +145,6 @@ def main(port: str):
 
     detector = cv2.SimpleBlobDetector_create(params)
 
-    ser = serial.Serial(
-        port=port,
-        baudrate=115200,
-        timeout=0.05,
-    )
-
     # Cálculos relativos a la resolución de la imagen
     # solo se realizan una vez, al mero inicio
     CENTRO_INF = (RES_X // 2, RES_Y)
@@ -189,12 +156,7 @@ def main(port: str):
     CENTRO_X_MAX = RES_X // 2 + MARGEN_X
 
     while True:
-        ok, frame = cap.read()
-        frame = cv2.resize(frame, (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
-
-        if not ok:
-            print('error')
-            break
+        frame = get_image(com)
 
         if cv2.waitKey(1) == 27:
             break
@@ -227,14 +189,32 @@ def main(port: str):
 
         if detections:
             det = detections[0]
-            send_move_instruction(ser, det)
+            send_move_instruction(com, det)
         else:
-            send_roam_instruction(ser, hsv_frame)
+            send_roam_instruction(com, hsv_frame)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        port = find_port()
-    else:
-        port = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('port', nargs='?', type=str, default=None)
+    parser.add_argument('baudrate', nargs='?', type=int, default=115200)
+    parser.add_argument('timeout', nargs='?', type=float, default=0.5)
 
-    main(port)
+    parser.add_argument('flink', nargs='?', type=str, default='../sim/shmem_arenito')
+    parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
+
+    com = ArenitoComms()
+    args = parser.parse_args()
+
+    if args.sim:
+        com.connect_simulation(args.flink)
+    else:
+        com.connect_serial(args.port, args.baudrate, args.timeout)
+        com.init_video()
+
+    try:
+        main(com)
+    except:
+        pass
+
+    if com.sim_interface:
+        com.sim_interface.close()

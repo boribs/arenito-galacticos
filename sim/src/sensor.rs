@@ -1,6 +1,7 @@
 use crate::arenito::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
 use rand::{prelude::thread_rng, Rng};
+use shared_memory::Shmem;
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -86,14 +87,176 @@ impl MPU6050 {
     }
 }
 
-/// Camera sensor. This one is responsible for capturing the image and
-/// sending it to Arenito's AI process.
-pub struct Camera;
+/// Move instruction abstraction.
+#[derive(Debug, Clone, PartialEq)]
+pub enum SimInstruction {
+    Move(ArenitoState),
+    ScreenShot,
+}
 
-impl Camera {
-    /// Takes a screenshot of Arenito's Camera View and writes it
-    /// to the shared memory?
-    pub fn export_image() {}
+/// Wrapper struct to store raw pointers to shared memory.
+/// This is needed in order to be able to store pointers in `AISimMem`.
+#[derive(Clone)]
+pub struct AISimAddr(*mut u8);
+
+// https://doc.rust-lang.org/nomicon/send-and-sync.html
+unsafe impl Send for AISimAddr {}
+unsafe impl Sync for AISimAddr {}
+
+impl AISimAddr {
+    pub fn set(&mut self, val: u8) {
+        unsafe {
+            *self.0 = val;
+        }
+    }
+
+    pub fn write(&mut self, bytes: &Vec<u8>) {
+        unsafe {
+            for i in 0..bytes.len() {
+                *(self.0.add(i)) = bytes[i];
+            }
+        }
+    }
+
+    pub fn get(&self) -> u8 {
+        unsafe { *self.0 }
+    }
+}
+
+/// Responsible for interacting with Arenito's AI process.
+/// Communicates through shared memory.
+///
+/// The shared memory block serves as both the communication
+/// and the sync channel.
+/// The first byte is used to syncrchronize the simulation,
+/// as well as the AI, indicatin which process has write permission.
+/// The rest of the block is to send data.
+///
+/// The sync flags (constants) indicate the steps of communication:
+/// - AI_FRAME_REQUEST
+/// - SIM_FRAME_WAIT
+/// - AI_MOVE_INSTRUCTION
+/// - SIM_AKNOWLEDGE_INSTRUCTION
+///
+/// ---
+/// ## Memory footprint:
+/// The first byte is always the synchronization byte.
+/// The rest depend on the sync byte:
+///
+/// When sync is AI_MOVE_INSTRUCTION:
+///   The next byte (second) is the movement instruction.
+///
+/// When sync is SIM_AKNOWLEDGE_INSTRUCTION, after AI_FRAME_REQUEST:
+///   The following IMG_SIZE bytes are raw image data.
+/// The image sent is of size (1024, 1024).
+#[derive(Resource)]
+pub struct AISimMem {
+    sync_byte: AISimAddr,
+    memspace: AISimAddr,
+}
+
+impl AISimMem {
+    // sync constants
+    const AI_FRAME_REQUEST: u8 = 1;
+    const SIM_FRAME_WAIT: u8 = 2;
+    const AI_MOVE_INSTRUCTION: u8 = 3;
+    const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
+
+    // movement instruction constants
+    const MOV_FORWARD: u8 = b'a';
+    const MOV_LEFT: u8 = b'i';
+    const MOV_RIGHT: u8 = b'd';
+
+    // memory footprint
+    // how much memory is used for synchronization
+    const SYNC_SIZE: usize = 1;
+    // min size required to store image, found experimentally
+    const IMG_SIZE: usize = 3_145_728;
+    // sync byte + img size
+    pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
+
+    pub fn new(shmem: &Shmem) -> Self {
+        unsafe {
+            let ptr = shmem.as_ptr();
+
+            Self {
+                sync_byte: AISimAddr(ptr),
+                memspace: AISimAddr(ptr.add(1)),
+            }
+        }
+    }
+
+    /// Sets the sync flag of the mapping.
+    fn set_sync_flag(&mut self, flag: u8) {
+        self.sync_byte.set(flag);
+    }
+
+    /// Takes a screenshot of Arenito's Camera and writes it to the shared memory block.
+    pub fn export_frame(
+        &mut self,
+        screenshot_manager: &mut ResMut<ScreenshotManager>,
+        window: &Entity,
+    ) {
+        // prevent multiple screenshot requests
+        self.set_sync_flag(AISimMem::SIM_FRAME_WAIT);
+
+        // can't use directly `self.sync_byte`, thank you borrow checker.
+        let mut sync_byte = self.sync_byte.clone();
+        let mut memspace = self.memspace.clone();
+
+        let _ =
+            screenshot_manager.take_screenshot(*window, move |img| match img.try_into_dynamic() {
+                Ok(dyn_img) => {
+                    let img_raw = dyn_img.to_rgb8().into_raw();
+
+                    if img_raw.len() != AISimMem::IMG_SIZE {
+                        panic!("different image size!");
+                    }
+
+                    memspace.write(&img_raw);
+                    sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
+                }
+                Err(_) => {
+                    println!("Cannot send screenshot!")
+                }
+            });
+    }
+
+    /// Returns the instruction for the simulation to execute.
+    /// Returns None if there's none.
+    ///
+    /// If sync byte is `AI_MOVE_INSTRUCTION`:
+    /// The next byte (memspace) is the movement instruction:
+    /// - MOV_FORWARD
+    /// - MOV_LEFT
+    /// - MOV_RIGHT
+    /// Any other memspace value will result in a None
+    ///
+    /// If sync byte is `AI_FRAME_REQUEST` no more bytes are checked.
+    pub fn get_instruction(&self) -> Option<SimInstruction> {
+        match self.sync_byte.get() {
+            AISimMem::AI_FRAME_REQUEST => Some(SimInstruction::ScreenShot),
+            AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
+                AISimMem::MOV_FORWARD => Some(SimInstruction::Move(ArenitoState::FORWARD)),
+                AISimMem::MOV_LEFT => Some(SimInstruction::Move(ArenitoState::LEFT)),
+                AISimMem::MOV_RIGHT => Some(SimInstruction::Move(ArenitoState::RIGHT)),
+                other => {
+                    println!("Unrecognized movement instruction '{}'", other);
+                    None
+                }
+            },
+            _ => None,
+        }
+    }
+
+    /// Sets the sync flag to `SIM_AKNOWLEDGE_INSTRUCTION`.
+    /// Indicates to the AI that the simulation is done processing the message and
+    /// is ready to read another instruction.
+    ///
+    /// Must be called after writing data.
+    pub fn confirm_instruction(&mut self) {
+        self.sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
+    }
 }
 
 #[cfg(test)]
@@ -124,4 +287,112 @@ mod sensor_read_tests {
     }
 
     // No idea how to or what to test for gyro reads...
+}
+
+#[cfg(test)]
+mod ai_sim_mem_tests {
+    use super::*;
+
+    impl AISimMem {
+        fn from_buf(buf: &mut Vec<u8>) -> Self {
+            unsafe {
+                Self {
+                    sync_byte: AISimAddr(buf.as_mut_ptr()),
+                    memspace: AISimAddr(buf.as_mut_ptr().add(1)),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_aisimaddr_set() {
+        let mut buf: Vec<u8> = vec![0];
+        let mut ptr = AISimAddr(buf.as_mut_ptr());
+        ptr.set(45);
+
+        assert_eq!(buf[0], 45);
+    }
+
+    #[test]
+    fn test_aisimaddr_get() {
+        let mut buf: Vec<u8> = vec![103];
+        let ptr = AISimAddr(buf.as_mut_ptr());
+
+        assert_eq!(ptr.get(), 103);
+    }
+
+    #[test]
+    fn test_get_instruction_frame_request() {
+        // mock buffer, to avoid actual shared memory
+        let mut buf: Vec<u8> = vec![AISimMem::AI_FRAME_REQUEST, 0];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(Some(SimInstruction::ScreenShot), aisim.get_instruction());
+    }
+
+    #[test]
+    fn test_get_instruction_frame_wait() {
+        let mut buf: Vec<u8> = vec![AISimMem::SIM_FRAME_WAIT, 0];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(None, aisim.get_instruction());
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_forward() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_FORWARD];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(
+            Some(SimInstruction::Move(ArenitoState::FORWARD)),
+            aisim.get_instruction()
+        );
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_left() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_LEFT];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(
+            Some(SimInstruction::Move(ArenitoState::LEFT)),
+            aisim.get_instruction()
+        );
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_right() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_RIGHT];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(
+            Some(SimInstruction::Move(ArenitoState::RIGHT)),
+            aisim.get_instruction()
+        );
+    }
+
+    #[test]
+    fn test_get_instruction_move_instruction_other_value_is_none() {
+        let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, 45];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(None, aisim.get_instruction());
+    }
+
+    #[test]
+    fn test_get_instruction_aknowledge_instruction() {
+        let mut buf: Vec<u8> = vec![AISimMem::SIM_AKNOWLEDGE_INSTRUCTION, 0];
+        let aisim = AISimMem::from_buf(&mut buf);
+
+        assert_eq!(None, aisim.get_instruction());
+    }
+
+    #[test]
+    fn test_confirm_instruction() {
+        let mut buf: Vec<u8> = vec![100, 101, 102, 103];
+        let mut aisim = AISimMem::from_buf(&mut buf);
+
+        aisim.confirm_instruction();
+        assert_eq!(buf[0], AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
+    }
 }

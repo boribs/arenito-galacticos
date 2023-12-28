@@ -1,7 +1,11 @@
-use crate::{static_shape::*, wire::*};
+use crate::{
+    sensor::{AISimMem, SimInstruction},
+    static_shape::*,
+    wire::*,
+};
 use bevy::{
     prelude::*,
-    render::camera::RenderTarget,
+    render::{camera::RenderTarget, view::screenshot::ScreenshotManager},
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     window::{Window, WindowRef, WindowResolution},
 };
@@ -36,7 +40,7 @@ impl Plugin for ArenitoPlugin {
 
         app.insert_resource(Arenito::new(self.img_width, self.img_height))
             .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, arenito_mover);
+            .add_systems(Update, (arenito_mover, arenito_ai_mover));
     }
 }
 
@@ -57,6 +61,7 @@ fn arenito_spawner(
         &asset_server,
     );
 }
+
 /// Reads user input and makes Arenito move.
 fn arenito_mover(
     time: Res<Time>,
@@ -90,6 +95,31 @@ fn arenito_mover(
 
     arenito.update(time.delta().as_millis(), arenito3d, arenito2d);
     // println!("{}", arenito.log());
+}
+
+/// Gets movement instruction from AI and executes.
+fn arenito_ai_mover(
+    mut screenshot_manager: ResMut<ScreenshotManager>,
+    mut arenito: ResMut<Arenito>,
+    mut aisim: ResMut<AISimMem>,
+    window: Query<Entity, With<ArenitoCamWindow>>,
+) {
+    if let Some(instr) = aisim.get_instruction() {
+        match instr {
+            SimInstruction::Move(dir) => {
+                match dir {
+                    ArenitoState::FORWARD => arenito.forward(),
+                    ArenitoState::LEFT => arenito.rotate(ArenitoState::LEFT),
+                    ArenitoState::RIGHT => arenito.rotate(ArenitoState::RIGHT),
+                    _ => {}
+                };
+                aisim.confirm_instruction();
+            }
+            SimInstruction::ScreenShot => {
+                aisim.export_frame(&mut screenshot_manager, &window.single());
+            }
+        };
+    }
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
@@ -156,12 +186,6 @@ impl Arenito {
             img_width,
             img_height,
         }
-    }
-
-    /// Method for rapid object initialization, where camera output
-    /// data is not needed.
-    pub fn test() -> Self {
-        Self::new(0.0, 0.0)
     }
 
     /// Spawns Arenito (body cube and wheels) into the scene.
@@ -240,11 +264,12 @@ impl Arenito {
                 t.rotate_z(self.cam_area.alpha);
 
                 // second window
+                // needed to capture Arenito's camera view.
                 let window = parent
                     .spawn((
                         Window {
                             title: "Arenito view".to_owned(),
-                            visible: true,
+                            visible: false,
                             resolution: WindowResolution::new(self.img_width, self.img_height),
                             resizable: false,
                             ..default()
@@ -517,7 +542,14 @@ mod arenito_tests {
     const F32_DIFF: f32 = 0.001;
 
     impl Arenito {
-        pub fn vel_acc(vel: Vec3, acc: Vec3, cen: Vec3) -> Self {
+        /// Method for rapid object initialization, where camera output
+        /// data is not needed.
+        pub fn test() -> Self {
+            Self::new(0.0, 0.0)
+        }
+
+        /// Initializes Arenito with some velocity and acceleration.
+        fn vel_acc(vel: Vec3, acc: Vec3, cen: Vec3) -> Self {
             let mut arenito = Arenito::test();
             arenito.vel = vel;
             arenito.acc = acc;
