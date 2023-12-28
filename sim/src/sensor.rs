@@ -163,9 +163,9 @@ impl AISimMem {
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
 
     // movement instruction constants
-    const MOV_FORWARD: u8 = 10;
-    const MOV_LEFT: u8 = 11;
-    const MOV_RIGHT: u8 = 12;
+    const MOV_FORWARD: u8 = b'a';
+    const MOV_LEFT: u8 = b'i';
+    const MOV_RIGHT: u8 = b'd';
 
     // memory footprint
     // how much memory is used for synchronization
