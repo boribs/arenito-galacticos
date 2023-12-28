@@ -211,4 +211,10 @@ if __name__ == '__main__':
         com.connect_serial(args.port, args.baudrate, args.timeout)
         com.init_video()
 
-    main(com)
+    try:
+        main(com)
+    except:
+        pass
+
+    if com.sim_interface:
+        com.sim_interface.close()

@@ -163,7 +163,6 @@ class SimInterface:
     def close(self):
         """
         Closes access to shared memory.
-        TODO: Call this on close.
         """
 
         self.mem.close()
