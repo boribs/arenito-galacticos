@@ -1,7 +1,8 @@
-import serial, subprocess
+import subprocess
 from cv2 import VideoCapture
 from cv2.typing import MatLike
 from enum import Enum, auto
+from serial import Serial
 
 class Instruction(Enum):
     FORWARD = auto()
@@ -30,21 +31,7 @@ class ArenitoComms:
     def __init__(self):
         self.serial: serial.Serial = None
         self.video_capture: VideoCapture = None
-
-    def find_port() -> str:
-        """
-        Finds out where the Arduino borad is connected. Requires `arduino-cli`.
-        """
-
-        out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
-        ports = []
-        for line in out.stdout.split('\n')[1:]:
-            if line:
-                line = list(map(lambda n: n.strip(), line.split()))
-                if 'Unknown' not in line:
-                    ports.append(line)
-
-        return ports[0][0]
+        self.sim_interface: SimInterface = None
 
     def init_video(self, device_index: int = 0):
         """
@@ -53,15 +40,12 @@ class ArenitoComms:
 
         self.video_capture = VideoCapture(device_index)
 
-    def connect_serial(self, port: str, baudrate: int, timeout: float | None = None):
+    def connect_serial(self, port: str | None, baudrate: int, timeout: float = 0.0):
         """
         Establishes serial communication.
         """
 
-        if port is None:
-            port = ArenitoComms.find_port()
-
-        self.serial = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+        self.serial = SerialInterface(port, baudrate, timeout)
 
     def get_image(self) -> MatLike:
         """
@@ -79,6 +63,41 @@ class ArenitoComms:
         Sends instruction to arduino board through serial interface.
         """
 
+        self.serial.send_instruction(instr)
+
+class SerialInterface:
+    def __init__(self, port: str | None, baudrate: int, timeout: float = 0.0):
+        self.serial: Serial = None
+        self.connect(port, baudrate, timeout)
+
+    def connect(self, port: str | None, baudrate: int, timeout: float):
+        """
+        Establishes serial communication.
+        """
+
+        if port is None: port = SerialInterface.find_port()
+        self.serial = Serial(port=port, baudrate=baudrate, timeout=timeout)
+
+    def find_port() -> str:
+        """
+        Finds out where the Arduino borad is connected. Requires `arduino-cli`.
+        """
+
+        out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
+        ports = []
+        for line in out.stdout.split('\n')[1:]:
+            if line:
+                line = list(map(lambda n: n.strip(), line.split()))
+                if 'Unknown' not in line:
+                    ports.append(line)
+
+        return ports[0][0]
+
+    def send_instruction(self, instr: Instruction):
+        """
+        Sends instruction to arduino board through serial interface.
+        """
+
         # Arduino sends an ok message when its ready to receive an instruction.
         # Wait for ok message
         p = self.serial.read()
@@ -90,3 +109,4 @@ class ArenitoComms:
                 INSTRUCTION_MAP[instr],
                 'utf-8'
             ))
+
