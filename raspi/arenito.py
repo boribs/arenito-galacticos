@@ -7,9 +7,6 @@ import argparse
 from enum import Enum, auto
 from PIL import Image
 
-INSTRUCTION_PIPE_PATH = '../pipes/instrpipe'
-IMAGE_PIPE_PATH = '../pipes/imgpipe'
-
 RES_X = 640
 RES_Y = 380
 
@@ -112,6 +109,26 @@ def find_blobs(img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
 
     return im_with_keypoints, sorted(detections, key=_dist)
 
+def __send_instr_arduino(ser: serial.Serial, instr):
+    """
+    Sends instruction to arduino board through serial interface.
+    """
+
+    # Arduino sends an ok message when its ready to receive an instruction.
+    # Wait for ok message
+    p = ser.read()
+
+    # Then send instruction
+    if p:
+        print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
+        ser.write(bytes(
+            INSTRUCTION_MAP[instr],
+            'utf-8'
+        ))
+
+def __send_instr_sim(instr: Instruction):
+    pass
+
 def _send_instr(ser: serial.Serial | None, instr: Instruction):
     """
     Function that converts the instruction type to a
@@ -119,17 +136,7 @@ def _send_instr(ser: serial.Serial | None, instr: Instruction):
     """
 
     if isinstance(ser, serial.Serial):
-        p = ser.read()
-        if p:
-            print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
-            ser.write(bytes(
-                INSTRUCTION_MAP[instr],
-                'utf-8'
-            ))
-    else:
-        with open(INSTRUCTION_PIPE_PATH, 'w') as pout:
-            print(f'Enviando {INSTRUCTION_MAP[instr]}')
-            pout.write(f'mv:{INSTRUCTION_MAP[instr]}')
+        __send_instr_arduino(ser, instr)
 
 def send_move_instruction(ser: serial.Serial | None, det: tuple[int]):
     """
@@ -173,13 +180,6 @@ def get_image(mode: str, cap: cv2.VideoCapture | None) -> tuple[bool, cv2.typing
         ok, frame = cap.read()
         frame = cv2.resize(frame, (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
         return (ok, frame)
-    else:
-        with open(INSTRUCTION_PIPE_PATH, 'w') as pout:
-            pout.write(INSTRUCTION_MAP[Instruction.SCREENSHOT])
-
-        with open(IMAGE_PIPE_PATH, 'rb') as pin:
-            im = Image.frombytes('RGB', (1024, 1024), pin.read())
-            return True, np.array(im)
 
 def find_port() -> str:
     """
