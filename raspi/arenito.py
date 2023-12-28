@@ -133,8 +133,6 @@ def get_image(com: ArenitoComms) -> cv2.typing.MatLike:
 def main(com: ArenitoComms):
     global RES_X, RES_Y, CENTRO_INF, R_DOT, MARGEN_X, CENTRO_X_MIN, CENTRO_X_MAX
 
-    com.init_video()
-
     params = cv2.SimpleBlobDetector_Params()
     params.filterByArea = True
     params.minArea = 500
@@ -200,14 +198,17 @@ if __name__ == '__main__':
     parser.add_argument('port', nargs='?', type=str, default=None)
     parser.add_argument('baudrate', nargs='?', type=int, default=115200)
     parser.add_argument('timeout', nargs='?', type=float, default=0.5)
+
+    parser.add_argument('flink', nargs='?', type=str, default='../sim/shmem_arenito')
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
 
     com = ArenitoComms()
-
     args = parser.parse_args()
+
     if args.sim:
-        pass
+        com.connect_simulation(args.flink)
     else:
         com.connect_serial(args.port, args.baudrate, args.timeout)
+        com.init_video()
 
     main(com)
