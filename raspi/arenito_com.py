@@ -216,15 +216,16 @@ class SimInterface:
         elif instr in (Instruction.FORWARD, Instruction.LEFT, Instruction.RIGHT):
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
+            self.wait_confirmation()
 
         elif instr == Instruction.LONG_RIGHT: # long right = right
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[Instruction.RIGHT]))
+            self.wait_confirmation()
 
         else:
             raise Exception(f'unsoported instruction {instr}')
 
-        self.wait_confirmation()
 
     def remove_shm_from_resource_tracker():
         """Monkey-patch multiprocessing.resource_tracker so SharedMemory won't be tracked
