@@ -8,20 +8,20 @@ from multiprocessing import resource_tracker
 from PIL import Image
 
 class Instruction(Enum):
-    FORWARD = auto()
-    LEFT = auto()
-    RIGHT = auto()
-    BACK = auto()
-    LONG_RIGHT = auto()
-    SCREENSHOT = auto() # I don't like your name
+    MOVE_FORWARD = auto()
+    MOVE_LEFT = auto()
+    MOVE_RIGHT = auto()
+    MOVE_BACK = auto()
+    MOVE_LONG_RIGHT = auto()
+    REQUEST_FRAME = auto() # I don't like your name
 
 INSTRUCTION_MAP = {
-    Instruction.FORWARD: 'a',
-    Instruction.LEFT: 'i',
-    Instruction.RIGHT: 'd',
-    Instruction.BACK: 'r',
-    Instruction.LONG_RIGHT: 'l',
-    Instruction.SCREENSHOT: 'ss',
+    Instruction.MOVE_FORWARD: 'a',
+    Instruction.MOVE_LEFT: 'i',
+    Instruction.MOVE_RIGHT: 'd',
+    Instruction.MOVE_BACK: 'r',
+    Instruction.MOVE_LONG_RIGHT: 'l',
+    Instruction.REQUEST_FRAME: 'ss',
 }
 
 class ArenitoComms:
@@ -195,7 +195,7 @@ class SimInterface:
         to be usable by AI.
         """
 
-        self.send_instruction(Instruction.SCREENSHOT)
+        self.send_instruction(Instruction.REQUEST_FRAME)
 
         raw_img = self.mem.buf[1 : SimInterface.IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', (1024, 1024), raw_img)
@@ -222,17 +222,17 @@ class SimInterface:
         Sends an instruction to the simulation.
         """
 
-        if instr == Instruction.SCREENSHOT:
+        if instr == Instruction.REQUEST_FRAME:
             self.set_sync_byte(SimInterface.AI_FRAME_REQUEST)
 
-        elif instr in (Instruction.FORWARD, Instruction.LEFT, Instruction.RIGHT):
+        elif instr in (Instruction.MOVE_FORWARD, Instruction.MOVE_LEFT, Instruction.MOVE_RIGHT):
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
             self.wait_confirmation()
 
-        elif instr == Instruction.LONG_RIGHT: # long right = right
+        elif instr == Instruction.MOVE_LONG_RIGHT: # long right = right
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
-            self.set_mov_instruction(ord(INSTRUCTION_MAP[Instruction.RIGHT]))
+            self.set_mov_instruction(ord(INSTRUCTION_MAP[Instruction.MOVE_RIGHT]))
             self.wait_confirmation()
 
         else:

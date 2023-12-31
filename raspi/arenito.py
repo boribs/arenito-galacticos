@@ -100,11 +100,11 @@ def send_move_instruction(com: ArenitoComms, det: tuple[int]):
     x, _ = det
 
     if CENTRO_X_MAX <= x:
-        com.send_instruction(Instruction.LEFT)
+        com.send_instruction(Instruction.MOVE_LEFT)
     elif CENTRO_X_MIN >= x:
-        com.send_instruction(Instruction.RIGHT)
+        com.send_instruction(Instruction.MOVE_RIGHT)
     else: # está centrado, avanza
-        com.send_instruction(Instruction.FORWARD)
+        com.send_instruction(Instruction.MOVE_FORWARD)
 
     lr_count = 0
 
@@ -117,14 +117,14 @@ def send_roam_instruction(com: ArenitoComms, hsv_frame: np.ndarray):
     global lr_count
 
     if reachable(hsv_frame, R_DOT):                   # si puede, avanza
-        com.send_instruction(Instruction.FORWARD)
+        com.send_instruction(Instruction.MOVE_FORWARD)
     else:                                             # si no, gira
-        com.send_instruction(Instruction.RIGHT)
+        com.send_instruction(Instruction.MOVE_RIGHT)
 
     lr_count += 1
 
     if lr_count == LR_COUNT_MAX:
-        com.send_instruction(Instruction.LONG_RIGHT)
+        com.send_instruction(Instruction.MOVE_LONG_RIGHT)
         lr_count = 0
 
 def get_image(com: ArenitoComms) -> cv2.typing.MatLike:
@@ -213,8 +213,8 @@ if __name__ == '__main__':
 
     try:
         main(com)
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
     if com.sim_interface:
         com.sim_interface.close()
