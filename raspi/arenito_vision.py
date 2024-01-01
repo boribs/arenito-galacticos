@@ -3,10 +3,12 @@ import cv2
 from cv2.typing import MatLike
 import math
 
+# TODO: `Point` class, I don't like using tuple[int].
+# TODO: Use MatLike instead of np.ndarray for image type hints.
+
 class ArenitoVision:
     """
     This is where every vision-related operation will be handled.
-    TODO: `Detection` class, I don't like using tuple[int].
     """
 
     def __init__(self, res_x: int, res_y: int, margen_x: int):
@@ -33,6 +35,18 @@ class ArenitoVision:
         self.azul_li = np.array([75, 160, 88], np.uint8)
         self.azul_ls = np.array([179, 255, 255], np.uint8)
         self.min_px_water = 50
+
+        params = cv2.SimpleBlobDetector_Params()
+        params.filterByArea = True
+        params.minArea = 500
+        params.maxArea = 300000
+        params.filterByCircularity = False
+        params.filterByConvexity = False
+        params.filterByInertia = True
+        params.minInertiaRatio = 0.01
+        params.maxInertiaRatio = 0.7
+
+        self.blob_detector: cv2.SimpleBlobDetector = cv2.SimpleBlobDetector_create(params)
 
     def add_markings(self, det_img: MatLike):
         """
@@ -102,7 +116,7 @@ class ArenitoVision:
 
         return white_px < self.min_px_water
 
-    def find_blobs(self, img: np.ndarray, detector: cv2.SimpleBlobDetector) -> np.ndarray:
+    def find_blobs(self, img: np.ndarray) -> np.ndarray:
         """
         Finds the positions of every can by applying a color filter to the image and
         calling SimpleBlobDetector's `detect()` method.
@@ -121,8 +135,8 @@ class ArenitoVision:
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, lower, upper)
 
-        keypoints = detector.detect(mask)
-        im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        keypoints = self.blob_detector.detect(mask)
+        im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
         detections = []
         for k in keypoints:

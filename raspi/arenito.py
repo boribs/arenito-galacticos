@@ -1,6 +1,5 @@
 import cv2, cv2.typing
 import numpy as np
-import math
 import argparse
 from arenito_com import *
 from arenito_vision import *
@@ -8,8 +7,7 @@ from arenito_vision import *
 RES_X = 640
 RES_Y = 380
 
-# Cuenta cuantas instrucciones lleva
-# buscando latas
+# Cuenta cuantas instrucciones lleva buscando latas
 lr_count = 0
 LR_COUNT_MAX = 20
 
@@ -55,25 +53,13 @@ def get_image(com: ArenitoComms) -> cv2.typing.MatLike:
     return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
 def main(com: ArenitoComms, vis: ArenitoVision):
-    params = cv2.SimpleBlobDetector_Params()
-    params.filterByArea = True
-    params.minArea = 500
-    params.maxArea = 300000
-    params.filterByCircularity = False
-    params.filterByConvexity = False
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.01
-    params.maxInertiaRatio = 0.7
-
-    detector = cv2.SimpleBlobDetector_create(params)
-
     while True:
         frame = get_image(com)
 
         if cv2.waitKey(1) == 27:
             break
 
-        det_img, detections = vis.find_blobs(frame, detector)
+        det_img, detections = vis.find_blobs(frame)
         vis.add_markings(det_img)
 
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
