@@ -4,7 +4,6 @@ from cv2.typing import MatLike
 import math
 
 # TODO: `Point` class, I don't like using tuple[int].
-# TODO: Use MatLike instead of np.ndarray for image type hints.
 
 class ArenitoVision:
     """
@@ -94,7 +93,7 @@ class ArenitoVision:
 
     def reachable(
         self,
-        img_hsv: np.ndarray,
+        img_hsv: MatLike,
         det: tuple[int],
         thickness: int = 140,
     ) -> bool:
@@ -116,7 +115,7 @@ class ArenitoVision:
 
         return white_px < self.min_px_water
 
-    def find_blobs(self, img: np.ndarray) -> np.ndarray:
+    def find_blobs(self, img: MatLike) -> tuple[MatLike, list[tuple[int]]]:
         """
         Finds the positions of every can by applying a color filter to the image and
         calling SimpleBlobDetector's `detect()` method.
@@ -136,7 +135,13 @@ class ArenitoVision:
         mask = cv2.inRange(hsv, lower, upper)
 
         keypoints = self.blob_detector.detect(mask)
-        im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        im_with_keypoints = cv2.drawKeypoints(
+            img,
+            keypoints,
+            np.array([]),
+            (0, 0, 255),
+            cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
+        )
 
         detections = []
         for k in keypoints:

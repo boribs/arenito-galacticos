@@ -1,4 +1,5 @@
-import cv2, cv2.typing
+import cv2
+from cv2.typing import MatLike
 import numpy as np
 import argparse
 from arenito_com import *
@@ -30,7 +31,7 @@ def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: tuple[int]
 
     lr_count = 0
 
-def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: np.ndarray):
+def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: MatLike):
     """
     Function strictly responsible for determining movement
     when no can detections are made.
@@ -49,7 +50,7 @@ def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: np.n
         com.send_instruction(Instruction.MOVE_LONG_RIGHT)
         lr_count = 0
 
-def get_image(com: ArenitoComms) -> cv2.typing.MatLike:
+def get_image(com: ArenitoComms) -> MatLike:
     return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
 def main(com: ArenitoComms, vis: ArenitoVision):
