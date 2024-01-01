@@ -1,9 +1,11 @@
-import numpy as np
 import cv2
-from cv2.typing import MatLike
 import math
+import numpy as np
+from typing import TypeAlias
+from cv2.typing import MatLike
+from collections import namedtuple
 
-# TODO: `Point` class, I don't like using tuple[int].
+Point: TypeAlias = namedtuple('Point', ('x', 'y'))
 
 class ArenitoVision:
     """
@@ -81,7 +83,7 @@ class ArenitoVision:
             thickness=2,
         )
 
-    def dist_from_center(self, det: tuple[int]):
+    def dist_from_center(self, det: Point):
         """
         Calculates the distance from `self.centro_inf` to `det`.
         """
@@ -94,7 +96,7 @@ class ArenitoVision:
     def reachable(
         self,
         img_hsv: MatLike,
-        det: tuple[int],
+        det: Point,
         thickness: int = 140,
     ) -> bool:
         """
@@ -115,7 +117,7 @@ class ArenitoVision:
 
         return white_px < self.min_px_water
 
-    def find_blobs(self, img: MatLike) -> tuple[MatLike, list[tuple[int]]]:
+    def find_blobs(self, img: MatLike) -> tuple[MatLike, list[Point]]:
         """
         Finds the positions of every can by applying a color filter to the image and
         calling SimpleBlobDetector's `detect()` method.

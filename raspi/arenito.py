@@ -12,7 +12,7 @@ RES_Y = 380
 lr_count = 0
 LR_COUNT_MAX = 20
 
-def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: tuple[int]):
+def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: Point):
     """
     Sends a move to left, right or forward instruction
     to the Arduino board, depending on the detection's position.
