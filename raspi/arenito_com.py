@@ -13,7 +13,7 @@ class Instruction(Enum):
     MOVE_RIGHT = auto()
     MOVE_BACK = auto()
     MOVE_LONG_RIGHT = auto()
-    REQUEST_FRAME = auto() # I don't like your name
+    REQUEST_FRAME = auto()
 
 INSTRUCTION_MAP = {
     Instruction.MOVE_FORWARD: 'a',
@@ -21,7 +21,7 @@ INSTRUCTION_MAP = {
     Instruction.MOVE_RIGHT: 'd',
     Instruction.MOVE_BACK: 'r',
     Instruction.MOVE_LONG_RIGHT: 'l',
-    Instruction.REQUEST_FRAME: 'ss',
+    Instruction.REQUEST_FRAME: 'ss', # I don't think I need you
 }
 
 class ArenitoComms:
@@ -237,7 +237,6 @@ class SimInterface:
 
         else:
             raise Exception(f'unsoported instruction {instr}')
-
 
     def remove_shm_from_resource_tracker():
         """Monkey-patch multiprocessing.resource_tracker so SharedMemory won't be tracked

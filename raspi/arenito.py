@@ -54,6 +54,12 @@ def get_image(com: ArenitoComms) -> MatLike:
     return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
 def main(com: ArenitoComms, vis: ArenitoVision):
+    """
+    Main loop.
+
+    TODO: Make every step more explicit.
+    """
+
     while True:
         frame = get_image(com)
 
@@ -63,13 +69,13 @@ def main(com: ArenitoComms, vis: ArenitoVision):
         det_img, detections = vis.find_blobs(frame)
         vis.add_markings(det_img)
 
-        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         cv2.imshow('asdf', det_img)
 
         if detections:
             det = detections[0]
             send_move_instruction(com, vis, det)
         else:
+            hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             send_roam_instruction(com, vis, hsv_frame)
 
 if __name__ == '__main__':
