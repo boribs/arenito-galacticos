@@ -7,6 +7,20 @@ from collections import namedtuple
 
 Point: TypeAlias = namedtuple('Point', ('x', 'y'))
 
+class ColorFilter:
+    """
+    Stores color filter data.
+    """
+
+    BLUE = (
+        np.array([75, 160, 88]),   # lower
+        np.array([175, 255, 255]), # upper
+    )
+    BLACK = (
+        np.array([0, 0, 69]),      # lower
+        np.array([175, 255, 255]), # upper
+    )
+
 class ArenitoVision:
     """
     This is where every vision-related operation will be handled.
@@ -58,9 +72,6 @@ class ArenitoVision:
         self.centro_x_min = res_x // 2 - margen_x
         self.centro_x_max = res_x // 2 + margen_x
 
-        # Blue color filter parameters
-        self.azul_li = np.array([75, 160, 88], np.uint8)
-        self.azul_ls = np.array([179, 255, 255], np.uint8)
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
         # This is the minimum ammount of blue pixels necessary between the robot
@@ -134,7 +145,8 @@ class ArenitoVision:
         Determines if a detection is reachable. Returns true if possible, otherwise false.
         """
 
-        mask_azul = cv2.inRange(img_hsv, self.azul_li, self.azul_ls)
+        lower, upper = ColorFilter.BLUE
+        mask_azul = cv2.inRange(img_hsv, lower, upper)
 
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
         cv2.line(line, self.centro_inf, det, (255, 255, 255), thickness=thickness)
@@ -156,14 +168,12 @@ class ArenitoVision:
         TODO: Parameter to enable circle drawing on reachable elements.
         """
 
-        lower = np.array([0, 0, 69])
-        upper = np.array([175, 255, 255])
-
         # Este borde es necesario porque sino no detecta las latas cerca
         # de las esquinas de la imagen
         img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
 
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        lower, upper = ColorFilter.BLACK
         mask = cv2.inRange(hsv, lower, upper)
 
         keypoints = self.blob_detector.detect(mask)
