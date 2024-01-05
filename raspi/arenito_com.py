@@ -1,3 +1,5 @@
+# pyright: strict
+
 import subprocess, cv2
 import numpy as np
 from cv2.typing import MatLike
@@ -33,9 +35,9 @@ class ArenitoComms:
     """
 
     def __init__(self):
-        self.serial: SerialInterface = None
-        self.video_capture: cv2.VideoCapture = None
-        self.sim_interface: SimInterface = None
+        self.serial: SerialInterface | None = None
+        self.video_capture: cv2.VideoCapture | None = None
+        self.sim_interface: SimInterface | None = None
 
     def init_video(self, device_index: int = 0):
         """
@@ -70,7 +72,7 @@ class ArenitoComms:
 
             return frame
         else:
-            return self.sim_interface.get_image()
+            return self.sim_interface.get_image() # pyright: ignore[reportOptionalMemberAccess]
 
     def send_instruction(self, instr: Instruction):
         """
@@ -80,11 +82,10 @@ class ArenitoComms:
         if self.serial:
             self.serial.send_instruction(instr)
         else:
-            self.sim_interface.send_instruction(instr)
+            self.sim_interface.send_instruction(instr) # pyright: ignore[reportOptionalMemberAccess]
 
 class SerialInterface:
     def __init__(self, port: str | None, baudrate: int, timeout: float = 0.0):
-        self.serial: Serial = None
         self.connect(port, baudrate, timeout)
 
     def connect(self, port: str | None, baudrate: int, timeout: float):
@@ -95,13 +96,15 @@ class SerialInterface:
         if port is None: port = SerialInterface.find_port()
         self.serial = Serial(port=port, baudrate=baudrate, timeout=timeout)
 
+    @staticmethod
     def find_port() -> str:
         """
         Finds out where the Arduino borad is connected. Requires `arduino-cli`.
         """
 
         out = subprocess.run(["arduino-cli", "board", "list"], capture_output=True, text=True)
-        ports = []
+        ports: list[list[str]] = []
+
         for line in out.stdout.split('\n')[1:]:
             if line:
                 line = list(map(lambda n: n.strip(), line.split()))
@@ -145,7 +148,6 @@ class SimInterface:
     def __init__(self, flink: str):
         SimInterface.remove_shm_from_resource_tracker() # python 3.12 or less
 
-        self.mem: SharedMemory = None
         self.attach(flink)
 
     def attach(self, flink: str):
@@ -198,7 +200,7 @@ class SimInterface:
         self.send_instruction(Instruction.REQUEST_FRAME)
 
         raw_img = self.mem.buf[1 : SimInterface.IMAGE_SIZE + 1]
-        im = Image.frombytes('RGB', (1024, 1024), raw_img)
+        im = Image.frombytes('RGB', (1024, 1024), raw_img) # pyright: ignore[reportUnknownMemberType]
 
         # for some reason blue and red channels are swapped?
         r, g, b = im.split()
@@ -238,23 +240,23 @@ class SimInterface:
         else:
             raise Exception(f'unsoported instruction {instr}')
 
-    def remove_shm_from_resource_tracker():
+    def remove_shm_from_resource_tracker(): # pyright: ignore
         """Monkey-patch multiprocessing.resource_tracker so SharedMemory won't be tracked
 
         More details at: https://bugs.python.org/issue38119
         """
 
-        def fix_register(name, rtype):
+        def fix_register(name, rtype): # pyright: ignore
             if rtype == "shared_memory":
                 return
-            return resource_tracker._resource_tracker.register(self, name, rtype)
+            return resource_tracker._resource_tracker.register(self, name, rtype) # pyright: ignore
         resource_tracker.register = fix_register
 
-        def fix_unregister(name, rtype):
+        def fix_unregister(name, rtype): # pyright: ignore
             if rtype == "shared_memory":
                 return
-            return resource_tracker._resource_tracker.unregister(self, name, rtype)
+            return resource_tracker._resource_tracker.unregister(self, name, rtype) # pyright: ignore
         resource_tracker.unregister = fix_unregister
 
-        if "shared_memory" in resource_tracker._CLEANUP_FUNCS:
-            del resource_tracker._CLEANUP_FUNCS["shared_memory"]
+        if "shared_memory" in resource_tracker._CLEANUP_FUNCS: # pyright: ignore
+            del resource_tracker._CLEANUP_FUNCS["shared_memory"] # pyright: ignore
