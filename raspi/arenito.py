@@ -1,6 +1,5 @@
 import cv2
 from cv2.typing import MatLike
-import numpy as np
 import argparse
 from arenito_com import *
 from arenito_vision import *
@@ -51,6 +50,10 @@ def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: MatL
         lr_count = 0
 
 def get_image(com: ArenitoComms) -> MatLike:
+    """
+    Gets an image from ArenitoComms and resizes it to be RES_X x RES_Y.
+    """
+
     return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
 def main(com: ArenitoComms, vis: ArenitoVision):

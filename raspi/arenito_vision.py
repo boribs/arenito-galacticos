@@ -12,31 +12,62 @@ class ArenitoVision:
     This is where every vision-related operation will be handled.
     """
 
-    def __init__(self, res_x: int, res_y: int, margen_x: int):
+    def __init__(
+        self,
+        res_x: int,
+        res_y: int,
+        margen_x: int,
+    ):
         # TODO: Rename all these variables
-        # TODO: Document what they're all supposed to do
 
         self.res_x = res_x
         self.res_y = res_y
 
-        # Centro inferior de la imagen
+        # Bottom center of the image
+        #
+        # +------------------------+
+        # |                        |
+        # |                        |
+        # |                        |
+        # +------------X-----------+
         self.centro_inf = (res_x // 2, res_y)
 
-        self.water_tolerance = 90
+        # How close to the water is the robot allowed to be.
+        # When no cans are found, move forward until running into water, then rotate.
+        # The robot determines that it's run into water when the point directly forward
+        # is reachable. This dot is called `r_dot`. If `r_dot` is reachable, the robot
+        # can continue forward. Otherwise, the robot is by the edge of the traversable area
+        # and, if it goes forward, it'll go out into the "water".
+        # +------------------------+
+        # |                        |
+        # |            X           |
+        # |           ###          |
+        # |           ###          |
+        # +------------------------+
+        self.water_dist_from_center = 90
+        self.r_dot = (res_x // 2, res_y // 2 + self.water_dist_from_center)
 
-        # Posición del punto máximo para la tolerancia al agua
-        self.r_dot = (res_x // 2, res_y // 2 + self.water_tolerance)
-
-        # Límites centrales para determinar si una lata está
-        # "en el centro"
-        self.margen_x = margen_x # default res_x * 0.2
+        # Area limits where a detection is considered to be centered.
+        # +------------------------+
+        # |          |   |         |
+        # |          |   |         |
+        # |          |   |         |
+        # |          |   |         |
+        # +------------------------+
+        self.margen_x = margen_x
         self.centro_x_min = res_x // 2 - margen_x
         self.centro_x_max = res_x // 2 + margen_x
 
+        # Blue color filter parameters
         self.azul_li = np.array([75, 160, 88], np.uint8)
         self.azul_ls = np.array([179, 255, 255], np.uint8)
+        # When finding out if a point is reachable, counts how many blue pixels
+        # there are between the robot and that point.
+        # This is the minimum ammount of blue pixels necessary between the robot
+        # and any given point for it to be considered `unreachable`.
         self.min_px_water = 50
 
+        # Blob detector stuff
         params = cv2.SimpleBlobDetector_Params()
         params.filterByArea = True
         params.minArea = 500
@@ -100,8 +131,7 @@ class ArenitoVision:
         thickness: int = 140,
     ) -> bool:
         """
-        Determines if a detection is reachable.
-        Returns true if possible, otherwise false.
+        Determines if a detection is reachable. Returns true if possible, otherwise false.
         """
 
         mask_azul = cv2.inRange(img_hsv, self.azul_li, self.azul_ls)
