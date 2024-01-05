@@ -66,7 +66,7 @@ class ArenitoVision:
         # |           ###          |
         # +------------------------+
         self.water_dist_from_center = 90
-        self.r_dot = (res_x // 2, res_y // 2 + self.water_dist_from_center)
+        self.r_dot = Point(res_x // 2, res_y // 2 + self.water_dist_from_center)
 
         # Area limits where a detection is considered to be centered.
         # +------------------------+

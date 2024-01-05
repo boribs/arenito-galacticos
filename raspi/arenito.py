@@ -1,3 +1,5 @@
+# pyright: strict
+
 import cv2
 from cv2.typing import MatLike
 import argparse
