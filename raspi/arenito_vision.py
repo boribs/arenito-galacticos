@@ -1,11 +1,18 @@
+# pyright: strict
+
 import cv2
 import math
 import numpy as np
-from typing import TypeAlias
+from typing import NamedTuple
 from cv2.typing import MatLike
-from collections import namedtuple
 
-Point: TypeAlias = namedtuple('Point', ('x', 'y'))
+class Point(NamedTuple):
+    """
+    A basic point implementation.
+    """
+
+    x: int
+    y: int
 
 class ColorFilter:
     """
@@ -79,7 +86,7 @@ class ArenitoVision:
         self.min_px_water = 50
 
         # Blob detector stuff
-        params = cv2.SimpleBlobDetector_Params()
+        params = cv2.SimpleBlobDetector.Params()
         params.filterByArea = True
         params.minArea = 500
         params.maxArea = 300000
@@ -89,7 +96,7 @@ class ArenitoVision:
         params.minInertiaRatio = 0.01
         params.maxInertiaRatio = 0.7
 
-        self.blob_detector: cv2.SimpleBlobDetector = cv2.SimpleBlobDetector_create(params)
+        self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
     def add_markings(self, det_img: MatLike):
         """
@@ -180,14 +187,15 @@ class ArenitoVision:
         im_with_keypoints = cv2.drawKeypoints(
             img,
             keypoints,
-            np.array([]),
+            np.array([0]),
             (0, 0, 255),
             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
         )
 
-        detections = []
+        detections: list[Point] = []
+
         for k in keypoints:
-            det = tuple(map(int, k.pt))
+            det = Point(*map(int, k.pt))
             if self.reachable(hsv, det):
                 detections.append(det)
                 cv2.circle(im_with_keypoints, det, 10, (255, 0, 0), 10)
