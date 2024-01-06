@@ -10,7 +10,8 @@ Ambiente gráfico:
     ☐ Quitar todo 2D
         ✔ Quitar noción espacial @done(24-01-05 23:41)
         ✔ Quitar Arenito2D @done(24-01-05 23:53)
-        ☐ Quitar figuras en 2D
+        ✔ Quitar figuras en 2D @done(24-01-05 23:54)
+        ✔ Quitar pantalla dividida @done(24-01-06 01:13)
         La simulación solo debe modelar el robot físico, todo lo que se determine
         con IA debe estar en el código de la IA.
 
@@ -19,9 +20,12 @@ Ambiente virtual:
     ✔ Agua @done(24-01-05 23:36)
     ☐ Obstáculos
     ☐ Latas
+        ☐ Escupir latas
 
 Simluación de movimiento:
-    ✔ Físicas de movimiento: aceleración @done(23-06-21 18:48)
+    ☐ Arreglar físicas de movimiento
+    ☐ Parches de arena con menos fricción
+        Las llantas que colinden con esos parches tendrán menos fricción
     ✘ Rotación del robot según la posición de las llantas respecto a la arena @cancelled(24-01-05 02:00)
 
 Simulación de sensores:
@@ -38,3 +42,4 @@ IA:
         ✘ Adaptar `arenito.py` para recibir imágenes a través del pipe @cancelled(23-12-21 18:57)
         ✔ Adaptar `arenito.py` para recibir imágenes a través de memoria compartida @done(24-01-05 01:55)
             ✔ Lidiar con multiprocess.shared_memory @done(24-01-05 01:55)
+    ☐ Modo sin memoria compartida

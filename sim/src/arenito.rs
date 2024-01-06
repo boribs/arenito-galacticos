@@ -50,12 +50,7 @@ fn arenito_spawner(
     asset_server: Res<AssetServer>,
     mut arenito: ResMut<Arenito>,
 ) {
-    arenito.spawn(
-        &mut commands,
-        &mut materials,
-        &mut meshes,
-        &asset_server,
-    );
+    arenito.spawn(&mut commands, &mut materials, &mut meshes, &asset_server);
 }
 
 /// Reads user input and makes Arenito move.
@@ -332,12 +327,7 @@ impl Arenito {
             commands.entity(e.2).despawn();
         });
 
-        self.spawn(
-            commands,
-            materials,
-            meshes,
-            asset_server,
-        );
+        self.spawn(commands, materials, meshes, asset_server);
     }
 
     /// Applies the movement given some delta time.
