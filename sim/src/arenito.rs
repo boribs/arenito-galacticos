@@ -5,7 +5,6 @@ use crate::{
 use bevy::{
     prelude::*,
     render::{camera::RenderTarget, view::screenshot::ScreenshotManager},
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     window::{Window, WindowRef, WindowResolution},
 };
 use bevy_obj::*;
@@ -47,7 +46,6 @@ impl Plugin for ArenitoPlugin {
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut arenito: ResMut<Arenito>,
@@ -55,7 +53,6 @@ fn arenito_spawner(
     arenito.spawn(
         &mut commands,
         &mut materials,
-        &mut materials2d,
         &mut meshes,
         &asset_server,
     );
@@ -66,13 +63,11 @@ fn arenito_mover(
     time: Res<Time>,
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut materials2d: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     asset_server: Res<AssetServer>,
-    arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
-    arenito2d: Query<(&mut Transform, &Arenito2D)>,
+    arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
 ) {
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
@@ -84,15 +79,13 @@ fn arenito_mover(
         arenito.reset(
             &mut commands,
             &mut materials,
-            &mut materials2d,
             &mut meshes,
             &asset_server,
-            // &mut img_processor,
             &arenito3d,
         );
     }
 
-    arenito.update(time.delta().as_millis(), arenito3d, arenito2d);
+    arenito.update(time.delta().as_millis(), arenito3d);
     // println!("{}", arenito.log());
 }
 
@@ -133,9 +126,6 @@ pub enum Arenito3D {
 
 #[derive(Component)]
 pub struct ArenitoCamera;
-
-#[derive(Component)]
-pub struct Arenito2D;
 
 #[derive(Component)]
 pub struct ArenitoCamWindow;
@@ -197,7 +187,6 @@ impl Arenito {
         &mut self,
         commands: &mut Commands,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
     ) {
@@ -297,27 +286,6 @@ impl Arenito {
                     ..default()
                 });
             });
-
-        // Aaaaaand 2D Arenito.
-        commands
-            .spawn((
-                MaterialMesh2dBundle {
-                    mesh: Mesh2dHandle(meshes.add(shape::Quad::default().into())),
-                    material: materials2d.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_xyz(0.0, 0.0, 0.0)
-                        .with_scale(Vec3::splat(SCALE_2D / 2.)),
-                    ..default()
-                },
-                Arenito2D,
-            ))
-            .with_children(|parent| {
-                parent.spawn(MaterialMesh2dBundle {
-                    mesh: Mesh2dHandle(meshes.add(Arrow::new(10.0, 20.0, 13.0).into())),
-                    material: materials2d.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_xyz(0.55, 0.0, 1.0).with_scale(Vec3::splat(0.015)),
-                    ..default()
-                });
-            });
     }
 
     /// Sets the acceleration to "advance acceleration".
@@ -350,10 +318,9 @@ impl Arenito {
         &mut self,
         commands: &mut Commands,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        materials2d: &mut ResMut<Assets<ColorMaterial>>,
         meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
-        arenito3d: &Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
+        arenito3d: &Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
         self.acc = Vec3::ZERO;
@@ -368,10 +335,8 @@ impl Arenito {
         self.spawn(
             commands,
             materials,
-            materials2d,
             meshes,
             asset_server,
-            // img_processor,
         );
     }
 
@@ -390,11 +355,10 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
-        arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
-        arenito2d: Query<(&mut Transform, &Arenito2D)>,
+        arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         let vec = self.update_pos(delta_ms);
-        self.update_model(vec, arenito3d, arenito2d);
+        self.update_model(vec, arenito3d);
     }
 
     /// Updates Arenito's position given some time in ms (`delta_ms`).
@@ -435,7 +399,7 @@ impl Arenito {
         if self.state == ArenitoState::Forward {
             self.center += d;
 
-            return (d, dl); // maybe return in a more rustesque way
+            return (d, dl); // TODO: return in a more rustesque way
         } else {
             let theta = dl * self.state as isize as f32;
             self.rot.y = (self.rot.y + theta) % TAU;
@@ -454,8 +418,7 @@ impl Arenito {
     fn update_model(
         &self,
         vec: (Vec3, f32),
-        mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity, Without<Arenito2D>)>,
-        mut arenito2d: Query<(&mut Transform, &Arenito2D)>,
+        mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         // Saving different body parts to their own variable.
         // Each body part behaves differently.
@@ -479,7 +442,6 @@ impl Arenito {
 
         // Since body is only one element, shadow it out of the vector!
         let body = &mut body[0];
-        let mut a2d = arenito2d.single_mut();
         let (d, l) = vec;
 
         match self.state {
@@ -492,8 +454,6 @@ impl Arenito {
                 for wheel in &mut right_wheels {
                     wheel.rotate_local_z(-l);
                 }
-
-                // a2d.0.translation += d.to_2d() * SCALE_2D;
             }
             ArenitoState::Right | ArenitoState::Left => {
                 body.translation -= self.center;
@@ -506,12 +466,6 @@ impl Arenito {
                 for wheel in &mut right_wheels {
                     wheel.rotate_local_z(l);
                 }
-
-                // TODO: Change arenito2d's query to remove `a2d.0`...
-                let c = a2d.0.translation.clone();
-                a2d.0.translation -= c;
-                a2d.0.rotate_around(Vec3::ZERO, Quat::from_rotation_z(l));
-                a2d.0.translation += c;
             }
             _ => {}
         }
