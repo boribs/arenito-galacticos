@@ -78,9 +78,9 @@ fn arenito_mover(
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
     } else if keyboard_input.pressed(KeyCode::A) {
-        arenito.rotate(ArenitoState::LEFT);
+        arenito.rotate(ArenitoState::Left);
     } else if keyboard_input.pressed(KeyCode::D) {
-        arenito.rotate(ArenitoState::RIGHT);
+        arenito.rotate(ArenitoState::Right);
     } else if keyboard_input.pressed(KeyCode::R) {
         arenito.reset(
             &mut commands,
@@ -108,9 +108,9 @@ fn arenito_ai_mover(
         match instr {
             SimInstruction::Move(dir) => {
                 match dir {
-                    ArenitoState::FORWARD => arenito.forward(),
-                    ArenitoState::LEFT => arenito.rotate(ArenitoState::LEFT),
-                    ArenitoState::RIGHT => arenito.rotate(ArenitoState::RIGHT),
+                    ArenitoState::Forward => arenito.forward(),
+                    ArenitoState::Left => arenito.rotate(ArenitoState::Left),
+                    ArenitoState::Right => arenito.rotate(ArenitoState::Right),
                     _ => {}
                 };
                 aisim.confirm_instruction();
@@ -144,10 +144,10 @@ pub struct ArenitoCamWindow;
 /// Describes Arenito's state.
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum ArenitoState {
-    LEFT = -1,
-    RIGHT = 1,
-    FORWARD,
-    STILL,
+    Left = -1,
+    Right = 1,
+    Forward,
+    Still,
 }
 
 /// Arenito is the main component of this simulation.
@@ -180,7 +180,7 @@ impl Arenito {
             vel: Vec3::ZERO,
             acc: Vec3::ZERO,
             rot: Vec3::ZERO,
-            state: ArenitoState::STILL,
+            state: ArenitoState::Still,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
             img_width,
@@ -323,19 +323,19 @@ impl Arenito {
 
     /// Sets the acceleration to "advance acceleration".
     pub fn forward(&mut self) {
-        if self.state != ArenitoState::STILL && self.state != ArenitoState::FORWARD {
+        if self.state != ArenitoState::Still && self.state != ArenitoState::Forward {
             return;
         }
 
         let (sin, cos) = self.rot.y.sin_cos();
         self.acc = Vec3::new(cos, 0.0, sin) * Arenito::ACCEL_SPEED;
-        self.state = ArenitoState::FORWARD;
+        self.state = ArenitoState::Forward;
     }
 
     /// Sets Arenito in "rotation mode" - sets the acceleration
     /// to the correct values.
     pub fn rotate(&mut self, dir: ArenitoState) {
-        if self.state != ArenitoState::STILL && self.state != dir {
+        if self.state != ArenitoState::Still && self.state != dir {
             return;
         }
 
@@ -360,7 +360,7 @@ impl Arenito {
         self.acc = Vec3::ZERO;
         self.vel = Vec3::ZERO;
         self.rot = Vec3::ZERO;
-        self.state = ArenitoState::STILL;
+        self.state = ArenitoState::Still;
 
         arenito3d.for_each(|e| {
             commands.entity(e.2).despawn();
@@ -424,7 +424,7 @@ impl Arenito {
         if self.acc.length() < FRIC_K {
             self.vel = Vec3::ZERO;
             self.acc = Vec3::ZERO;
-            self.state = ArenitoState::STILL;
+            self.state = ArenitoState::Still;
         }
 
         // Highschool physics: Distance = v_0 * t + (0.5 * a * t^2)
@@ -433,7 +433,7 @@ impl Arenito {
         let d = (self.vel * delta) + (0.5 * self.acc * delta * delta);
         let dl = d.length();
 
-        if self.state == ArenitoState::FORWARD {
+        if self.state == ArenitoState::Forward {
             self.center += d;
 
             return (d, dl); // maybe return in a more rustesque way
@@ -484,7 +484,7 @@ impl Arenito {
         let (d, l) = vec;
 
         match self.state {
-            ArenitoState::FORWARD => {
+            ArenitoState::Forward => {
                 body.translation += d;
 
                 for wheel in &mut left_wheels {
@@ -496,7 +496,7 @@ impl Arenito {
 
                 a2d.0.translation += d.to_2d() * SCALE_2D;
             }
-            ArenitoState::RIGHT | ArenitoState::LEFT => {
+            ArenitoState::Right | ArenitoState::Left => {
                 body.translation -= self.center;
                 body.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-l));
                 body.translation += self.center;
@@ -554,7 +554,7 @@ mod arenito_tests {
             arenito.vel = vel;
             arenito.acc = acc;
             arenito.center = cen;
-            arenito.state = ArenitoState::FORWARD;
+            arenito.state = ArenitoState::Forward;
 
             arenito
         }
@@ -1167,7 +1167,7 @@ mod arenito_tests {
 
         cmp_vec(arenito.vel, Vec3::ZERO);
         cmp_vec(arenito.acc, Vec3::ZERO);
-        assert!(arenito.state == ArenitoState::STILL);
+        assert!(arenito.state == ArenitoState::Still);
     }
 
     #[test]
@@ -1181,7 +1181,7 @@ mod arenito_tests {
 
         cmp_vec(arenito.vel, Vec3::ZERO);
         cmp_vec(arenito.acc, Vec3::ZERO);
-        assert!(arenito.state == ArenitoState::STILL);
+        assert!(arenito.state == ArenitoState::Still);
     }
 
     #[test]
@@ -1201,7 +1201,7 @@ mod arenito_tests {
 
             cmp_vec(arenito.vel, Vec3::ZERO);
             cmp_vec(arenito.acc, Vec3::ZERO);
-            assert!(arenito.state == ArenitoState::STILL);
+            assert!(arenito.state == ArenitoState::Still);
         }
     }
 

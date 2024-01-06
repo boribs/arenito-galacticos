@@ -77,7 +77,7 @@ pub fn path_finder(
     mut prev: ResMut<CalculatedMovement>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    if arenito.state != ArenitoState::FORWARD {
+    if arenito.state != ArenitoState::Forward {
         // not moving or movement not relevant,
         // velocity and acceleration are 0.
         prev.vel = Vec3::ZERO;

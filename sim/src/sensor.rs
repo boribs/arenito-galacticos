@@ -237,9 +237,9 @@ impl AISimMem {
         match self.sync_byte.get() {
             AISimMem::AI_FRAME_REQUEST => Some(SimInstruction::ScreenShot),
             AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
-                AISimMem::MOV_FORWARD => Some(SimInstruction::Move(ArenitoState::FORWARD)),
-                AISimMem::MOV_LEFT => Some(SimInstruction::Move(ArenitoState::LEFT)),
-                AISimMem::MOV_RIGHT => Some(SimInstruction::Move(ArenitoState::RIGHT)),
+                AISimMem::MOV_FORWARD => Some(SimInstruction::Move(ArenitoState::Forward)),
+                AISimMem::MOV_LEFT => Some(SimInstruction::Move(ArenitoState::Left)),
+                AISimMem::MOV_RIGHT => Some(SimInstruction::Move(ArenitoState::Right)),
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None
@@ -344,7 +344,7 @@ mod ai_sim_mem_tests {
         let aisim = AISimMem::from_buf(&mut buf);
 
         assert_eq!(
-            Some(SimInstruction::Move(ArenitoState::FORWARD)),
+            Some(SimInstruction::Move(ArenitoState::Forward)),
             aisim.get_instruction()
         );
     }
@@ -355,7 +355,7 @@ mod ai_sim_mem_tests {
         let aisim = AISimMem::from_buf(&mut buf);
 
         assert_eq!(
-            Some(SimInstruction::Move(ArenitoState::LEFT)),
+            Some(SimInstruction::Move(ArenitoState::Left)),
             aisim.get_instruction()
         );
     }
@@ -366,7 +366,7 @@ mod ai_sim_mem_tests {
         let aisim = AISimMem::from_buf(&mut buf);
 
         assert_eq!(
-            Some(SimInstruction::Move(ArenitoState::RIGHT)),
+            Some(SimInstruction::Move(ArenitoState::Right)),
             aisim.get_instruction()
         );
     }
