@@ -56,13 +56,9 @@ fn arenito_spawner(
 /// Reads user input and makes Arenito move.
 fn arenito_mover(
     time: Res<Time>,
-    mut commands: Commands,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
-    asset_server: Res<AssetServer>,
-    arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
+    mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
 ) {
     if keyboard_input.pressed(KeyCode::W) {
         arenito.forward();
@@ -71,13 +67,7 @@ fn arenito_mover(
     } else if keyboard_input.pressed(KeyCode::D) {
         arenito.rotate(ArenitoState::Right);
     } else if keyboard_input.pressed(KeyCode::R) {
-        arenito.reset(
-            &mut commands,
-            &mut materials,
-            &mut meshes,
-            &asset_server,
-            &arenito3d,
-        );
+        arenito.reset(&mut arenito3d);
     }
 
     arenito.update(time.delta().as_millis(), arenito3d);
@@ -112,7 +102,7 @@ fn arenito_ai_mover(
 
 /// Component used as an identifier for the different
 /// body parts in 3D Arenito.
-#[derive(Component)]
+#[derive(Component, PartialEq)]
 pub enum Arenito3D {
     Frame,
     LeftWheel,
@@ -308,14 +298,9 @@ impl Arenito {
     /// Resets the state of Arenito.
     /// This includes despawning and spawning the models. It was easier than
     /// resetting everything to it's original state.
-    /// TODO: Fix this
     pub fn reset(
         &mut self,
-        commands: &mut Commands,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
-        meshes: &mut ResMut<Assets<Mesh>>,
-        asset_server: &Res<AssetServer>,
-        arenito3d: &Query<(&mut Transform, &Arenito3D, Entity)>,
+        arenito3d: &mut Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
         self.acc = Vec3::ZERO;
@@ -323,11 +308,14 @@ impl Arenito {
         self.rot = Vec3::ZERO;
         self.state = ArenitoState::Still;
 
-        arenito3d.for_each(|e| {
-            commands.entity(e.2).despawn();
-        });
-
-        self.spawn(commands, materials, meshes, asset_server);
+        for body_part in arenito3d {
+            if *body_part.1 == Arenito3D::Frame {
+                let mut transform = body_part.0;
+                transform.translation = self.center;
+                transform.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0);
+                break;
+            }
+        }
     }
 
     /// Applies the movement given some delta time.
