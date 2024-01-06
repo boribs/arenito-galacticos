@@ -1,14 +1,13 @@
-import sys, os, argparse
+import os, argparse
 from PIL import Image
 
-# DEFAULT_RES = (3024, 4032)
-
 def resize(
-        path: str,
-        scale: int | None = 1,
-        res: tuple[int] | None = None,
-        replace: bool = True
-    ):
+    path: str,
+    extension: str = 'png',
+    scale: int | None = 1,
+    res: tuple[int] | None = None,
+    replace: bool = True
+):
     img = Image.open(path)
     img = img.convert('RGB')
 
@@ -16,10 +15,10 @@ def resize(
 
     size = res if res else (img.size[0] * scale, img.size[1] * scale)
     outname = filename if replace else 'c-'+ filename
-    outpath = path[:path.find('/') + 1] + outname + '.JPG'
+    outpath = path[:path.find('/') + 1] + outname + '.' + extension
 
     img.thumbnail(size)
-    img.save(outpath, format='JPEG')
+    img.save(outpath)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -43,7 +42,7 @@ if __name__ == '__main__':
         nargs='?',
     )
     parser.add_argument(
-        'folders',
+        'files',
         nargs='*'
     )
     parser.add_argument(
@@ -71,12 +70,11 @@ if __name__ == '__main__':
     res = (float(args.height), float(args.width)) if args.height else None
     scale = float(args.scale) if args.scale else None
 
-    for folder in args.folders:
-        for img in os.listdir(folder):
-            print(f'Resizing {img}')
-            resize(
-                folder + '/' + img,
-                scale=scale,
-                res=res,
-                replace=not args.no_replace
-            )
+    for file in args.files:
+        print(f'Resizing {file}')
+        resize(
+            file,
+            scale=scale,
+            res=res,
+            replace=not args.no_replace
+        )
