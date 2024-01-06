@@ -2,7 +2,6 @@ pub mod arenito;
 pub mod scenes;
 pub mod sensor;
 pub mod static_shape;
-pub mod wire;
 
 use arenito::ArenitoPlugin;
 use bevy::{

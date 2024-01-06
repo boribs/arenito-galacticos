@@ -1,7 +1,6 @@
 use crate::{
     sensor::{AISimMem, SimInstruction},
     static_shape::*,
-    wire::*,
 };
 use bevy::{
     prelude::*,
@@ -494,7 +493,7 @@ impl Arenito {
                     wheel.rotate_local_z(-l);
                 }
 
-                a2d.0.translation += d.to_2d() * SCALE_2D;
+                // a2d.0.translation += d.to_2d() * SCALE_2D;
             }
             ArenitoState::Right | ArenitoState::Left => {
                 body.translation -= self.center;
