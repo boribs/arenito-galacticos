@@ -9,11 +9,6 @@ use scenes::{SceneLoaderPlugin, SceneName};
 use sensor::AISimMem;
 use shared_memory::*;
 
-#[derive(Component)]
-pub struct SceneCamera;
-#[derive(Component)]
-pub struct DataCamera;
-
 fn main() {
     let flink = "shmem_arenito";
     let shmem: Shmem = match ShmemConf::new()
@@ -51,17 +46,5 @@ fn main() {
                 img_height: 512.0,
             },
         ))
-        .add_systems(Startup, setup)
         .run();
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.01, 40.0, 0.0)
-                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-            ..default()
-        },
-        SceneCamera,
-    ));
 }

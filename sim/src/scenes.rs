@@ -66,6 +66,14 @@ fn spawn_test_scene(
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..default()
     });
+
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.01, 40.0, 0.0)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            ..default()
+        },
+    ));
 }
 
 fn spawn_basic_plane_scene(
@@ -113,4 +121,12 @@ fn spawn_basic_plane_scene(
         },
         ..default()
     });
+
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.01, 20.0, 0.0)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            ..default()
+        },
+    ));
 }
