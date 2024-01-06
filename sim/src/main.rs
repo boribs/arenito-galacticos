@@ -1,4 +1,5 @@
 pub mod arenito;
+pub mod scenes;
 pub mod sensor;
 pub mod spatial_awareness;
 pub mod static_shape;
@@ -9,6 +10,7 @@ use bevy::{
     core_pipeline::clear_color::ClearColorConfig, prelude::*, render::camera::Viewport,
     window::ExitCondition, winit::WinitSettings,
 };
+use scenes::{SceneLoaderPlugin, SceneName};
 use sensor::AISimMem;
 use shared_memory::*;
 use spatial_awareness::*;
@@ -47,6 +49,9 @@ fn main() {
         })
         .insert_resource(AISimMem::new(&shmem))
         .add_plugins((
+            SceneLoaderPlugin {
+                name: SceneName::Test,
+            },
             ArenitoPlugin {
                 img_width: 512.0,
                 img_height: 512.0,
@@ -58,48 +63,7 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(10.0).into()),
-        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-        ..default()
-    });
-
-    // reference cube
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb(0.0, 0.0, 1.0).into()),
-        transform: Transform::from_xyz(4.0, 0.3, 0.0).with_scale(Vec3::splat(0.3)),
-        ..default()
-    });
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
-        material: materials.add(Color::WHITE.into()),
-        transform: Transform::from_xyz(3.1499052, 0.0, 0.3850749),
-        ..default()
-    });
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
-        material: materials.add(Color::RED.into()),
-        transform: Transform::from_xyz(1.4267371, 0.0, 0.0),
-        ..default()
-    });
-
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 1500.0,
-            shadows_enabled: false,
-            ..default()
-        },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
-        ..default()
-    });
-
+fn setup(mut commands: Commands) {
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(0.01, 40.0, 0.0)
