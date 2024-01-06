@@ -208,7 +208,7 @@ impl Arenito {
         commands
             .spawn((
                 PbrBundle {
-                    mesh: asset_server.load("arenito.obj"),
+                    mesh: asset_server.load("models/arenito.obj"),
                     material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
                     transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
                     ..default()
@@ -219,7 +219,7 @@ impl Arenito {
                 let t = self.center + Vec3::new(0.5, -0.5, 0.85);
                 parent.spawn((
                     PbrBundle {
-                        mesh: asset_server.load("rueda.obj"),
+                        mesh: asset_server.load("models/rueda.obj"),
                         material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
@@ -229,7 +229,7 @@ impl Arenito {
                 let t = self.center + Vec3::new(-0.5, -0.5, 0.85);
                 parent.spawn((
                     PbrBundle {
-                        mesh: asset_server.load("rueda.obj"),
+                        mesh: asset_server.load("models/rueda.obj"),
                         material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
@@ -239,7 +239,7 @@ impl Arenito {
                 let t = self.center + Vec3::new(0.5, -0.5, -0.85);
                 parent.spawn((
                     PbrBundle {
-                        mesh: asset_server.load("rueda.obj"),
+                        mesh: asset_server.load("models/rueda.obj"),
                         material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
@@ -249,7 +249,7 @@ impl Arenito {
                 let t = self.center + Vec3::new(-0.5, -0.5, -0.85);
                 parent.spawn((
                     PbrBundle {
-                        mesh: asset_server.load("rueda.obj"),
+                        mesh: asset_server.load("models/rueda.obj"),
                         material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
                         transform: Transform::from_xyz(t.x, t.y, t.z),
                         ..default()
