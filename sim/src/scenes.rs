@@ -49,6 +49,7 @@ fn spawn_test_scene(
         transform: Transform::from_xyz(3.1499052, 0.0, 0.3850749),
         ..default()
     });
+
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
         material: materials.add(Color::RED.into()),
@@ -73,26 +74,43 @@ fn spawn_basic_plane_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let texture_handle = asset_server.load("textures/sand_01_diff_4k.png");
+    let texture_handle = asset_server.load("textures/sand_01.png");
     let material_handle = materials.add(StandardMaterial {
         base_color_texture: Some(texture_handle.clone()),
-        alpha_mode: AlphaMode::Blend,
+        reflectance: 0.01,
+        ..default()
+    });
+
+    let plane_size = 15.0;
+    let water_offset = 2.0;
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(shape::Plane::from_size(plane_size).into()),
+        material: material_handle,
+        transform: Transform::from_xyz(0.0, 0.01, 0.0),
         ..default()
     });
 
     commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(10.0).into()),
-        material: material_handle,
+        mesh: meshes.add(shape::Plane::from_size(plane_size + water_offset).into()),
+        material: materials.add(StandardMaterial {
+            base_color: Color::hex("0080FF").unwrap().into(),
+            reflectance: 0.05,
+            ..default()
+        }),
         ..default()
     });
 
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 1500.0,
-            shadows_enabled: false,
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 15000.0,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-0.4),
+            ..default()
+        },
         ..default()
     });
 }

@@ -50,7 +50,7 @@ fn main() {
         .insert_resource(AISimMem::new(&shmem))
         .add_plugins((
             SceneLoaderPlugin {
-                name: SceneName::Test,
+                name: SceneName::Basic,
             },
             ArenitoPlugin {
                 img_width: 512.0,
