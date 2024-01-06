@@ -1,7 +1,6 @@
 pub mod arenito;
 pub mod scenes;
 pub mod sensor;
-pub mod spatial_awareness;
 pub mod static_shape;
 pub mod wire;
 
@@ -13,7 +12,6 @@ use bevy::{
 use scenes::{SceneLoaderPlugin, SceneName};
 use sensor::AISimMem;
 use shared_memory::*;
-use spatial_awareness::*;
 
 #[derive(Component)]
 pub struct SceneCamera;
@@ -56,7 +54,6 @@ fn main() {
                 img_width: 512.0,
                 img_height: 512.0,
             },
-            SpatialAwarenessPlugin,
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, set_camera_viewports)

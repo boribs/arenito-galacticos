@@ -8,13 +8,15 @@ Ambiente gráfico:
     ☐ Movimiento de la cámara: rotación click n' drag
     ✔ Movimiento de las ruedas del Arenito @done(23-06-21 18:48)
     ☐ Quitar todo 2D
+        ✔ Quitar noción espacial @done(24-01-05 23:41)
         ☐ Quitar Arenito2D
         ☐ Quitar figuras en 2D
         La simulación solo debe modelar el robot físico, todo lo que se determine
         con IA debe estar en el código de la IA.
 
 Ambiente virtual:
-    ☐ Arena
+    ✔ Arena @done(24-01-05 23:36)
+    ✔ Agua @done(24-01-05 23:36)
     ☐ Obstáculos
     ☐ Latas
 
