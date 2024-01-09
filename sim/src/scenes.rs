@@ -3,8 +3,11 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Can;
 
-pub type SceneFunc =
-    fn(Res<AssetServer>, Commands, ResMut<Assets<Mesh>>, ResMut<Assets<StandardMaterial>>);
+pub struct CanData {
+    pos: Vec3,
+    rot: Quat,
+}
+
 
 #[derive(Resource)]
 pub struct CanManager {
@@ -26,7 +29,7 @@ impl CanManager {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
         asset_server: Res<AssetServer>,
-        transform: Transform,
+        can_data: CanData,
     ) {
         if self.material_handle.is_none() {
             let texture_handle = asset_server.load("textures/black_01.png");
@@ -51,7 +54,8 @@ impl CanManager {
             PbrBundle {
                 mesh: self.mesh_handle.clone().unwrap(),
                 material: self.material_handle.clone().unwrap(),
-                transform,
+                transform: Transform::from_xyz(can_data.pos.x, can_data.pos.y, can_data.pos.z)
+                    .with_rotation(can_data.rot),
                 ..default()
             },
             Can,
@@ -180,7 +184,10 @@ fn spawn_basic_plane_scene(
         &mut meshes,
         &mut materials,
         asset_server,
-        Transform::from_xyz(4.0, 0.5, 0.0),
+        CanData {
+            pos: Vec3::new(4.0, 0.5, 1.0),
+            rot: Quat::from_euler(EulerRot::XYZ, 0.0, 0.6, 1.56),
+        },
     );
 
     commands.spawn(DirectionalLightBundle {
