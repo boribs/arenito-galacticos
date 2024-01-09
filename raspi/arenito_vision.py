@@ -52,7 +52,7 @@ class ArenitoVision:
         # |                        |
         # |                        |
         # +------------X-----------+
-        self.centro_inf = Point(res_x // 2, res_y)
+        self.bottom_center = Point(res_x // 2, res_y)
 
         # How close to the water is the robot allowed to be.
         # When no cans are found, move forward until running into water, then rotate.
@@ -107,9 +107,9 @@ class ArenitoVision:
         WHITE = (255, 255, 255)
 
         t = 70
-        a1 = Point(self.centro_inf.x - t, self.centro_inf.y)
+        a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
         b1 = Point(a1.x, self.r_dot.y)
-        a2 = Point(self.centro_inf.x + t, self.centro_inf.y)
+        a2 = Point(self.bottom_center.x + t, self.bottom_center.y)
         b2 = Point(a2.x, self.r_dot.y)
 
         cv2.line(det_img, a1, b1, WHITE)
@@ -140,10 +140,10 @@ class ArenitoVision:
 
     def dist_from_center(self, det: Point):
         """
-        Calculates the distance from `self.centro_inf` to `det`.
+        Calculates the distance from `self.bottom_center` to `det`.
         """
 
-        x1, y1 = self.centro_inf
+        x1, y1 = self.bottom_center
         x2, y2 = det
 
         return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -162,7 +162,7 @@ class ArenitoVision:
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
-        cv2.line(line, self.centro_inf, det, (255, 255, 255), thickness=thickness)
+        cv2.line(line, self.bottom_center, det, (255, 255, 255), thickness=thickness)
         cv2.line(line, (0, self.res_y), (self.res_x, self.res_y), (255, 255, 255), thickness=40)
 
         cross = cv2.bitwise_and(mask_azul, line)
