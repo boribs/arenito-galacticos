@@ -88,6 +88,7 @@ fn arenito_ai_mover(
                     ArenitoState::Forward => arenito.forward(),
                     ArenitoState::Left => arenito.rotate(ArenitoState::Left),
                     ArenitoState::Right => arenito.rotate(ArenitoState::Right),
+                    ArenitoState::LongRight => arenito.rotate(ArenitoState::LongRight),
                     _ => {}
                 };
                 aisim.confirm_instruction();
@@ -120,6 +121,7 @@ pub struct ArenitoCamWindow;
 pub enum ArenitoState {
     Left = -1,
     Right = 1,
+    LongRight,
     Forward,
     Still,
 }
@@ -145,6 +147,7 @@ pub struct Arenito {
 impl Arenito {
     const ACCEL_SPEED: f32 = 4.0;
     const ROT_SPEED: f32 = 1.5;
+    const ROT_LR: f32 = 10.0;
     pub const MAX_VELOCITY: f32 = 3.0;
 
     /// Returns an empty, non-spawned Arenito.
@@ -291,17 +294,18 @@ impl Arenito {
             return;
         }
 
-        self.acc = Vec3::ONE * Arenito::ROT_SPEED;
-        self.state = dir;
+        if dir == ArenitoState::LongRight {
+            self.acc = Vec3::ONE * Arenito::ROT_LR;
+            self.state = ArenitoState::Right;
+        } else {
+            self.acc = Vec3::ONE * Arenito::ROT_SPEED;
+            self.state = dir;
+        };
+
     }
 
     /// Resets the state of Arenito.
-    /// This includes despawning and spawning the models. It was easier than
-    /// resetting everything to it's original state.
-    pub fn reset(
-        &mut self,
-        arenito3d: &mut Query<(&mut Transform, &Arenito3D, Entity)>,
-    ) {
+    pub fn reset(&mut self, arenito3d: &mut Query<(&mut Transform, &Arenito3D, Entity)>) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
         self.acc = Vec3::ZERO;
         self.vel = Vec3::ZERO;

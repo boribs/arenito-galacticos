@@ -166,6 +166,7 @@ impl AISimMem {
     const MOV_FORWARD: u8 = b'a';
     const MOV_LEFT: u8 = b'i';
     const MOV_RIGHT: u8 = b'd';
+    const MOV_LONG_RIGHT: u8 = b'D';
 
     // memory footprint
     // how much memory is used for synchronization
@@ -240,6 +241,7 @@ impl AISimMem {
                 AISimMem::MOV_FORWARD => Some(SimInstruction::Move(ArenitoState::Forward)),
                 AISimMem::MOV_LEFT => Some(SimInstruction::Move(ArenitoState::Left)),
                 AISimMem::MOV_RIGHT => Some(SimInstruction::Move(ArenitoState::Right)),
+                AISimMem::MOV_LONG_RIGHT => Some(SimInstruction::Move(ArenitoState::LongRight)),
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None
