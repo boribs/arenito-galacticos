@@ -11,7 +11,6 @@ use bevy_obj::*;
 use std::f32::consts::TAU;
 
 const FRIC_K: f32 = 0.5;
-pub const SCALE_2D: f32 = 100.0;
 
 /* ----------------------------Arenito Plugin---------------------------- */
 
@@ -298,10 +297,7 @@ impl Arenito {
     /// Resets the state of Arenito.
     /// This includes despawning and spawning the models. It was easier than
     /// resetting everything to it's original state.
-    pub fn reset(
-        &mut self,
-        arenito3d: &mut Query<(&mut Transform, &Arenito3D, Entity)>,
-    ) {
+    pub fn reset(&mut self, arenito3d: &mut Query<(&mut Transform, &Arenito3D, Entity)>) {
         self.center = Vec3::new(0.0, 0.5, 0.0);
         self.acc = Vec3::ZERO;
         self.vel = Vec3::ZERO;
