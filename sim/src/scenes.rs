@@ -6,54 +6,96 @@ pub struct Can;
 pub struct CanData {
     pos: Vec3,
     rot: Quat,
+    size: CanSize,
+    texture: CanTexture,
 }
 
+pub enum CanSize {
+    Big,
+    Small,
+}
+
+pub enum CanTexture {
+    Shiny,
+    Dirty,
+}
 
 #[derive(Resource)]
 pub struct CanManager {
-    material_handle: Option<Handle<StandardMaterial>>,
-    mesh_handle: Option<Handle<Mesh>>,
+    dirty_material_handle: Option<Handle<StandardMaterial>>,
+    shiny_material_handle: Option<Handle<StandardMaterial>>,
+    big_mesh_handle: Option<Handle<Mesh>>,
+    small_mesh_handle: Option<Handle<Mesh>>,
 }
 
 impl CanManager {
     pub fn new() -> Self {
         CanManager {
-            material_handle: None,
-            mesh_handle: None,
+            dirty_material_handle: None,
+            shiny_material_handle: None,
+            big_mesh_handle: None,
+            small_mesh_handle: None,
         }
     }
 
-    pub fn spawn(
+    fn load_textures(
         &mut self,
-        commands: &mut Commands,
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
         asset_server: Res<AssetServer>,
-        can_data: CanData,
     ) {
-        if self.material_handle.is_none() {
-            let texture_handle = asset_server.load("textures/black_01.png");
-            self.material_handle = Some(materials.add(StandardMaterial {
-                base_color_texture: Some(texture_handle.clone()),
-                reflectance: 0.4,
-                ..default()
-            }));
-        }
+        self.dirty_material_handle = Some(materials.add(StandardMaterial {
+            base_color_texture: Some(asset_server.load("textures/black_01.png")),
+            reflectance: 0.3,
+            ..default()
+        }));
 
-        if self.mesh_handle.is_none() {
-            let c = shape::Cylinder {
-                radius: 0.15,
-                height: 0.47,
-                resolution: 15,
-                segments: 1,
-            };
-            self.mesh_handle = Some(meshes.add(c.into()));
-        }
+        self.shiny_material_handle = Some(materials.add(StandardMaterial {
+            base_color_texture: Some(asset_server.load("textures/black_02.png")),
+            reflectance: 0.34,
+            ..default()
+        }));
+    }
+
+    fn load_meshes(&mut self, mut meshes: ResMut<Assets<Mesh>>) {
+        self.big_mesh_handle = Some(
+            meshes.add(
+                shape::Cylinder {
+                    radius: 0.15,
+                    height: 0.47,
+                    resolution: 15,
+                    segments: 1,
+                }
+                .into(),
+            ),
+        );
+        self.small_mesh_handle = Some(
+            meshes.add(
+                shape::Cylinder {
+                    radius: 0.15,
+                    height: 0.37,
+                    resolution: 15,
+                    segments: 1,
+                }
+                .into(),
+            ),
+        );
+    }
+
+    pub fn spawn(&mut self, commands: &mut Commands, can_data: CanData) {
+        let mesh = match can_data.size {
+            CanSize::Big => self.big_mesh_handle.clone().unwrap(),
+            CanSize::Small => self.small_mesh_handle.clone().unwrap(),
+        };
+
+        let material = match can_data.texture {
+            CanTexture::Shiny => self.shiny_material_handle.clone().unwrap(),
+            CanTexture::Dirty => self.dirty_material_handle.clone().unwrap(),
+        };
 
         commands.spawn((
             PbrBundle {
-                mesh: self.mesh_handle.clone().unwrap(),
-                material: self.material_handle.clone().unwrap(),
+                mesh,
+                material,
                 transform: Transform::from_xyz(can_data.pos.x, can_data.pos.y, can_data.pos.z)
                     .with_rotation(can_data.rot),
                 ..default()
@@ -63,13 +105,15 @@ impl CanManager {
     }
 }
 
-pub type SceneFunc = fn(
-    Res<AssetServer>,
-    Commands,
-    ResMut<Assets<Mesh>>,
-    ResMut<Assets<StandardMaterial>>,
-    ResMut<CanManager>,
-);
+fn init_can_manager(
+    mut can_manager: ResMut<CanManager>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+    can_manager.load_meshes(meshes);
+    can_manager.load_textures(materials, asset_server);
+}
 
 pub enum SceneName {
     Test,
@@ -89,6 +133,7 @@ impl Plugin for SceneLoaderPlugin {
             SceneName::Basic => spawn_basic_plane_scene,
         };
 
+        app.add_systems(PreStartup, init_can_manager);
         app.add_systems(Startup, f);
     }
 }
@@ -181,12 +226,20 @@ fn spawn_basic_plane_scene(
 
     can_manager.spawn(
         &mut commands,
-        &mut meshes,
-        &mut materials,
-        asset_server,
         CanData {
             pos: Vec3::new(4.0, 0.5, 1.0),
             rot: Quat::from_euler(EulerRot::XYZ, 0.0, 0.6, 1.56),
+            size: CanSize::Big,
+            texture: CanTexture::Shiny,
+        },
+    );
+    can_manager.spawn(
+        &mut commands,
+        CanData {
+            pos: Vec3::new(4.0, 0.5, 0.0),
+            rot: Quat::from_euler(EulerRot::XYZ, 0.0, 0.6, 1.56),
+            size: CanSize::Small,
+            texture: CanTexture::Dirty,
         },
     );
 
@@ -204,7 +257,7 @@ fn spawn_basic_plane_scene(
     });
 
     commands.spawn((Camera3dBundle {
-        transform: Transform::from_xyz(0.01, 20.0, 0.0)
+        transform: Transform::from_xyz(10.01, 6.0, 3.0)
             .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
         ..default()
     },));
