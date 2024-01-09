@@ -40,8 +40,6 @@ class ArenitoVision:
         res_y: int,
         margin_x: int,
     ):
-        # TODO: Rename all these variables
-
         self.res_x = res_x
         self.res_y = res_y
 
@@ -77,8 +75,8 @@ class ArenitoVision:
         # |          |   |         |
         # +------------------------+
         self.margin_x = margin_x
-        self.centro_x_min = res_x // 2 - margin_x
-        self.centro_x_max = res_x // 2 + margin_x
+        self.center_x_min = res_x // 2 - margin_x
+        self.center_x_max = res_x // 2 + margin_x
 
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
@@ -125,20 +123,20 @@ class ArenitoVision:
         )
         cv2.line(
             det_img,
-            (self.centro_x_min, 0),
-            (self.centro_x_min, self.res_y),
+            (self.center_x_min, 0),
+            (self.center_x_min, self.res_y),
             color=(255,0,0),
             thickness=1,
         )
         cv2.line(
             det_img,
-            (self.centro_x_max, 0),
-            (self.centro_x_max, self.res_y),
+            (self.center_x_max, 0),
+            (self.center_x_max, self.res_y),
             color=(255,0,0),
             thickness=1,
         )
 
-    def dist_from_center(self, det: Point):
+    def dist_from_center(self, det: Point) -> float:
         """
         Calculates the distance from `self.bottom_center` to `det`.
         """
