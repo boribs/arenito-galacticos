@@ -17,6 +17,7 @@ class Point(NamedTuple):
 class ColorFilter:
     """
     Stores color filter data.
+    delete mongodb, flutter, sass
     """
 
     BLUE = (
@@ -51,7 +52,7 @@ class ArenitoVision:
         # |                        |
         # |                        |
         # +------------X-----------+
-        self.centro_inf = (res_x // 2, res_y)
+        self.centro_inf = Point(res_x // 2, res_y)
 
         # How close to the water is the robot allowed to be.
         # When no cans are found, move forward until running into water, then rotate.
@@ -103,33 +104,38 @@ class ArenitoVision:
         Adds visual markings to image to help visualize decisions.
         """
 
+        WHITE = (255, 255, 255)
+
+        t = 70
+        a1 = Point(self.centro_inf.x - t, self.centro_inf.y)
+        b1 = Point(a1.x, self.r_dot.y)
+        a2 = Point(self.centro_inf.x + t, self.centro_inf.y)
+        b2 = Point(a2.x, self.r_dot.y)
+
+        cv2.line(det_img, a1, b1, WHITE)
+        cv2.line(det_img, a2, b2, WHITE)
+        cv2.ellipse(det_img, self.r_dot, (t, t), 0.0, 180.0, 360.0, WHITE, thickness=1)
+
         cv2.line(
             det_img,
-            self.centro_inf,
-            self.r_dot,
-            (255, 255, 255),
-            thickness=140
-        )
-        cv2.line(
-            det_img,
-            (0, self.res_y),
-            (self.res_x, self.res_y),
-            (255, 255, 255),
-            thickness=40
+            (0, self.res_y - 20),
+            (self.res_x, self.res_y - 20),
+            WHITE,
+            thickness=1
         )
         cv2.line(
             det_img,
             (self.centro_x_min, 0),
             (self.centro_x_min, self.res_y),
             color=(255,0,0),
-            thickness=2,
+            thickness=1,
         )
         cv2.line(
             det_img,
             (self.centro_x_max, 0),
             (self.centro_x_max, self.res_y),
             color=(255,0,0),
-            thickness=2,
+            thickness=1,
         )
 
     def dist_from_center(self, det: Point):
