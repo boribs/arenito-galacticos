@@ -38,7 +38,7 @@ class ArenitoVision:
         self,
         res_x: int,
         res_y: int,
-        margen_x: int,
+        margin_x: int,
     ):
         # TODO: Rename all these variables
 
@@ -76,9 +76,9 @@ class ArenitoVision:
         # |          |   |         |
         # |          |   |         |
         # +------------------------+
-        self.margen_x = margen_x
-        self.centro_x_min = res_x // 2 - margen_x
-        self.centro_x_max = res_x // 2 + margen_x
+        self.margin_x = margin_x
+        self.centro_x_min = res_x // 2 - margin_x
+        self.centro_x_max = res_x // 2 + margin_x
 
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
