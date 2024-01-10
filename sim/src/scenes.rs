@@ -197,7 +197,7 @@ fn spawn_basic_plane_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut can_manager: ResMut<CanManager>,
+    mut _can_manager: ResMut<CanManager>,
 ) {
     let texture_handle = asset_server.load("textures/sand_01.png");
     let material_handle = materials.add(StandardMaterial {
