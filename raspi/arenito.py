@@ -24,9 +24,9 @@ def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: Point):
     x, _ = det
 
     if vis.center_x_max <= x:
-        com.send_instruction(Instruction.MOVE_LEFT)
-    elif vis.center_x_min >= x:
         com.send_instruction(Instruction.MOVE_RIGHT)
+    elif vis.center_x_min >= x:
+        com.send_instruction(Instruction.MOVE_LEFT)
     else: # está centrado, avanza
         com.send_instruction(Instruction.MOVE_FORWARD)
 
