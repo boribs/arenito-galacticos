@@ -100,7 +100,7 @@ class ArenitoVision:
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
-    def add_markings(self, det_img: MatLike):
+    def add_markings(self, det_img: MatLike, detections: list[Point]):
         """
         Adds visual markings to image to help visualize decisions.
         """
@@ -138,6 +138,9 @@ class ArenitoVision:
             color=(255,0,0),
             thickness=1,
         )
+
+        for det in detections:
+            cv2.circle(det_img, det, 10, (255, 255, 255), 10)
 
     def dist_from_center(self, det: Point) -> float:
         """

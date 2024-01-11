@@ -72,7 +72,7 @@ def main(com: ArenitoComms, vis: ArenitoVision):
             break
 
         detections = vis.find_cans(frame)
-        vis.add_markings(det_img)
+        vis.add_markings(frame, detections)
 
         cv2.imshow('arenito pov', frame)
 
