@@ -176,40 +176,6 @@ class ArenitoVision:
 
         return white_px < self.min_px_water
 
-    def find_blobs(self, img: MatLike) -> tuple[MatLike, list[Point]]:
-        """
-        Finds the positions of every can by applying a color filter to the image and
-        calling SimpleBlobDetector's `detect()` method.
-
-        Returns only reachable positions.
-        TODO: Parameter to enable circle drawing on reachable elements.
-        """
-
-        # Este borde es necesario porque sino no detecta las latas cerca
-        # de las esquinas de la imagen
-        img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
-
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        lower, upper = ColorFilter.BLACK
-        mask = cv2.inRange(hsv, lower, upper)
-
-        keypoints = self.blob_detector.detect(mask)
-        im_with_keypoints = cv2.drawKeypoints(
-            img,
-            keypoints,
-            np.array([]), # pyright: ignore
-            (0, 0, 255),
-            cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
-        )
-
-        detections: list[Point] = []
-
-        for k in keypoints:
-            det = Point(*map(int, k.pt))
-            if self.reachable(hsv, det):
-                detections.append(det)
-                cv2.circle(im_with_keypoints, det, 10, (255, 0, 0), 10)
-
     def find_cans(self, img: MatLike) -> list[Point]:
         """
         Filters out cans by color and size.
