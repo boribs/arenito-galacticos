@@ -71,10 +71,10 @@ def main(com: ArenitoComms, vis: ArenitoVision):
         if cv2.waitKey(1) == 27:
             break
 
-        det_img, detections = vis.find_blobs(frame)
+        detections = vis.find_cans(frame)
         vis.add_markings(det_img)
 
-        cv2.imshow('asdf', det_img)
+        cv2.imshow('arenito pov', frame)
 
         if detections:
             det = detections[0]

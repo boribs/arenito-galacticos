@@ -84,6 +84,9 @@ class ArenitoVision:
         # and any given point for it to be considered `unreachable`.
         self.min_px_water = 50
 
+        # Minimum size for a rect to be considered a can
+        self.min_can_area = 500
+
         # Blob detector stuff
         params = cv2.SimpleBlobDetector.Params()
         params.filterByArea = True
@@ -204,4 +207,36 @@ class ArenitoVision:
                 detections.append(det)
                 cv2.circle(im_with_keypoints, det, 10, (255, 0, 0), 10)
 
-        return im_with_keypoints, sorted(detections, key=self.dist_from_center)
+    def find_cans(self, img: MatLike) -> list[Point]:
+        """
+        Filters out cans by color and size.
+        This method will replace `ArenitoVision.find_blobs()`.
+        """
+
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        _, thresh = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
+        contours, _ = cv2.findContours(
+            thresh,
+            cv2.RETR_TREE,
+            cv2.CHAIN_APPROX_NONE
+        )
+
+        # first one borders the whole frame
+        contours = contours[1:]
+
+        detections: list[Point] = []
+        for cnt in contours:
+            rect = cv2.minAreaRect(cnt)
+            w, h = rect[1]
+
+            if w * h > self.min_can_area:
+                box = np.int0(cv2.boxPoints(rect)) # pyright: ignore
+                det = Point(sum(box[:,0]) // 4, sum(box[:,1]) // 4) # pyright: ignore
+
+                # this line doesn't belong here
+                cv2.drawContours(img, [box], -1, (0, 255, 0), 1, cv2.LINE_AA) # pyright: ignore
+
+                if self.reachable(img, det):
+                    detections.append(det)
+
+        return detections
