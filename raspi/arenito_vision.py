@@ -101,7 +101,7 @@ class ArenitoVision:
         self.min_px_water = 50
 
         # Minimum size for a rect to be considered a can
-        self.min_can_area = 500
+        self.min_can_area = 1000
 
         # Blob detector stuff
         params = cv2.SimpleBlobDetector.Params()
@@ -183,14 +183,14 @@ class ArenitoVision:
         lower, upper = ColorFilter.BLUE
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
+        cv2.imshow('blue_filter', mask_azul)
+
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
         cv2.line(line, self.bottom_center, det, (255, 255, 255), thickness=thickness)
         cv2.line(line, (0, self.res_y), (self.res_x, self.res_y), (255, 255, 255), thickness=40)
 
         cross = cv2.bitwise_and(mask_azul, line)
         white_px = np.count_nonzero(cross)
-
-        # cv2.imshow('aaaa', mask_azul)
 
         return white_px < self.min_px_water
 
@@ -205,7 +205,7 @@ class ArenitoVision:
 
         # need better filter
         gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
-        _, mask = cv2.threshold(gray, 52, 255, cv2.RETR_EXTERNAL)
+        _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
 
         cv2.imshow('black filter', mask)
 
