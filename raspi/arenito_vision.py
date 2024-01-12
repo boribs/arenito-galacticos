@@ -195,13 +195,18 @@ class ArenitoVision:
     def find_cans(self, img: MatLike) -> list[Detection]:
         """
         Filters out cans by color and size.
-        This method will replace `ArenitoVision.find_blobs()`.
+        This method replaces `ArenitoVision.find_blobs()`.
         """
 
+        # Without this cans that are on the border are invisible
+        img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
+
+        # need better filter
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        _, thresh = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
+        _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
+
         contours, _ = cv2.findContours(
-            thresh,
+            mask,
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_NONE
         )
