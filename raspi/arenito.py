@@ -58,11 +58,9 @@ def get_image(com: ArenitoComms) -> MatLike:
 
     return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
 
-def main(com: ArenitoComms, vis: ArenitoVision):
+def main(com: ArenitoComms, vis: ArenitoVision, no_move: bool):
     """
     Main loop.
-
-    TODO: Make every step more explicit.
     """
 
     while True:
@@ -76,9 +74,12 @@ def main(com: ArenitoComms, vis: ArenitoVision):
 
         cv2.imshow('arenito pov', frame)
 
+        if no_move:
+            continue
+
         if detections:
             det = detections[0]
-            send_move_instruction(com, vis, det)
+            send_move_instruction(com, vis, det.center)
         else:
             hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             send_roam_instruction(com, vis, hsv_frame)
@@ -91,6 +92,7 @@ if __name__ == '__main__':
 
     parser.add_argument('flink', nargs='?', type=str, default='../sim/shmem_arenito')
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--no_move', '-n', action=argparse.BooleanOptionalAction, default=False)
 
     com = ArenitoComms()
     vis = ArenitoVision(RES_X, RES_Y, int(RES_X * 0.2))
@@ -103,7 +105,7 @@ if __name__ == '__main__':
         com.init_video()
 
     try:
-        main(com, vis)
+        main(com, vis, args.no_move)
     except Exception as e:
         print(e)
 
