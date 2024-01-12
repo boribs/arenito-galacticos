@@ -4,7 +4,7 @@ import cv2
 import math
 import numpy as np
 from typing import NamedTuple
-from cv2.typing import MatLike
+from cv2.typing import MatLike, RotatedRect
 
 class Point(NamedTuple):
     """
@@ -13,6 +13,20 @@ class Point(NamedTuple):
 
     x: int
     y: int
+
+class Detection:
+    """
+    Stores detection data.
+    """
+
+    def __init__(self, rect: RotatedRect, contour: MatLike):
+        self.rect = rect
+        self.box = np.int0(cv2.boxPoints(rect)) # pyright: ignore
+        self.center = Point(
+            sum(self.box[:,0]) // 4, # pyright: ignore
+            sum(self.box[:,1]) // 4  # pyright: ignore
+        )
+        self.contour = contour
 
 class ColorFilter:
     """
@@ -100,7 +114,7 @@ class ArenitoVision:
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
-    def add_markings(self, det_img: MatLike, detections: list[Point]):
+    def add_markings(self, det_img: MatLike, detections: list[Detection]):
         """
         Adds visual markings to image to help visualize decisions.
         """
@@ -140,7 +154,9 @@ class ArenitoVision:
         )
 
         for det in detections:
-            cv2.circle(det_img, det, 10, (255, 255, 255), 10)
+            cv2.circle(det_img, det.center, 10, (255, 255, 255), 10)
+            cv2.drawContours(det_img, [det.contour], -1, (0, 255, 0), 1, cv2.LINE_AA) # pyright: ignore
+            cv2.drawContours(det_img, [det.box], -1, (255, 0, 0), 1, cv2.LINE_AA) # pyright: ignore
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -176,7 +192,7 @@ class ArenitoVision:
 
         return white_px < self.min_px_water
 
-    def find_cans(self, img: MatLike) -> list[Point]:
+    def find_cans(self, img: MatLike) -> list[Detection]:
         """
         Filters out cans by color and size.
         This method will replace `ArenitoVision.find_blobs()`.
@@ -193,19 +209,15 @@ class ArenitoVision:
         # first one borders the whole frame
         contours = contours[1:]
 
-        detections: list[Point] = []
+        detections: list[Detection] = []
         for cnt in contours:
             rect = cv2.minAreaRect(cnt)
             w, h = rect[1]
 
             if w * h > self.min_can_area:
-                box = np.int0(cv2.boxPoints(rect)) # pyright: ignore
-                det = Point(sum(box[:,0]) // 4, sum(box[:,1]) // 4) # pyright: ignore
+                det = Detection(rect, cnt)
 
-                # this line doesn't belong here
-                cv2.drawContours(img, [box], -1, (0, 255, 0), 1, cv2.LINE_AA) # pyright: ignore
-
-                if self.reachable(img, det):
+                if self.reachable(img, det.center):
                     detections.append(det)
 
         return detections
