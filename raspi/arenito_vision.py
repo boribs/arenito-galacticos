@@ -206,13 +206,18 @@ class ArenitoVision:
             cv2.CHAIN_APPROX_NONE
         )
 
-        # first one borders the whole frame
-        contours = contours[1:]
+        img_h, img_w, _ = img.shape
+        img_h -= 5
+        img_w -= 5
 
         detections: list[Detection] = []
         for cnt in contours:
             rect = cv2.minAreaRect(cnt)
             w, h = rect[1]
+
+            # discard full image contours
+            if w >= img_w or h >= img_h:
+                continue
 
             if w * h > self.min_can_area:
                 det = Detection(rect, cnt)
