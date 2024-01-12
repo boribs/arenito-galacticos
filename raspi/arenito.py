@@ -70,9 +70,10 @@ def main(com: ArenitoComms, vis: ArenitoVision, no_move: bool):
             break
 
         detections = vis.find_cans(frame)
-        vis.add_markings(frame, detections)
+        pov = frame.copy()
+        vis.add_markings(pov, detections)
 
-        cv2.imshow('arenito pov', frame)
+        cv2.imshow('arenito pov', pov)
 
         if no_move:
             continue

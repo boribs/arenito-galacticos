@@ -37,6 +37,8 @@ class ColorFilter:
     BLUE = (
         np.array([75, 160, 88]),   # lower
         np.array([175, 255, 255]), # upper
+        # np.array([57, 76, 77]),   # lower
+        # np.array([118, 255, 210]), # upper
     )
     BLACK = (
         np.array([0, 0, 69]),      # lower
@@ -199,11 +201,13 @@ class ArenitoVision:
         """
 
         # Without this cans that are on the border are invisible
-        img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
+        gray = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
 
         # need better filter
-        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
+        gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
+        _, mask = cv2.threshold(gray, 52, 255, cv2.RETR_EXTERNAL)
+
+        cv2.imshow('black filter', mask)
 
         contours, _ = cv2.findContours(
             mask,
@@ -214,6 +218,8 @@ class ArenitoVision:
         img_h, img_w, _ = img.shape
         img_h -= 5
         img_w -= 5
+        # Expects BGR because ...?
+        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         detections: list[Detection] = []
         for cnt in contours:
@@ -227,7 +233,7 @@ class ArenitoVision:
             if w * h > self.min_can_area:
                 det = Detection(rect, cnt)
 
-                if self.reachable(img, det.center):
+                if self.reachable(img_hsv, det.center):
                     detections.append(det)
 
         return detections
