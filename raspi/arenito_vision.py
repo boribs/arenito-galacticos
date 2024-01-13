@@ -136,7 +136,6 @@ class ArenitoVision:
         # |                        |
         # |                        |
         # |- - - - - - - - - - - - | <- This line
-        # |                        |
         # +------------------------+
         # previously 380 - 20, where 380 = res_y
         self.bottom_line_y = int(self.res_y * 0.9473)
@@ -150,6 +149,15 @@ class ArenitoVision:
         # +------------------------+
         # previously 140
         self.vertical_line_thickness = int(self.res_x * 0.21875)
+
+        # Combining both bottom_line and vertical_line gives us the mask
+        # of the collision-with-blue area.
+        # +------------------------+
+        # |                        |
+        # |           __           |
+        # |          |  |          |
+        # |----------|--|----------|
+        # +------------------------+
 
         # Minimum size for a rect to be considered a can
         self.min_can_area = 700
