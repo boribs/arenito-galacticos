@@ -6,9 +6,6 @@ import argparse
 from arenito_com import *
 from arenito_vision import *
 
-RES_X = 640
-RES_Y = 380
-
 # Cuenta cuantas instrucciones lleva buscando latas
 lr_count = 0
 LR_COUNT_MAX = 20
@@ -51,12 +48,12 @@ def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: MatL
         com.send_instruction(Instruction.MOVE_LONG_RIGHT)
         lr_count = 0
 
-def get_image(com: ArenitoComms) -> MatLike:
+def get_image(com: ArenitoComms, vis: ArenitoVision) -> MatLike:
     """
-    Gets an image from ArenitoComms and resizes it to be RES_X x RES_Y.
+    Gets an image from ArenitoComms and resizes it.
     """
 
-    return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
+    return vis.resize(com.get_image())
 
 def main(com: ArenitoComms, vis: ArenitoVision, no_move: bool):
     """
@@ -64,7 +61,7 @@ def main(com: ArenitoComms, vis: ArenitoVision, no_move: bool):
     """
 
     while True:
-        frame = get_image(com)
+        frame = get_image(com, vis)
 
         if cv2.waitKey(1) == 27:
             break
@@ -97,15 +94,10 @@ if __name__ == '__main__':
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--no_move', '-n', action=argparse.BooleanOptionalAction, default=False)
 
-    com = ArenitoComms()
-    vis = ArenitoVision(RES_X, RES_Y, int(RES_X * 0.2))
     args = parser.parse_args()
-
-    if args.sim:
-        com.connect_simulation(args.flink)
-    else:
-        com.connect_serial(args.port, args.baudrate, args.timeout)
-        com.init_video()
+    mode = AIMode.Simulation if args.sim else AIMode.Real
+    com = ArenitoComms(mode, args)
+    vis = ArenitoVision(mode)
 
     try:
         main(com, vis, args.no_move)
