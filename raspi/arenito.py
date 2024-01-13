@@ -93,11 +93,12 @@ if __name__ == '__main__':
     parser.add_argument('flink', nargs='?', type=str, default='../sim/shmem_arenito')
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--no_move', '-n', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
 
     args = parser.parse_args()
     mode = AIMode.Simulation if args.sim else AIMode.Real
     com = ArenitoComms(mode, args)
-    vis = ArenitoVision(mode)
+    vis = ArenitoVision(mode, args)
 
     try:
         main(com, vis, args.no_move)

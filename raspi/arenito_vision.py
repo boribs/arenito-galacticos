@@ -4,6 +4,7 @@ from __future__ import annotations
 import cv2
 import math
 import numpy as np
+from argparse import Namespace
 from typing import NamedTuple
 from cv2.typing import MatLike, RotatedRect
 from arenito_com import AIMode
@@ -74,11 +75,19 @@ class ArenitoVision:
         AIMode.Real : (640, 380),
     }
 
-    def __init__(self, mode: AIMode):
+    def __init__(self, mode: AIMode, args: Namespace):
         if mode == AIMode.Simulation or mode == AIMode.Real:
             res = ArenitoVision.RESOLUTIONS[mode]
         else:
             raise Exception(f'No such mode {mode}')
+
+        match args.algorithm:
+            case 'blob-detector':
+                self.can_detection_function = self.blob_detector_method
+            case 'min-rect':
+                self.can_detection_function = self.min_rect_method
+            case other:
+                raise Exception(f'no such algorithm {other}')
 
         self.res_x, self.res_y = res
         self.margin_x = int(self.res_x * 0.2)
@@ -148,8 +157,6 @@ class ArenitoVision:
         params.maxInertiaRatio = 0.7
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
-
-        self.can_detection_function = self.blob_detector_method
 
     def resize(self, img: MatLike) -> MatLike:
         """
