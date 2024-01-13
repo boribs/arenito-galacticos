@@ -5,6 +5,7 @@ import math
 import numpy as np
 from typing import NamedTuple
 from cv2.typing import MatLike, RotatedRect
+from arenito_com import AIMode
 
 class Point(NamedTuple):
     """
@@ -50,14 +51,19 @@ class ArenitoVision:
     This is where every vision-related operation will be handled.
     """
 
-    def __init__(
-        self,
-        res_x: int,
-        res_y: int,
-        margin_x: int,
-    ):
-        self.res_x = res_x
-        self.res_y = res_y
+    RESOLUTIONS = {
+        AIMode.Simulation : (500, 500),
+        AIMode.Real : (640, 380),
+    }
+
+    def __init__(self, mode: AIMode):
+        if mode == AIMode.Simulation or mode == AIMode.Real:
+            res = ArenitoVision.RESOLUTIONS[mode]
+        else:
+            raise Exception(f'No such mode {mode}')
+
+        self.res_x, self.res_y = res
+        self.margin_x = int(self.res_x * 0.2)
 
         # Bottom center of the image
         #
@@ -66,7 +72,7 @@ class ArenitoVision:
         # |                        |
         # |                        |
         # +------------X-----------+
-        self.bottom_center = Point(res_x // 2, res_y)
+        self.bottom_center = Point(self.res_x // 2, self.res_y)
 
         # How close to the water is the robot allowed to be.
         # When no cans are found, move forward until running into water, then rotate.
@@ -81,7 +87,7 @@ class ArenitoVision:
         # |           ###          |
         # +------------------------+
         self.water_dist_from_center = 90
-        self.r_dot = Point(res_x // 2, res_y // 2 + self.water_dist_from_center)
+        self.r_dot = Point(self.res_x // 2, self.res_y // 2 + self.water_dist_from_center)
 
         # Area limits where a detection is considered to be centered.
         # +------------------------+
@@ -90,9 +96,8 @@ class ArenitoVision:
         # |          |   |         |
         # |          |   |         |
         # +------------------------+
-        self.margin_x = margin_x
-        self.center_x_min = res_x // 2 - margin_x
-        self.center_x_max = res_x // 2 + margin_x
+        self.center_x_min = self.res_x // 2 - self.margin_x
+        self.center_x_max = self.res_x // 2 + self.margin_x
 
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
@@ -207,6 +212,7 @@ class ArenitoVision:
         gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
         _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
 
+        # Maybe go back to using simple blob detector?
         cv2.imshow('black filter', mask)
 
         contours, _ = cv2.findContours(
