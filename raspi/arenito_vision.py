@@ -101,7 +101,7 @@ class ArenitoVision:
         self.min_px_water = 50
 
         # Minimum size for a rect to be considered a can
-        self.min_can_area = 1000
+        self.min_can_area = 700
 
         # Blob detector stuff
         params = cv2.SimpleBlobDetector.Params()
