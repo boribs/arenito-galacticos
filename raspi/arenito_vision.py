@@ -1,5 +1,6 @@
 # pyright: strict
 
+from __future__ import annotations
 import cv2
 import math
 import numpy as np
@@ -33,6 +34,18 @@ class Detection:
             sum(self.box[:,1]) // 4  # pyright: ignore
         )
         self.contour = contour
+
+    @staticmethod
+    def from_point(point: Point) -> Detection:
+        A = np.array((5, 5))
+        B = np.array((-5, 5))
+        D = np.array((5, -5))
+        C = np.array((-5, -5))
+        BASE = np.array([*point])
+
+        cnt = np.array((BASE + A, BASE + B, BASE + C, BASE + D))
+        rect = cv2.minAreaRect(cnt)
+        return Detection(rect, cnt)
 
 class ColorFilter:
     """
@@ -123,10 +136,10 @@ class ArenitoVision:
         # Minimum size for a rect to be considered a can
         self.min_can_area = 700
 
-        # Blob detector stuff
+        # Blob detector config
         params = cv2.SimpleBlobDetector.Params()
         params.filterByArea = True
-        params.minArea = 500
+        params.minArea = self.min_can_area
         params.maxArea = 300000
         params.filterByCircularity = False
         params.filterByConvexity = False
@@ -135,6 +148,8 @@ class ArenitoVision:
         params.maxInertiaRatio = 0.7
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
+
+        self.can_detection_function = self.blob_detector_method
 
     def resize(self, img: MatLike) -> MatLike:
         """
@@ -217,10 +232,9 @@ class ArenitoVision:
 
         return white_px < self.min_px_water
 
-    def find_cans(self, img: MatLike) -> list[Detection]:
+    def min_rect_method(self, img: MatLike) -> list[Detection]:
         """
-        Filters out cans by color and size.
-        This method replaces `ArenitoVision.find_blobs()`.
+        Filters out cans by color and size utilizing cv2.minAreaRect().
         """
 
         # Without this cans that are on the border are invisible
@@ -229,9 +243,6 @@ class ArenitoVision:
         # need better filter
         gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
         _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
-
-        # Maybe go back to using simple blob detector?
-        # cv2.imshow('black filter', mask)
 
         contours, _ = cv2.findContours(
             mask,
@@ -261,6 +272,38 @@ class ArenitoVision:
                     detections.append(det)
 
         return detections
+
+    def blob_detector_method(self, img: MatLike) -> list[Detection]:
+        """
+        Filters out cans by color and size using cv2's blob detector.
+        """
+
+        # Este borde es necesario porque sino no detecta las latas cerca
+        # de las esquinas de la imagen
+        img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
+
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        lower, upper = ColorFilter.BLACK
+        mask = cv2.inRange(hsv, lower, upper)
+
+
+        keypoints = self.blob_detector.detect(mask)
+        detections: list[Detection] = []
+
+        for k in keypoints:
+            det = Point(*map(int, k.pt))
+
+            if self.reachable(hsv, det):
+                detections.append(Detection.from_point(det))
+
+        return detections
+
+    def find_cans(self, img: MatLike) -> list[Detection]:
+        """
+        Runs the can detection algorithm.
+        """
+
+        return self.can_detection_function(img)
 
     def blur(self, img: MatLike) -> MatLike:
         """
