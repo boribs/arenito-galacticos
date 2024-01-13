@@ -231,7 +231,7 @@ class ArenitoVision:
         _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
 
         # Maybe go back to using simple blob detector?
-        cv2.imshow('black filter', mask)
+        # cv2.imshow('black filter', mask)
 
         contours, _ = cv2.findContours(
             mask,
