@@ -93,7 +93,6 @@ class ArenitoVision:
         self.margin_x = int(self.res_x * 0.2)
 
         # Bottom center of the image
-        #
         # +------------------------+
         # |                        |
         # |                        |
@@ -142,6 +141,16 @@ class ArenitoVision:
         # previously 380 - 20, where 380 = res_y
         self.bottom_line_y = int(self.res_y * 0.9473)
 
+        # This limits the vertical collision-with-blue area
+        # +------------------------+
+        # |                        |
+        # |           __           |
+        # |          |  |          |
+        # |          |  |          |
+        # +------------------------+
+        # previously 140
+        self.vertical_line_thickness = int(self.res_x * 0.21875)
+
         # Minimum size for a rect to be considered a can
         self.min_can_area = 700
 
@@ -170,7 +179,7 @@ class ArenitoVision:
         Adds visual markings to image to help visualize decisions.
         """
 
-        t = 70
+        t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
         b1 = Point(a1.x, self.r_dot.y)
         a2 = Point(self.bottom_center.x + t, self.bottom_center.y)
@@ -221,7 +230,6 @@ class ArenitoVision:
         self,
         img_hsv: MatLike,
         det: Point,
-        thickness: int = 140,
     ) -> bool:
         """
         Determines if a detection is reachable. Returns true if possible, otherwise false.
@@ -231,7 +239,7 @@ class ArenitoVision:
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
-        cv2.line(line, self.bottom_center, det, WHITE, thickness=thickness)
+        cv2.line(line, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
         cv2.rectangle(line, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
 
         cross = cv2.bitwise_and(mask_azul, line)
