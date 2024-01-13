@@ -183,7 +183,7 @@ class ArenitoVision:
         lower, upper = ColorFilter.BLUE
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
-        cv2.imshow('blue_filter', mask_azul)
+        # cv2.imshow('blue_filter', mask_azul)
 
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
         cv2.line(line, self.bottom_center, det, (255, 255, 255), thickness=thickness)
@@ -199,11 +199,6 @@ class ArenitoVision:
         Filters out cans by color and size.
         This method replaces `ArenitoVision.find_blobs()`.
         """
-
-        # img = cv2.bilateralFilter(img, 25, 100, 100)
-        # img = cv2.medianBlur(img, 9)
-        # this seems to be the best compromise between performance and results
-        img = cv2.GaussianBlur(img, (51, 51), 0)
 
         # Without this cans that are on the border are invisible
         gray = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
@@ -242,3 +237,13 @@ class ArenitoVision:
                     detections.append(det)
 
         return detections
+
+    def blur(self, img: MatLike) -> MatLike:
+        """
+        Applies a blur filter.
+        """
+
+        # img = cv2.bilateralFilter(img, 25, 100, 100)
+        # img = cv2.medianBlur(img, 9)
+        # this seems to be the best compromise between performance and results
+        return cv2.GaussianBlur(img, (51, 51), 0)
