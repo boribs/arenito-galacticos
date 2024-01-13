@@ -203,13 +203,10 @@ class SimInterface:
         im = Image.frombytes('RGB', (1024, 1024), raw_img) # pyright: ignore[reportUnknownMemberType]
 
         # for some reason blue and red channels are swapped?
-        r, g, b = im.split()
-        return np.array(Image.merge('RGB', (b, g, r)))
+        # r, g, b = im.split()
+        # return np.array(Image.merge('RGB', (b, g, r)))
 
-        # this also works but seems to cause some weird side effects on
-        # the spatial awareness side on the simulation...
-        # it is faster, though
-        # return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+        return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
 
     def wait_confirmation(self):
         """
