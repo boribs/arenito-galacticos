@@ -21,11 +21,11 @@ def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: Point):
     x, _ = det
 
     if vis.center_x_max <= x:
-        com.send_instruction(Instruction.MOVE_RIGHT)
+        com.send_instruction(Instruction.MoveRight)
     elif vis.center_x_min >= x:
-        com.send_instruction(Instruction.MOVE_LEFT)
+        com.send_instruction(Instruction.MoveLeft)
     else: # está centrado, avanza
-        com.send_instruction(Instruction.MOVE_FORWARD)
+        com.send_instruction(Instruction.MoveForward)
 
     lr_count = 0
 
@@ -38,14 +38,14 @@ def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: MatL
     global lr_count
 
     if vis.reachable(hsv_frame, vis.r_dot):           # si puede, avanza
-        com.send_instruction(Instruction.MOVE_FORWARD)
+        com.send_instruction(Instruction.MoveForward)
     else:                                             # si no, gira
-        com.send_instruction(Instruction.MOVE_RIGHT)
+        com.send_instruction(Instruction.MoveRight)
 
     lr_count += 1
 
     if lr_count == LR_COUNT_MAX:
-        com.send_instruction(Instruction.MOVE_LONG_RIGHT)
+        com.send_instruction(Instruction.MoveLongRight)
         lr_count = 0
 
 def get_image(com: ArenitoComms, vis: ArenitoVision) -> MatLike:
