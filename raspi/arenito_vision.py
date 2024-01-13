@@ -8,6 +8,9 @@ from cv2.typing import MatLike, RotatedRect
 from arenito_com import AIMode
 
 WHITE = (255, 255, 255)
+BLUE = (255, 0, 0)
+GREEN = (0, 255, 0)
+RED = (0, 0, 255)
 
 class Point(NamedTuple):
     """
@@ -166,21 +169,21 @@ class ArenitoVision:
             det_img,
             (self.center_x_min, 0),
             (self.center_x_min, self.res_y),
-            color=(255,0,0),
+            BLUE,
             thickness=1,
         )
         cv2.line(
             det_img,
             (self.center_x_max, 0),
             (self.center_x_max, self.res_y),
-            color=(255,0,0),
+            BLUE,
             thickness=1,
         )
 
         for det in detections:
-            cv2.circle(det_img, det.center, 10, (255, 255, 255), 10)
-            cv2.drawContours(det_img, [det.contour], -1, (0, 255, 0), 1, cv2.LINE_AA) # pyright: ignore
-            cv2.drawContours(det_img, [det.box], -1, (255, 0, 0), 1, cv2.LINE_AA) # pyright: ignore
+            cv2.circle(det_img, det.center, 10, WHITE, 10)
+            cv2.drawContours(det_img, [det.contour], -1, GREEN, 1, cv2.LINE_AA) # pyright: ignore
+            cv2.drawContours(det_img, [det.box], -1, RED, 1, cv2.LINE_AA) # pyright: ignore
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -206,7 +209,7 @@ class ArenitoVision:
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
-        cv2.line(line, self.bottom_center, det, (255, 255, 255), thickness=thickness)
+        cv2.line(line, self.bottom_center, det, WHITE, thickness=thickness)
         cv2.rectangle(line, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
 
         cross = cv2.bitwise_and(mask_azul, line)
@@ -221,7 +224,7 @@ class ArenitoVision:
         """
 
         # Without this cans that are on the border are invisible
-        gray = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
+        gray = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
 
         # need better filter
         gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
