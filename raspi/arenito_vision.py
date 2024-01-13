@@ -7,6 +7,8 @@ from typing import NamedTuple
 from cv2.typing import MatLike, RotatedRect
 from arenito_com import AIMode
 
+WHITE = (255, 255, 255)
+
 class Point(NamedTuple):
     """
     A basic point implementation.
@@ -105,6 +107,16 @@ class ArenitoVision:
         # and any given point for it to be considered `unreachable`.
         self.min_px_water = 50
 
+        # This limits the bottom collision-with-blue area
+        # +------------------------+
+        # |                        |
+        # |                        |
+        # |- - - - - - - - - - - - | <- This line
+        # |                        |
+        # +------------------------+
+        # previously 380 - 20, where 380 = res_y
+        self.bottom_line_y = int(self.res_y * 0.9473)
+
         # Minimum size for a rect to be considered a can
         self.min_can_area = 700
 
@@ -133,8 +145,6 @@ class ArenitoVision:
         Adds visual markings to image to help visualize decisions.
         """
 
-        WHITE = (255, 255, 255)
-
         t = 70
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
         b1 = Point(a1.x, self.r_dot.y)
@@ -147,8 +157,8 @@ class ArenitoVision:
 
         cv2.line(
             det_img,
-            (0, self.res_y - 20),
-            (self.res_x, self.res_y - 20),
+            (0, self.bottom_line_y),
+            (self.res_x, self.bottom_line_y),
             WHITE,
             thickness=1
         )
@@ -195,11 +205,9 @@ class ArenitoVision:
         lower, upper = ColorFilter.BLUE
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
-        # cv2.imshow('blue_filter', mask_azul)
-
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
         cv2.line(line, self.bottom_center, det, (255, 255, 255), thickness=thickness)
-        cv2.line(line, (0, self.res_y), (self.res_x, self.res_y), (255, 255, 255), thickness=40)
+        cv2.rectangle(line, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
 
         cross = cv2.bitwise_and(mask_azul, line)
         white_px = np.count_nonzero(cross)
@@ -231,7 +239,7 @@ class ArenitoVision:
         img_h, img_w, _ = img.shape
         img_h -= 5
         img_w -= 5
-        # Expects BGR because ...?
+        # BGR -> HSV instead of RGB -> HSV because ...?
         img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         detections: list[Detection] = []
