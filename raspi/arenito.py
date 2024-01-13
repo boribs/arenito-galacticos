@@ -66,13 +66,13 @@ def main(com: ArenitoComms, vis: ArenitoVision, no_move: bool):
         if cv2.waitKey(1) == 27:
             break
 
+        original = frame.copy()
         blurred = vis.blur(frame)
 
         detections = vis.find_cans(blurred)
-        pov = frame.copy()
-        vis.add_markings(pov, detections)
+        vis.add_markings(original, detections)
 
-        cv2.imshow('arenito pov', pov)
+        cv2.imshow('arenito pov', original)
 
         if no_move:
             continue
