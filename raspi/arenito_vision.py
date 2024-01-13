@@ -121,6 +121,13 @@ class ArenitoVision:
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
+    def resize(self, img: MatLike) -> MatLike:
+        """
+        Resizes the raw image to the expected size.
+        """
+
+        return cv2.resize(img, (self.res_x, self.res_y))
+
     def add_markings(self, det_img: MatLike, detections: list[Detection]):
         """
         Adds visual markings to image to help visualize decisions.
