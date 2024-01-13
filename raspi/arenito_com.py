@@ -2,6 +2,7 @@
 
 import subprocess, cv2
 import numpy as np
+from argparse import Namespace
 from cv2.typing import MatLike
 from enum import Enum, auto
 from serial import Serial
@@ -9,6 +10,11 @@ from multiprocessing.shared_memory import SharedMemory
 from multiprocessing import resource_tracker
 from PIL import Image
 
+class AIMode(Enum):
+    Simulation = auto()
+    Real = auto()
+
+# TODO: MOVE_FORWARD -> MoveForward
 class Instruction(Enum):
     MOVE_FORWARD = auto()
     MOVE_LEFT = auto()
@@ -34,10 +40,18 @@ class ArenitoComms:
     Also gets information from and to the simulation.
     """
 
-    def __init__(self):
+    def __init__(self, mode: AIMode, args: Namespace):
         self.serial: SerialInterface | None = None
         self.video_capture: cv2.VideoCapture | None = None
         self.sim_interface: SimInterface | None = None
+
+        if mode == AIMode.Simulation:
+            self.connect_simulation(args.flink)
+        elif mode == AIMode.Real:
+            self.connect_serial(args.port, args.baudrate, args.timeout)
+            self.init_video()
+        else:
+            raise Exception(f'No such mode {mode}')
 
     def init_video(self, device_index: int = 0):
         """
