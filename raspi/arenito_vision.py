@@ -200,6 +200,11 @@ class ArenitoVision:
         This method replaces `ArenitoVision.find_blobs()`.
         """
 
+        # img = cv2.bilateralFilter(img, 25, 100, 100)
+        # img = cv2.medianBlur(img, 9)
+        # this seems to be the best compromise between performance and results
+        img = cv2.GaussianBlur(img, (51, 51), 0)
+
         # Without this cans that are on the border are invisible
         gray = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
 

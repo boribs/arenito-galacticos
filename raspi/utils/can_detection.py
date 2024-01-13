@@ -7,12 +7,18 @@ cv2.imshow('Binary image', img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-mask = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+blurred = cv2.bilateralFilter(img, 9, 100, 100)
+
+cv2.imshow('Blurred', blurred)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+mask = cv2.cvtColor(blurred, cv2.COLOR_RGB2GRAY)
 
 # this also happens to filter black!
 ret, thresh = cv2.threshold(mask, 50, 255, cv2.RETR_EXTERNAL)
 
-cv2.imshow('Binary image', thresh)
+cv2.imshow('Threshold', thresh)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
