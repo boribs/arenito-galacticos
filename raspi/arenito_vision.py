@@ -1,10 +1,18 @@
 # pyright: strict
 
+from __future__ import annotations
 import cv2
 import math
 import numpy as np
+from argparse import Namespace
 from typing import NamedTuple
-from cv2.typing import MatLike
+from cv2.typing import MatLike, RotatedRect
+from arenito_com import AIMode
+
+WHITE = (255, 255, 255)
+BLUE = (255, 0, 0)
+GREEN = (0, 255, 0)
+RED = (0, 0, 255)
 
 class Point(NamedTuple):
     """
@@ -13,6 +21,32 @@ class Point(NamedTuple):
 
     x: int
     y: int
+
+class Detection:
+    """
+    Stores detection data.
+    """
+
+    def __init__(self, rect: RotatedRect, contour: MatLike):
+        self.rect = rect
+        self.box = np.int0(cv2.boxPoints(rect)) # pyright: ignore
+        self.center = Point(
+            sum(self.box[:,0]) // 4, # pyright: ignore
+            sum(self.box[:,1]) // 4  # pyright: ignore
+        )
+        self.contour = contour
+
+    @staticmethod
+    def from_point(point: Point) -> Detection:
+        A = np.array((5, 5))
+        B = np.array((-5, 5))
+        D = np.array((5, -5))
+        C = np.array((-5, -5))
+        BASE = np.array([*point])
+
+        cnt = np.array((BASE + A, BASE + B, BASE + C, BASE + D))
+        rect = cv2.minAreaRect(cnt)
+        return Detection(rect, cnt)
 
 class ColorFilter:
     """
@@ -23,6 +57,8 @@ class ColorFilter:
     BLUE = (
         np.array([75, 160, 88]),   # lower
         np.array([175, 255, 255]), # upper
+        # np.array([57, 76, 77]),   # lower
+        # np.array([118, 255, 210]), # upper
     )
     BLACK = (
         np.array([0, 0, 69]),      # lower
@@ -34,23 +70,35 @@ class ArenitoVision:
     This is where every vision-related operation will be handled.
     """
 
-    def __init__(
-        self,
-        res_x: int,
-        res_y: int,
-        margin_x: int,
-    ):
-        self.res_x = res_x
-        self.res_y = res_y
+    RESOLUTIONS = {
+        AIMode.Simulation : (500, 500),
+        AIMode.Real : (640, 380),
+    }
+
+    def __init__(self, mode: AIMode, args: Namespace):
+        if mode == AIMode.Simulation or mode == AIMode.Real:
+            res = ArenitoVision.RESOLUTIONS[mode]
+        else:
+            raise Exception(f'No such mode {mode}')
+
+        match args.algorithm:
+            case 'blob-detector':
+                self.can_detection_function = self.blob_detector_method
+            case 'min-rect':
+                self.can_detection_function = self.min_rect_method
+            case other:
+                raise Exception(f'no such algorithm {other}')
+
+        self.res_x, self.res_y = res
+        self.margin_x = int(self.res_x * 0.2)
 
         # Bottom center of the image
-        #
         # +------------------------+
         # |                        |
         # |                        |
         # |                        |
         # +------------X-----------+
-        self.bottom_center = Point(res_x // 2, res_y)
+        self.bottom_center = Point(self.res_x // 2, self.res_y)
 
         # How close to the water is the robot allowed to be.
         # When no cans are found, move forward until running into water, then rotate.
@@ -65,7 +113,7 @@ class ArenitoVision:
         # |           ###          |
         # +------------------------+
         self.water_dist_from_center = 90
-        self.r_dot = Point(res_x // 2, res_y // 2 + self.water_dist_from_center)
+        self.r_dot = Point(self.res_x // 2, self.res_y // 2 + self.water_dist_from_center)
 
         # Area limits where a detection is considered to be centered.
         # +------------------------+
@@ -74,9 +122,8 @@ class ArenitoVision:
         # |          |   |         |
         # |          |   |         |
         # +------------------------+
-        self.margin_x = margin_x
-        self.center_x_min = res_x // 2 - margin_x
-        self.center_x_max = res_x // 2 + margin_x
+        self.center_x_min = self.res_x // 2 - self.margin_x
+        self.center_x_max = self.res_x // 2 + self.margin_x
 
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
@@ -84,10 +131,41 @@ class ArenitoVision:
         # and any given point for it to be considered `unreachable`.
         self.min_px_water = 50
 
-        # Blob detector stuff
+        # This limits the bottom collision-with-blue area
+        # +------------------------+
+        # |                        |
+        # |                        |
+        # |- - - - - - - - - - - - | <- This line
+        # +------------------------+
+        # previously 380 - 20, where 380 = res_y
+        self.bottom_line_y = int(self.res_y * 0.9473)
+
+        # This limits the vertical collision-with-blue area
+        # +------------------------+
+        # |                        |
+        # |           __           |
+        # |          |  |          |
+        # |          |  |          |
+        # +------------------------+
+        # previously 140
+        self.vertical_line_thickness = int(self.res_x * 0.21875)
+
+        # Combining both bottom_line and vertical_line gives us the mask
+        # of the collision-with-blue area.
+        # +------------------------+
+        # |                        |
+        # |           __           |
+        # |          |  |          |
+        # |----------|--|----------|
+        # +------------------------+
+
+        # Minimum size for a rect to be considered a can
+        self.min_can_area = 700
+
+        # Blob detector config
         params = cv2.SimpleBlobDetector.Params()
         params.filterByArea = True
-        params.minArea = 500
+        params.minArea = self.min_can_area
         params.maxArea = 300000
         params.filterByCircularity = False
         params.filterByConvexity = False
@@ -97,14 +175,19 @@ class ArenitoVision:
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
-    def add_markings(self, det_img: MatLike):
+    def resize(self, img: MatLike) -> MatLike:
+        """
+        Resizes the raw image to the expected size.
+        """
+
+        return cv2.resize(img, (self.res_x, self.res_y))
+
+    def add_markings(self, det_img: MatLike, detections: list[Detection]):
         """
         Adds visual markings to image to help visualize decisions.
         """
 
-        WHITE = (255, 255, 255)
-
-        t = 70
+        t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
         b1 = Point(a1.x, self.r_dot.y)
         a2 = Point(self.bottom_center.x + t, self.bottom_center.y)
@@ -116,8 +199,8 @@ class ArenitoVision:
 
         cv2.line(
             det_img,
-            (0, self.res_y - 20),
-            (self.res_x, self.res_y - 20),
+            (0, self.bottom_line_y),
+            (self.res_x, self.bottom_line_y),
             WHITE,
             thickness=1
         )
@@ -125,16 +208,21 @@ class ArenitoVision:
             det_img,
             (self.center_x_min, 0),
             (self.center_x_min, self.res_y),
-            color=(255,0,0),
+            BLUE,
             thickness=1,
         )
         cv2.line(
             det_img,
             (self.center_x_max, 0),
             (self.center_x_max, self.res_y),
-            color=(255,0,0),
+            BLUE,
             thickness=1,
         )
+
+        for det in detections:
+            cv2.circle(det_img, det.center, 10, WHITE, 10)
+            cv2.drawContours(det_img, [det.contour], -1, GREEN, 1, cv2.LINE_AA) # pyright: ignore
+            cv2.drawContours(det_img, [det.box], -1, RED, 1, cv2.LINE_AA) # pyright: ignore
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -150,7 +238,6 @@ class ArenitoVision:
         self,
         img_hsv: MatLike,
         det: Point,
-        thickness: int = 140,
     ) -> bool:
         """
         Determines if a detection is reachable. Returns true if possible, otherwise false.
@@ -160,48 +247,93 @@ class ArenitoVision:
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
         line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
-        cv2.line(line, self.bottom_center, det, (255, 255, 255), thickness=thickness)
-        cv2.line(line, (0, self.res_y), (self.res_x, self.res_y), (255, 255, 255), thickness=40)
+        cv2.line(line, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
+        cv2.rectangle(line, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
 
         cross = cv2.bitwise_and(mask_azul, line)
         white_px = np.count_nonzero(cross)
 
-        # cv2.imshow('aaaa', mask_azul)
-
         return white_px < self.min_px_water
 
-    def find_blobs(self, img: MatLike) -> tuple[MatLike, list[Point]]:
+    def min_rect_method(self, img: MatLike) -> list[Detection]:
         """
-        Finds the positions of every can by applying a color filter to the image and
-        calling SimpleBlobDetector's `detect()` method.
+        Filters out cans by color and size utilizing cv2.minAreaRect().
+        """
 
-        Returns only reachable positions.
-        TODO: Parameter to enable circle drawing on reachable elements.
+        # Without this cans that are on the border are invisible
+        gray = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
+
+        # need better filter
+        gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
+        _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
+
+        contours, _ = cv2.findContours(
+            mask,
+            cv2.RETR_TREE,
+            cv2.CHAIN_APPROX_NONE
+        )
+
+        img_h, img_w, _ = img.shape
+        img_h -= 5
+        img_w -= 5
+        # BGR -> HSV instead of RGB -> HSV because ...?
+        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+        detections: list[Detection] = []
+        for cnt in contours:
+            rect = cv2.minAreaRect(cnt)
+            w, h = rect[1]
+
+            # discard full image contours
+            if w >= img_w or h >= img_h:
+                continue
+
+            if w * h > self.min_can_area:
+                det = Detection(rect, cnt)
+
+                if self.reachable(img_hsv, det.center):
+                    detections.append(det)
+
+        return detections
+
+    def blob_detector_method(self, img: MatLike) -> list[Detection]:
+        """
+        Filters out cans by color and size using cv2's blob detector.
         """
 
         # Este borde es necesario porque sino no detecta las latas cerca
         # de las esquinas de la imagen
-        img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, [255, 255, 255])
+        img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
 
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         lower, upper = ColorFilter.BLACK
         mask = cv2.inRange(hsv, lower, upper)
 
-        keypoints = self.blob_detector.detect(mask)
-        im_with_keypoints = cv2.drawKeypoints(
-            img,
-            keypoints,
-            np.array([]), # pyright: ignore
-            (0, 0, 255),
-            cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
-        )
 
-        detections: list[Point] = []
+        keypoints = self.blob_detector.detect(mask)
+        detections: list[Detection] = []
 
         for k in keypoints:
             det = Point(*map(int, k.pt))
-            if self.reachable(hsv, det):
-                detections.append(det)
-                cv2.circle(im_with_keypoints, det, 10, (255, 0, 0), 10)
 
-        return im_with_keypoints, sorted(detections, key=self.dist_from_center)
+            if self.reachable(hsv, det):
+                detections.append(Detection.from_point(det))
+
+        return detections
+
+    def find_cans(self, img: MatLike) -> list[Detection]:
+        """
+        Runs the can detection algorithm.
+        """
+
+        return self.can_detection_function(img)
+
+    def blur(self, img: MatLike) -> MatLike:
+        """
+        Applies a blur filter.
+        """
+
+        # img = cv2.bilateralFilter(img, 25, 100, 100)
+        # img = cv2.medianBlur(img, 9)
+        # this seems to be the best compromise between performance and results
+        return cv2.GaussianBlur(img, (51, 51), 0)

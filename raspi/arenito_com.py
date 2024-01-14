@@ -2,6 +2,7 @@
 
 import subprocess, cv2
 import numpy as np
+from argparse import Namespace
 from cv2.typing import MatLike
 from enum import Enum, auto
 from serial import Serial
@@ -9,21 +10,25 @@ from multiprocessing.shared_memory import SharedMemory
 from multiprocessing import resource_tracker
 from PIL import Image
 
+class AIMode(Enum):
+    Simulation = auto()
+    Real = auto()
+
 class Instruction(Enum):
-    MOVE_FORWARD = auto()
-    MOVE_LEFT = auto()
-    MOVE_RIGHT = auto()
-    MOVE_BACK = auto()
-    MOVE_LONG_RIGHT = auto()
-    REQUEST_FRAME = auto()
+    MoveForward = auto()
+    MoveLeft = auto()
+    MoveRight = auto()
+    MoveBack = auto()
+    MoveLongRight = auto()
+    RequestFrame = auto()
 
 INSTRUCTION_MAP = {
-    Instruction.MOVE_FORWARD: 'a',
-    Instruction.MOVE_LEFT: 'i',
-    Instruction.MOVE_RIGHT: 'd',
-    Instruction.MOVE_BACK: 'r',
-    Instruction.MOVE_LONG_RIGHT: 'l',
-    Instruction.REQUEST_FRAME: 'ss', # I don't think I need you
+    Instruction.MoveForward: 'a',
+    Instruction.MoveLeft: 'i',
+    Instruction.MoveRight: 'd',
+    Instruction.MoveBack: 'r',
+    Instruction.MoveLongRight: 'l',
+    Instruction.RequestFrame: 'ss', # I don't think I need you
 }
 
 class ArenitoComms:
@@ -34,10 +39,18 @@ class ArenitoComms:
     Also gets information from and to the simulation.
     """
 
-    def __init__(self):
+    def __init__(self, mode: AIMode, args: Namespace):
         self.serial: SerialInterface | None = None
         self.video_capture: cv2.VideoCapture | None = None
         self.sim_interface: SimInterface | None = None
+
+        if mode == AIMode.Simulation:
+            self.connect_simulation(args.flink)
+        elif mode == AIMode.Real:
+            self.connect_serial(args.port, args.baudrate, args.timeout)
+            self.init_video()
+        else:
+            raise Exception(f'No such mode {mode}')
 
     def init_video(self, device_index: int = 0):
         """
@@ -197,19 +210,16 @@ class SimInterface:
         to be usable by AI.
         """
 
-        self.send_instruction(Instruction.REQUEST_FRAME)
+        self.send_instruction(Instruction.RequestFrame)
 
         raw_img = self.mem.buf[1 : SimInterface.IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', (1024, 1024), raw_img) # pyright: ignore[reportUnknownMemberType]
 
         # for some reason blue and red channels are swapped?
-        r, g, b = im.split()
-        return np.array(Image.merge('RGB', (b, g, r)))
+        # r, g, b = im.split()
+        # return np.array(Image.merge('RGB', (b, g, r)))
 
-        # this also works but seems to cause some weird side effects on
-        # the spatial awareness side on the simulation...
-        # it is faster, though
-        # return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+        return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
 
     def wait_confirmation(self):
         """
@@ -224,17 +234,17 @@ class SimInterface:
         Sends an instruction to the simulation.
         """
 
-        if instr == Instruction.REQUEST_FRAME:
+        if instr == Instruction.RequestFrame:
             self.set_sync_byte(SimInterface.AI_FRAME_REQUEST)
 
-        elif instr in (Instruction.MOVE_FORWARD, Instruction.MOVE_LEFT, Instruction.MOVE_RIGHT):
+        elif instr in (Instruction.MoveForward, Instruction.MoveLeft, Instruction.MoveRight):
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
             self.wait_confirmation()
 
-        elif instr == Instruction.MOVE_LONG_RIGHT: # long right = right
+        elif instr == Instruction.MoveLongRight: # long right = right
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
-            self.set_mov_instruction(ord(INSTRUCTION_MAP[Instruction.MOVE_RIGHT]))
+            self.set_mov_instruction(ord(INSTRUCTION_MAP[Instruction.MoveRight]))
             self.wait_confirmation()
 
         else:
