@@ -45,11 +45,10 @@ impl Plugin for ArenitoPlugin {
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut arenito: ResMut<Arenito>,
 ) {
-    arenito.spawn(&mut commands, &mut materials, &mut meshes, &asset_server);
+    arenito.spawn(&mut commands, &mut materials, &asset_server);
 }
 
 /// Reads user input and makes Arenito move.
@@ -173,7 +172,7 @@ impl Arenito {
             acc: Vec3::ZERO,
             rot: Vec3::ZERO,
             state: ArenitoState::Still,
-            cam_offset: Vec3::new(0.75, 1.3 + Arenito::CENTER.y, 0.0),
+            cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
             img_width,
             img_height,
@@ -190,11 +189,8 @@ impl Arenito {
         &mut self,
         commands: &mut Commands,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
     ) {
-        self.cam_area.compute_area(self.cam_offset);
-
         // This is 3D Arenito!
         commands
             .spawn((
@@ -249,11 +245,24 @@ impl Arenito {
                 ));
 
                 // Arenito mounted camera
-                let (x, y, z) = (self.cam_offset.x, self.cam_offset.y - Self::CENTER.y, self.cam_offset.z);
-                let mut t =
-                    Transform::from_xyz(x, y, z)
-                        .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
+                let (x, y, z) = (self.cam_offset.x, self.cam_offset.y, self.cam_offset.z);
+                let mut t = Transform::from_xyz(x, y, z).looking_to(Vec3::X, Vec3::Y);
                 t.rotate_z(self.cam_area.alpha);
+
+                self.cam_area.compute_area(self.cam_offset, Self::CENTER.y);
+
+                // Camera model
+                parent.spawn(PbrBundle {
+                    mesh: asset_server.load("models/camara.obj"),
+                    material: materials.add(Color::BLACK.into()),
+                    transform: Transform::from_xyz(x, y, z).with_rotation(Quat::from_euler(
+                        EulerRot::ZYX,
+                        self.cam_area.alpha,
+                        0.0,
+                        0.0,
+                    )),
+                    ..default()
+                });
 
                 // second window
                 // needed to capture Arenito's camera view.
@@ -281,28 +290,6 @@ impl Arenito {
                     },
                     ArenitoCamera,
                 ));
-
-                // Camera model
-                parent.spawn(PbrBundle {
-                    mesh: asset_server.load("models/camara.obj"),
-                    material: materials.add(Color::BLACK.into()),
-                    transform: Transform::from_xyz(x, y, z).with_rotation(Quat::from_euler(
-                        EulerRot::ZYX,
-                        self.cam_area.alpha,
-                        0.0,
-                        0.0,
-                    )),
-                    ..default()
-                });
-
-                // Area computation has to be done here, to spawn the mesh that
-                // displays Arenito's FOV.
-                parent.spawn(PbrBundle {
-                    mesh: meshes.add(self.cam_area.get_mesh()),
-                    material: materials.add(Color::WHITE.into()),
-                    transform: Transform::from_xyz(0.0, -Self::CENTER.y + 0.01, 0.0),
-                    ..default()
-                });
             });
     }
 
