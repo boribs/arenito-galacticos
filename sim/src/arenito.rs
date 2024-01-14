@@ -269,6 +269,19 @@ impl Arenito {
 
                 // Area computation has to be done here, to spawn the mesh that
                 // displays Arenito's FOV.
+                let (x, y, z) = (self.cam_offset.x, self.cam_offset.y, self.cam_offset.z);
+                parent.spawn(PbrBundle {
+                    mesh: asset_server.load("models/camara.obj"),
+                    material: materials.add(Color::BLACK.into()),
+                    transform: Transform::from_xyz(x, y, z).with_rotation(Quat::from_euler(
+                        EulerRot::ZYX,
+                        self.cam_area.alpha,
+                        0.0,
+                        0.0,
+                    )),
+                    ..default()
+                });
+
                 parent.spawn(PbrBundle {
                     mesh: meshes.add(self.cam_area.get_mesh()),
                     material: materials.add(Color::WHITE.into()),
@@ -828,7 +841,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.0, 0.0, 1.05),
             Vec3::new(0.0, 0.0, 4.00),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -860,7 +873,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-1.42583, 0.0, 0.0),
             Vec3::new(-4.0, 0.0, 0.0),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -876,7 +889,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-1.00821, 0.0, -1.00821),
             Vec3::new(-2.82842, 0.0, -2.82842),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -892,7 +905,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.0, 0.0, -1.25),
             Vec3::new(0.0, 0.0, -4.0),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -908,7 +921,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.88388, 0.0, -0.88388),
             Vec3::new(2.82842, 0.0, -2.82842),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -924,7 +937,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(1.61179, 0.0, -0.013083),
             Vec3::new(3.99986, 0.0, -0.032467),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -940,7 +953,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.71650, 0.00000, 0.73864),
             Vec3::new(2.78507, 0.00000, 2.87113),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -956,7 +969,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-0.22446, 0.00000, -1.28566),
             Vec3::new(-0.68794, 0.00000, -3.94040),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -972,7 +985,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-1.36747, 0.00000, 1.35444),
             Vec3::new(-2.84194, 0.00000, 2.81485),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -988,7 +1001,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-0.24098, 0.00000, -1.37428),
             Vec3::new(-0.69086, 0.00000, -3.93989),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1004,7 +1017,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.89284, 0.00000, 0.62933),
             Vec3::new(3.26943, 0.00000, 2.30452),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1020,7 +1033,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.70439, 0.00000, 1.62769),
             Vec3::new(1.58864, 0.00000, 3.67100),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1036,7 +1049,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-1.02897, 0.00000, -1.60829),
             Vec3::new(-2.15571, 0.00000, -3.36941),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1052,7 +1065,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-0.93676, 0.00000, -1.36294),
             Vec3::new(-2.26568, 0.00000, -3.29646),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1068,7 +1081,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(-0.48455, 0.00000, 1.38236),
             Vec3::new(-1.32316, 0.00000, 3.77482),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1094,7 +1107,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(1.10000, 0.00000, 0.00000),
             Vec3::new(0.47800, 0.00000, 0.00000),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1108,7 +1121,7 @@ mod arenito_tests {
         let mut arenito = Arenito::vel_acc(
             Vec3::new(0.0, 0.0, -1.10000),
             Vec3::new(0.0, 0.0, -0.47800),
-            Arenito::CENTER
+            Arenito::CENTER,
         );
         arenito.update_pos(16);
 
@@ -1128,7 +1141,7 @@ mod arenito_tests {
                 // is less than friction, Arenito should stop.
                 Vec3::new(cos, 0.0, sin) * rng.gen_range(0.0..FRIC_K),
                 Vec3::new(cos, 0.0, sin) * rng.gen_range(0.0..FRIC_K),
-                Arenito::CENTER
+                Arenito::CENTER,
             );
             arenito.update_pos(16);
 
@@ -1151,7 +1164,7 @@ mod arenito_tests {
             let mut arenito = Arenito::vel_acc(
                 Vec3::new(cos, 0.0, sin) * rng.gen_range(3.0..10.0),
                 Vec3::ZERO,
-                Arenito::CENTER
+                Arenito::CENTER,
             );
             arenito.forward();
             arenito.update_pos(16);
