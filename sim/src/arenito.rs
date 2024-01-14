@@ -246,9 +246,6 @@ impl Arenito {
 
                 // Arenito mounted camera
                 let (x, y, z) = (self.cam_offset.x, self.cam_offset.y, self.cam_offset.z);
-                let mut t = Transform::from_xyz(x, y, z).looking_to(Vec3::X, Vec3::Y);
-                t.rotate_z(self.cam_area.alpha);
-
                 self.cam_area.compute_area(self.cam_offset, Self::CENTER.y);
 
                 // Camera model
@@ -279,6 +276,8 @@ impl Arenito {
                     ))
                     .id();
 
+                let mut t = Transform::from_xyz(x, y, z).looking_to(Vec3::X, Vec3::Y);
+                t.rotate_z(self.cam_area.alpha + 0.001);
                 parent.spawn((
                     Camera3dBundle {
                         camera: Camera {
