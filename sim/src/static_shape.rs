@@ -203,20 +203,6 @@ impl CameraArea {
             (self.points[2].z + self.points[3].z) / 2.0,
         );
     }
-
-    pub fn get_mesh(&self) -> Mesh {
-        let mut points = self.points.clone();
-        points.push(points[0].clone());
-
-        let normals = vec![[1.0, 1.0, 1.0]; 5];
-        let uvs = vec![[1.0, 1.0]; 5];
-
-        let mut mesh = Mesh::new(PrimitiveTopology::LineStrip);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-        mesh
-    }
 }
 
 impl Default for CameraArea {
