@@ -37,7 +37,7 @@ impl Plugin for ArenitoPlugin {
 
         app.insert_resource(Arenito::new(self.img_width, self.img_height))
             .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, (arenito_mover, arenito_ai_mover));
+            .add_systems(Update, (arenito_mover, arenito_ai_mover, draw_camera_area));
     }
 }
 
@@ -96,6 +96,20 @@ fn arenito_ai_mover(
             }
         };
     }
+}
+
+fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
+    let mut points = arenito.cam_area.points.clone();
+    let q = Quat::from_euler(EulerRot::XYZ, arenito.rot.x, -arenito.rot.y, arenito.rot.z);
+
+    for i in 0..points.len() {
+        points[i] = q.mul_vec3(points[i]) + Vec3::new(arenito.center.x, 0.0, arenito.center.z);
+    }
+
+    for i in 0..points.len() - 1 {
+        gizmos.ray(points[i], points[i + 1] - points[i], Color::WHITE);
+    }
+    gizmos.ray(points[3], points[0] - points[3], Color::WHITE);
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
