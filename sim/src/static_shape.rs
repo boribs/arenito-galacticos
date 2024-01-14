@@ -144,7 +144,7 @@ impl CameraArea {
 
     /// Calculates the points (edges) that limit the camera's visible area,
     /// as well as the size of the trapeze.
-    pub fn compute_area(&mut self, cam_pos: Vec3) {
+    pub fn compute_area(&mut self, cam_pos: Vec3, arenito_y: f32) {
         // A and B are the closest points to the camera
         // in right-to-left order.
         // C and D are in left-to-right order, further away.
@@ -155,6 +155,7 @@ impl CameraArea {
         //
         //        cam
 
+        let cam_pos = cam_pos + Vec3::Y * (arenito_y - 0.01);
         let q = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, self.alpha);
         let mut points = CameraPrism::from_cam(&self).get_points();
 
@@ -187,7 +188,7 @@ impl CameraArea {
             let mxz = (p.z - cam_pos.z) / (p.x - cam_pos.x); // xz slope
 
             let x = cam_pos.x - (cam_pos.y / mxy);
-            points[i] = Vec3::new(x, 0.0, mxz * (x - cam_pos.x) + cam_pos.z);
+            points[i] = Vec3::new(x, 0.01, mxz * (x - cam_pos.x) + cam_pos.z);
         }
 
         self.points = points;
