@@ -37,7 +37,7 @@ impl Plugin for ArenitoPlugin {
 
         app.insert_resource(Arenito::new(self.img_width, self.img_height))
             .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, (arenito_mover, arenito_ai_mover));
+            .add_systems(Update, (arenito_mover, arenito_ai_mover, draw_camera_area));
     }
 }
 
@@ -45,11 +45,10 @@ impl Plugin for ArenitoPlugin {
 fn arenito_spawner(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut arenito: ResMut<Arenito>,
 ) {
-    arenito.spawn(&mut commands, &mut materials, &mut meshes, &asset_server);
+    arenito.spawn(&mut commands, &mut materials, &asset_server);
 }
 
 /// Reads user input and makes Arenito move.
@@ -96,6 +95,20 @@ fn arenito_ai_mover(
             }
         };
     }
+}
+
+fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
+    let mut points = arenito.cam_area.points.clone();
+    let q = Quat::from_euler(EulerRot::XYZ, arenito.rot.x, -arenito.rot.y, arenito.rot.z);
+
+    for i in 0..points.len() {
+        points[i] = q.mul_vec3(points[i]) + Vec3::new(arenito.center.x, 0.0, arenito.center.z);
+    }
+
+    for i in 0..points.len() - 1 {
+        gizmos.ray(points[i], points[i + 1] - points[i], Color::WHITE);
+    }
+    gizmos.ray(points[3], points[0] - points[3], Color::WHITE);
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
@@ -159,7 +172,7 @@ impl Arenito {
             acc: Vec3::ZERO,
             rot: Vec3::ZERO,
             state: ArenitoState::Still,
-            cam_offset: Vec3::new(0.75, 1.3 + Arenito::CENTER.y, 0.0),
+            cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
             img_width,
             img_height,
@@ -176,11 +189,8 @@ impl Arenito {
         &mut self,
         commands: &mut Commands,
         materials: &mut ResMut<Assets<StandardMaterial>>,
-        meshes: &mut ResMut<Assets<Mesh>>,
         asset_server: &Res<AssetServer>,
     ) {
-        self.cam_area.compute_area(self.cam_offset);
-
         // This is 3D Arenito!
         commands
             .spawn((
@@ -235,11 +245,21 @@ impl Arenito {
                 ));
 
                 // Arenito mounted camera
-                let (x, y, z) = (self.cam_offset.x, self.cam_offset.y - Self::CENTER.y, self.cam_offset.z);
-                let mut t =
-                    Transform::from_xyz(x, y, z)
-                        .looking_to(Vec3::new(1.0, 0.0, 0.0), Vec3::Y);
-                t.rotate_z(self.cam_area.alpha);
+                let (x, y, z) = (self.cam_offset.x, self.cam_offset.y, self.cam_offset.z);
+                self.cam_area.compute_area(self.cam_offset, Self::CENTER.y);
+
+                // Camera model
+                parent.spawn(PbrBundle {
+                    mesh: asset_server.load("models/camara.obj"),
+                    material: materials.add(Color::BLACK.into()),
+                    transform: Transform::from_xyz(x, y, z).with_rotation(Quat::from_euler(
+                        EulerRot::ZYX,
+                        self.cam_area.alpha,
+                        0.0,
+                        0.0,
+                    )),
+                    ..default()
+                });
 
                 // second window
                 // needed to capture Arenito's camera view.
@@ -256,6 +276,8 @@ impl Arenito {
                     ))
                     .id();
 
+                let mut t = Transform::from_xyz(x, y, z).looking_to(Vec3::X, Vec3::Y);
+                t.rotate_z(self.cam_area.alpha + 0.001);
                 parent.spawn((
                     Camera3dBundle {
                         camera: Camera {
@@ -267,28 +289,6 @@ impl Arenito {
                     },
                     ArenitoCamera,
                 ));
-
-                // Camera model
-                parent.spawn(PbrBundle {
-                    mesh: asset_server.load("models/camara.obj"),
-                    material: materials.add(Color::BLACK.into()),
-                    transform: Transform::from_xyz(x, y, z).with_rotation(Quat::from_euler(
-                        EulerRot::ZYX,
-                        self.cam_area.alpha,
-                        0.0,
-                        0.0,
-                    )),
-                    ..default()
-                });
-
-                // Area computation has to be done here, to spawn the mesh that
-                // displays Arenito's FOV.
-                parent.spawn(PbrBundle {
-                    mesh: meshes.add(self.cam_area.get_mesh()),
-                    material: materials.add(Color::WHITE.into()),
-                    transform: Transform::from_xyz(0.0, -Self::CENTER.y + 0.01, 0.0),
-                    ..default()
-                });
             });
     }
 

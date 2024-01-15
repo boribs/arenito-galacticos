@@ -300,7 +300,7 @@ fn spawn_basic_scene_with_cans(
     },));
 
     let data = [
-    //   x,   z,   ry
+        //   x,   z,   ry
         (3.0, 3.0, 0.6),
         (5.0, 4.0, 0.9),
         (4.7, 0.4, 3.2),
