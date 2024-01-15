@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Can;
-
 pub struct CanData {
     pos: Vec3,
     rot: Quat,
@@ -100,7 +98,7 @@ impl CanManager {
                     .with_rotation(can_data.rot),
                 ..default()
             },
-            Can,
+            can_data,
         ));
     }
 }
