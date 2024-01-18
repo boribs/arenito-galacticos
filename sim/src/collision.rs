@@ -10,17 +10,9 @@ pub enum CollisionType {
 
 /// Collision trait!
 pub trait WithCollision {
-    fn get_type(&self) -> CollisionType;
-    fn collides_with(&self, object: &impl WithCollision) -> bool {
-        match object.get_type() {
-            CollisionType::Distance => self.collides_with_distance(object),
-            CollisionType::Mesh => self.collides_with_mesh(object),
-        }
-    }
-    fn collides_with_distance(&self, object: &impl WithCollision) -> bool;
-    fn collides_with_mesh(&self, object: &impl WithCollision) -> bool;
+    fn collides_with_distance(&self, object: &DistanceCollider) -> bool;
+    fn collides_with_mesh(&self, object: &MeshCollider) -> bool;
 }
-
 
 /// Can also be refered to as "Shpere collider".
 /// Checks the distance from this object to another.
@@ -39,20 +31,18 @@ impl <'a>DistanceCollider<'a> {
 }
 
 impl WithCollision for DistanceCollider<'_> {
-    fn get_type(&self) -> CollisionType {
-        CollisionType::Distance
+    fn collides_with_distance(&self, object: &DistanceCollider) -> bool {
+        self.center.distance(*object.center) < self.radius + object.radius
     }
 
-    fn collides_with_distance(&self, object: &impl WithCollision) -> bool {
-        todo!()
-    }
-
-    fn collides_with_mesh(&self, object: &impl WithCollision) -> bool {
-        todo!()
+    #[allow(unused)]
+    fn collides_with_mesh(&self, object: &MeshCollider) -> bool {
+        todo!("distance-vs-mesh collision")
     }
 }
 
 /// Convex Hull collider.
+#[allow(unused)]
 pub struct MeshCollider<'a> {
     center: &'a Vec3,
     hull: Vec<Vec3>,
@@ -65,15 +55,13 @@ impl <'a>MeshCollider<'a> {
 }
 
 impl WithCollision for MeshCollider<'_> {
-    fn get_type(&self) -> CollisionType {
-        CollisionType::Mesh
-    }
-
-    fn collides_with_distance(&self, object: &impl WithCollision) -> bool {
+    #[allow(unused)]
+    fn collides_with_distance(&self, object: &DistanceCollider) -> bool {
         todo!()
     }
 
-    fn collides_with_mesh(&self, object: &impl WithCollision) -> bool {
+    #[allow(unused)]
+    fn collides_with_mesh(&self, object: &MeshCollider) -> bool {
         todo!()
     }
 }
@@ -84,9 +72,18 @@ mod collision_tests {
 
     #[test]
     fn test_distance_collision() {
-        let a = DistanceCollider::new(10.0, &Vec3::ZERO);
-        let b = DistanceCollider::new(10.0, &Vec3::ONE);
+        let a = DistanceCollider::new(1.0, &Vec3::ZERO);
+        let b = DistanceCollider::new(1.0, &Vec3::ONE);
 
-        assert!(a.collides_with(&b))
+        assert!(a.collides_with_distance(&b))
+    }
+
+    #[test]
+    fn test_distance_collision_2() {
+        let a = DistanceCollider::new(1.0, &Vec3::ZERO);
+        let v = Vec3::new(3.0, 0.0, 0.0);
+        let b = DistanceCollider::new(1.0, &v);
+
+        assert!(!a.collides_with_distance(&b))
     }
 }
