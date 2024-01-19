@@ -1,86 +1,85 @@
 use bevy::prelude::*;
 
-// Collisions!
-// Every collidable object has to have some way of identification.
-pub enum CollisionType {
-    Distance,
-    Mesh,
-    // Cylinder, // soon
-}
+/// Every collidable object must implement some collision trait
 
-/// Collision trait!
-pub trait WithCollision {
-    fn collides_with_distance(&self, object: &DistanceCollider) -> bool;
-    fn collides_with_mesh(&self, object: &MeshCollider) -> bool;
-}
-
-/// Can also be refered to as "Shpere collider".
-/// Checks the distance from this object to another.
-pub struct DistanceCollider<'a> {
-    radius: f32,
-    center: &'a Vec3,
-}
-
-impl<'a> DistanceCollider<'a> {
-    pub fn new(radius: f32, center: &'a Vec3) -> Self {
-        DistanceCollider { radius, center }
+/// Distance collision (spherical collision)
+pub trait WithDistanceCollision {
+    fn collides_with_dist(&self, object: &impl WithDistanceCollision) -> bool {
+        self.get_pos().distance(object.get_pos()) < self.get_radius() + object.get_radius()
     }
+    fn get_pos(&self) -> Vec3;
+    fn get_radius(&self) -> f32;
 }
 
-impl WithCollision for DistanceCollider<'_> {
-    fn collides_with_distance(&self, object: &DistanceCollider) -> bool {
-        self.center.distance(*object.center) < self.radius + object.radius
-    }
-
-    #[allow(unused)]
-    fn collides_with_mesh(&self, object: &MeshCollider) -> bool {
-        todo!("distance-vs-mesh collision")
-    }
-}
-
-/// Convex Hull collider.
 #[allow(unused)]
-pub struct MeshCollider<'a> {
-    center: &'a Vec3,
-    hull: Vec<Vec3>,
-}
-
-impl<'a> MeshCollider<'a> {
-    pub fn new(center: &'a Vec3, hull: Vec<Vec3>) -> Self {
-        MeshCollider { center, hull }
-    }
-}
-
-impl WithCollision for MeshCollider<'_> {
-    #[allow(unused)]
-    fn collides_with_distance(&self, object: &DistanceCollider) -> bool {
+/// Mesh collision (convex hull collision)
+pub trait WithMeshCollision {
+    fn collides_with_mesh(&self, object: &impl WithMeshCollision) -> bool {
         todo!()
     }
-
-    #[allow(unused)]
-    fn collides_with_mesh(&self, object: &MeshCollider) -> bool {
-        todo!()
-    }
+    fn get_hull(&self) -> Vec<Vec3>;
 }
 
 #[cfg(test)]
 mod collision_tests {
     use super::*;
 
+    struct A {
+        pos: Vec3,
+        radius: f32,
+    }
+
+    impl A {
+        fn new(pos: Vec3, radius: f32) -> Self {
+            A { pos, radius }
+        }
+    }
+
+    impl WithDistanceCollision for A {
+        fn get_pos(&self) -> Vec3 {
+            self.pos
+        }
+        fn get_radius(&self) -> f32 {
+            self.radius
+        }
+    }
+
+    impl WithMeshCollision for A {
+        fn get_hull(&self) -> Vec<Vec3> {
+            Vec::new()
+        }
+    }
+
+    struct B;
+
+    impl WithMeshCollision for B {
+        fn get_hull(&self) -> Vec<Vec3> {
+            Vec::new()
+        }
+    }
+
     #[test]
     fn test_distance_collision() {
-        let a = DistanceCollider::new(1.0, &Vec3::ZERO);
-        let b = DistanceCollider::new(1.0, &Vec3::ONE);
+        let a = A::new(Vec3::ZERO, 1.0);
+        let b = A::new(Vec3::ONE, 1.0);
 
-        assert!(a.collides_with_distance(&b))
+        assert!(a.collides_with_dist(&b))
     }
 
     #[test]
     fn test_distance_collision_2() {
-        let a = DistanceCollider::new(1.0, &Vec3::ZERO);
-        let v = Vec3::new(3.0, 0.0, 0.0);
-        let b = DistanceCollider::new(1.0, &v);
+        let a = A::new(Vec3::ZERO, 1.0);
+        let b = A::new(Vec3::new(3.0, 0.0, 0.0), 1.0);
 
-        assert!(!a.collides_with_distance(&b))
+        assert!(!a.collides_with_dist(&b))
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_distance_with_mesh_collision() {
+        let a = A::new(Vec3::ZERO, 1.0);
+        let b = B;
+
+        assert!(a.collides_with_mesh(&b))
     }
 }
