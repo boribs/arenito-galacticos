@@ -47,6 +47,7 @@ fn main() {
             ArenitoPlugin {
                 img_width: 512.0,
                 img_height: 512.0,
+                enable_can_eating: true,
             },
         ))
         .run();

@@ -1,4 +1,5 @@
 use crate::{
+    cans::CanData,
     collision::WithDistanceCollision,
     sensor::{AISimMem, SimInstruction},
     static_shape::*,
@@ -28,6 +29,7 @@ const FRIC_K: f32 = 0.5;
 pub struct ArenitoPlugin {
     pub img_width: f32,
     pub img_height: f32,
+    pub enable_can_eating: bool,
 }
 
 impl Plugin for ArenitoPlugin {
@@ -39,6 +41,10 @@ impl Plugin for ArenitoPlugin {
         app.insert_resource(Arenito::new(self.img_width, self.img_height))
             .add_systems(Startup, arenito_spawner)
             .add_systems(Update, (arenito_mover, arenito_ai_mover, draw_camera_area));
+
+        if self.enable_can_eating {
+            app.add_systems(Update, eat_cans);
+        }
     }
 }
 
@@ -509,6 +515,15 @@ impl WithDistanceCollision for Arenito {
 
     fn get_radius(&self) -> f32 {
         0.4
+    }
+}
+
+/// Despawns cans when collided with Arenito
+pub fn eat_cans(mut commands: Commands, arenito: Res<Arenito>, cans: Query<(&CanData, Entity)>) {
+    for (can, ent) in cans.iter() {
+        if arenito.collides_with_dist(can) {
+            commands.entity(ent).despawn();
+        }
     }
 }
 
