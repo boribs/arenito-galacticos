@@ -21,12 +21,9 @@ pub struct DistanceCollider<'a> {
     center: &'a Vec3,
 }
 
-impl <'a>DistanceCollider<'a> {
+impl<'a> DistanceCollider<'a> {
     pub fn new(radius: f32, center: &'a Vec3) -> Self {
-        DistanceCollider {
-            radius,
-            center
-        }
+        DistanceCollider { radius, center }
     }
 }
 
@@ -48,7 +45,7 @@ pub struct MeshCollider<'a> {
     hull: Vec<Vec3>,
 }
 
-impl <'a>MeshCollider<'a> {
+impl<'a> MeshCollider<'a> {
     pub fn new(center: &'a Vec3, hull: Vec<Vec3>) -> Self {
         MeshCollider { center, hull }
     }

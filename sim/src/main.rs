@@ -1,8 +1,8 @@
 pub mod arenito;
+pub mod collision;
 pub mod scenes;
 pub mod sensor;
 pub mod static_shape;
-pub mod collision;
 
 use arenito::ArenitoPlugin;
 use bevy::{prelude::*, window::ExitCondition, winit::WinitSettings};
