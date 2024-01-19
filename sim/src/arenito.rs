@@ -44,11 +44,12 @@ impl Plugin for ArenitoPlugin {
 /// Spawns Arenito.
 fn arenito_spawner(
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
     mut arenito: ResMut<Arenito>,
 ) {
-    arenito.spawn(&mut commands, &mut materials, &asset_server);
+    arenito.spawn(&mut commands, &mut meshes, &mut materials, &asset_server);
 }
 
 /// Reads user input and makes Arenito move.
@@ -119,6 +120,7 @@ pub enum Arenito3D {
     Frame,
     LeftWheel,
     RightWheel,
+    Brush,
 }
 
 #[derive(Component)]
@@ -188,6 +190,7 @@ impl Arenito {
     pub fn spawn(
         &mut self,
         commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
         asset_server: &Res<AssetServer>,
     ) {
@@ -243,6 +246,24 @@ impl Arenito {
                     },
                     Arenito3D::LeftWheel,
                 ));
+
+                // rotating brush!
+                parent.spawn((
+                    PbrBundle {
+                        mesh: asset_server.load("models/cerdas.obj"),
+                        material: materials.add(Color::VIOLET.into()),
+                        transform: Transform::from_xyz(0.75, 0.4, 0.0),
+                        ..default()
+                    },
+                    Arenito3D::Brush,
+                ));
+
+                parent.spawn(PbrBundle {
+                    mesh: meshes.add(shape::Box::new(0.08, 0.08, 0.9).into()),
+                    material: materials.add(Color::GRAY.into()),
+                    transform: Transform::from_xyz(0.75, 0.4, 0.0),
+                    ..default()
+                });
 
                 // Arenito mounted camera
                 let (x, y, z) = (self.cam_offset.x, self.cam_offset.y, self.cam_offset.z);
