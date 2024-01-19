@@ -1,12 +1,5 @@
+use crate::collision::*;
 use bevy::prelude::*;
-
-#[derive(Component)]
-pub struct CanData {
-    pub pos: Vec3,
-    pub rot: Quat,
-    pub size: CanSize,
-    pub texture: CanTexture,
-}
 
 pub enum CanSize {
     Big,
@@ -16,6 +9,35 @@ pub enum CanSize {
 pub enum CanTexture {
     Shiny,
     Dirty,
+}
+
+#[derive(Component)]
+pub struct CanData {
+    pub pos: Vec3,
+    pub rot: Quat,
+    pub size: CanSize,
+    pub texture: CanTexture,
+}
+
+impl Default for CanData {
+    fn default() -> Self {
+        CanData {
+            pos: Vec3::ZERO,
+            rot: Quat::default(),
+            size: CanSize::Big,
+            texture: CanTexture::Shiny,
+        }
+    }
+}
+
+impl WithDistanceCollision for CanData {
+    fn get_pos(&self) -> Vec3 {
+        self.pos
+    }
+
+    fn get_radius(&self) -> f32 {
+        0.3
+    }
 }
 
 #[derive(Resource)]
