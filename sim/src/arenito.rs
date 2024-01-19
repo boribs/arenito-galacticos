@@ -1,4 +1,5 @@
 use crate::{
+    collision::WithDistanceCollision,
     sensor::{AISimMem, SimInstruction},
     static_shape::*,
 };
@@ -110,6 +111,8 @@ fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
         gizmos.ray(points[i], points[i + 1] - points[i], Color::WHITE);
     }
     gizmos.ray(points[3], points[0] - points[3], Color::WHITE);
+
+    arenito.draw_sphere(Color::WHITE, &mut gizmos);
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
@@ -150,6 +153,7 @@ pub struct Arenito {
     pub acc: Vec3,
     pub rot: Vec3,
     pub state: ArenitoState,
+    // Maybe put cam data inside CameraArea -- rename it to CameraData
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
     brush_offset: Vec3, // brush pos relative to Arenito's center
@@ -385,19 +389,14 @@ impl Arenito {
         self.update_model(vec, delta, arenito3d);
     }
 
-    /// Updates Arenito's position given some time in ms (`delta_ms`).
-    /// This method is suposed to be called every frame, where delta_ms
-    /// is the time between this frame's render and the previous one.
-    ///
-    /// Depending on Arenito's state it will:
-    ///   - Move forward
-    ///   - Rotate
+    /// Updates Arenito's position given some time in seconds (`delta`).
+    /// This method is suposed to be called every frame, where delta
+    /// is the time between this frame's render and the previous.
     fn update_pos(&mut self, delta: f32) -> (Vec3, f32) {
-        // Friction needs to be calculated every frame, because its a vector
-        // that directly opposes movement.
+        // Friction needs to be calculated every frame.
         let fric = self.acc.normalize_or_zero() * -1.0 * FRIC_K;
 
-        self.acc += fric; // Sum it because it's already inverted
+        self.acc += fric;
         self.vel = (self.acc * delta) + self.vel;
         if self.vel.length() > Arenito::MAX_VELOCITY {
             self.vel = self.vel.normalize() * Arenito::MAX_VELOCITY;
@@ -431,12 +430,6 @@ impl Arenito {
     }
 
     /// Updates Arenito's rendered model.
-    /// That's the main cube and the wheels. They are moved according to the values inside
-    /// `vec` tuple:
-    ///   * `Vec3` is the distance vector: how much has moved since the last frame.
-    ///   * `f32` is either the length of the vector (if Arenito moved forward) or
-    ///           the rotation delta (how much arenito rotated since the last frame).
-    ///           This value is to rotate the wheels.
     fn update_model(
         &self,
         vec: (Vec3, f32),
@@ -505,6 +498,17 @@ impl Arenito {
             "c: {} acc: {} vel: {} º: {} - {:?}",
             self.center, self.acc, self.vel, self.rot, self.state
         )
+    }
+}
+
+impl WithDistanceCollision for Arenito {
+    fn get_pos(&self) -> Vec3 {
+        let q = Quat::from_euler(EulerRot::XYZ, self.rot.x, -self.rot.y, self.rot.z);
+        q.mul_vec3(self.brush_offset) + self.center
+    }
+
+    fn get_radius(&self) -> f32 {
+        0.4
     }
 }
 

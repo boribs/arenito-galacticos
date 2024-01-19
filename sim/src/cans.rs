@@ -1,4 +1,4 @@
-use crate::collision::*;
+use crate::collision::WithDistanceCollision;
 use bevy::prelude::*;
 
 pub enum CanSize {
