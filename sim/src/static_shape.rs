@@ -188,7 +188,7 @@ impl CameraArea {
             let mxz = (p.z - cam_pos.z) / (p.x - cam_pos.x); // xz slope
 
             let x = cam_pos.x - (cam_pos.y / mxy);
-            points[i] = Vec3::new(x, 0.01, mxz * (x - cam_pos.x) + cam_pos.z);
+            points[i] = Vec3::new(x, 0.015, mxz * (x - cam_pos.x) + cam_pos.z);
         }
 
         self.points = points;
