@@ -42,6 +42,7 @@ fn main() {
         .add_plugins((
             SceneLoaderPlugin {
                 name: SceneName::BasicCans,
+                display_can_collision_sphere: true,
             },
             ArenitoPlugin {
                 img_width: 512.0,

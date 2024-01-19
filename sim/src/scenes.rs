@@ -9,6 +9,7 @@ pub enum SceneName {
 
 pub struct SceneLoaderPlugin {
     pub name: SceneName,
+    pub display_can_collision_sphere: bool,
 }
 
 impl Plugin for SceneLoaderPlugin {
@@ -23,6 +24,10 @@ impl Plugin for SceneLoaderPlugin {
 
         app.add_systems(PreStartup, init_can_manager);
         app.add_systems(Startup, f);
+
+        if self.display_can_collision_sphere {
+            app.add_systems(Update, draw_can_collision);
+        }
     }
 }
 

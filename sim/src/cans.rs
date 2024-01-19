@@ -134,3 +134,9 @@ pub fn init_can_manager(
     can_manager.load_meshes(meshes);
     can_manager.load_textures(materials, asset_server);
 }
+
+pub fn draw_can_collision(mut gizmos: Gizmos, cans: Query<&CanData>) {
+    for can in cans.iter() {
+        can.draw_sphere(Color::WHITE, &mut gizmos);
+    }
+}

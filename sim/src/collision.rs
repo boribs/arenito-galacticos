@@ -7,6 +7,9 @@ pub trait WithDistanceCollision {
     fn collides_with_dist(&self, object: &impl WithDistanceCollision) -> bool {
         self.get_pos().distance(object.get_pos()) < self.get_radius() + object.get_radius()
     }
+    fn draw_sphere(&self, color: Color, gizmos: &mut Gizmos) {
+        gizmos.sphere(self.get_pos(), Quat::IDENTITY, self.get_radius(), color);
+    }
     fn get_pos(&self) -> Vec3;
     fn get_radius(&self) -> f32;
 }
