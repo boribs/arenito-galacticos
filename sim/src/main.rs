@@ -1,4 +1,5 @@
 pub mod arenito;
+pub mod cans;
 pub mod collision;
 pub mod scenes;
 pub mod sensor;
