@@ -185,7 +185,7 @@ fn spawn_basic_scene_with_cans(
     });
 
     commands.spawn((Camera3dBundle {
-        transform: Transform::from_xyz(4.01, 2.0, 10.0)
+        transform: Transform::from_xyz(0.01, 20.0, 0.0)
             .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
         ..default()
     },));
