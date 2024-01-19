@@ -152,6 +152,7 @@ pub struct Arenito {
     pub state: ArenitoState,
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
+    brush_offset: Vec3, // brush pos relative to Arenito's center
     img_width: f32,
     img_height: f32,
 }
@@ -177,6 +178,7 @@ impl Arenito {
             state: ArenitoState::Still,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
+            brush_offset: Vec3::new(0.75, 0.4, 0.0),
             img_width,
             img_height,
         }
@@ -248,12 +250,17 @@ impl Arenito {
                     Arenito3D::LeftWheel,
                 ));
 
+                let bt = Transform::from_xyz(
+                    self.brush_offset.x,
+                    self.brush_offset.y,
+                    self.brush_offset.z,
+                );
                 // rotating brush!
                 parent.spawn((
                     PbrBundle {
                         mesh: asset_server.load("models/cerdas.obj"),
                         material: materials.add(Color::VIOLET.into()),
-                        transform: Transform::from_xyz(0.75, 0.4, 0.0),
+                        transform: bt,
                         ..default()
                     },
                     Arenito3D::Brush,
@@ -262,7 +269,7 @@ impl Arenito {
                 parent.spawn(PbrBundle {
                     mesh: meshes.add(shape::Box::new(0.08, 0.08, 0.9).into()),
                     material: materials.add(Color::GRAY.into()),
-                    transform: Transform::from_xyz(0.75, 0.4, 0.0),
+                    transform: bt,
                     ..default()
                 });
 
