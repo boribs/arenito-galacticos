@@ -1,4 +1,6 @@
 use crate::{
+    cans::CanData,
+    collision::WithDistanceCollision,
     sensor::{AISimMem, SimInstruction},
     static_shape::*,
 };
@@ -27,6 +29,7 @@ const FRIC_K: f32 = 0.5;
 pub struct ArenitoPlugin {
     pub img_width: f32,
     pub img_height: f32,
+    pub enable_can_eating: bool,
 }
 
 impl Plugin for ArenitoPlugin {
@@ -38,17 +41,22 @@ impl Plugin for ArenitoPlugin {
         app.insert_resource(Arenito::new(self.img_width, self.img_height))
             .add_systems(Startup, arenito_spawner)
             .add_systems(Update, (arenito_mover, arenito_ai_mover, draw_camera_area));
+
+        if self.enable_can_eating {
+            app.add_systems(Update, eat_cans);
+        }
     }
 }
 
 /// Spawns Arenito.
 fn arenito_spawner(
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
     mut arenito: ResMut<Arenito>,
 ) {
-    arenito.spawn(&mut commands, &mut materials, &asset_server);
+    arenito.spawn(&mut commands, &mut meshes, &mut materials, &asset_server);
 }
 
 /// Reads user input and makes Arenito move.
@@ -109,6 +117,8 @@ fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
         gizmos.ray(points[i], points[i + 1] - points[i], Color::WHITE);
     }
     gizmos.ray(points[3], points[0] - points[3], Color::WHITE);
+
+    arenito.draw_sphere(Color::WHITE, &mut gizmos);
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
@@ -119,6 +129,7 @@ pub enum Arenito3D {
     Frame,
     LeftWheel,
     RightWheel,
+    Brush,
 }
 
 #[derive(Component)]
@@ -148,16 +159,19 @@ pub struct Arenito {
     pub acc: Vec3,
     pub rot: Vec3,
     pub state: ArenitoState,
+    // Maybe put cam data inside CameraArea -- rename it to CameraData
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
+    brush_offset: Vec3, // brush pos relative to Arenito's center
     img_width: f32,
     img_height: f32,
 }
 
 impl Arenito {
     const ACCEL_SPEED: f32 = 4.0;
-    const ROT_SPEED: f32 = 1.5;
     pub const MAX_VELOCITY: f32 = 3.0;
+    const ROT_SPEED: f32 = 1.5;
+    const BRUSH_SPEED: f32 = 10.0;
     pub const CENTER: Vec3 = Vec3 {
         x: 0.0,
         y: 0.2,
@@ -174,6 +188,7 @@ impl Arenito {
             state: ArenitoState::Still,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
+            brush_offset: Vec3::new(0.75, 0.4, 0.0),
             img_width,
             img_height,
         }
@@ -188,6 +203,7 @@ impl Arenito {
     pub fn spawn(
         &mut self,
         commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
         asset_server: &Res<AssetServer>,
     ) {
@@ -243,6 +259,29 @@ impl Arenito {
                     },
                     Arenito3D::LeftWheel,
                 ));
+
+                let bt = Transform::from_xyz(
+                    self.brush_offset.x,
+                    self.brush_offset.y,
+                    self.brush_offset.z,
+                );
+                // rotating brush!
+                parent.spawn((
+                    PbrBundle {
+                        mesh: asset_server.load("models/cerdas.obj"),
+                        material: materials.add(Color::VIOLET.into()),
+                        transform: bt,
+                        ..default()
+                    },
+                    Arenito3D::Brush,
+                ));
+
+                parent.spawn(PbrBundle {
+                    mesh: meshes.add(shape::Box::new(0.08, 0.08, 0.9).into()),
+                    material: materials.add(Color::GRAY.into()),
+                    transform: bt,
+                    ..default()
+                });
 
                 // Arenito mounted camera
                 let (x, y, z) = (self.cam_offset.x, self.cam_offset.y, self.cam_offset.z);
@@ -351,25 +390,19 @@ impl Arenito {
         delta_ms: u128,
         arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
-        let vec = self.update_pos(delta_ms);
-        self.update_model(vec, arenito3d);
+        let delta = delta_ms as f32 / 1000.0;
+        let vec = self.update_pos(delta);
+        self.update_model(vec, delta, arenito3d);
     }
 
-    /// Updates Arenito's position given some time in ms (`delta_ms`).
-    /// This method is suposed to be called every frame, where delta_ms
-    /// is the time between this frame's render and the previous one.
-    ///
-    /// Depending on Arenito's state it will:
-    ///   - Move forward
-    ///   - Rotate
-    fn update_pos(&mut self, delta_ms: u128) -> (Vec3, f32) {
-        let delta: f32 = delta_ms as f32 / 1000.0;
-
-        // Friction needs to be calculated every frame, because its a vector
-        // that directly opposes movement.
+    /// Updates Arenito's position given some time in seconds (`delta`).
+    /// This method is suposed to be called every frame, where delta
+    /// is the time between this frame's render and the previous.
+    fn update_pos(&mut self, delta: f32) -> (Vec3, f32) {
+        // Friction needs to be calculated every frame.
         let fric = self.acc.normalize_or_zero() * -1.0 * FRIC_K;
 
-        self.acc += fric; // Sum it because it's already inverted
+        self.acc += fric;
         self.vel = (self.acc * delta) + self.vel;
         if self.vel.length() > Arenito::MAX_VELOCITY {
             self.vel = self.vel.normalize() * Arenito::MAX_VELOCITY;
@@ -403,20 +436,16 @@ impl Arenito {
     }
 
     /// Updates Arenito's rendered model.
-    /// That's the main cube and the wheels. They are moved according to the values inside
-    /// `vec` tuple:
-    ///   * `Vec3` is the distance vector: how much has moved since the last frame.
-    ///   * `f32` is either the length of the vector (if Arenito moved forward) or
-    ///           the rotation delta (how much arenito rotated since the last frame).
-    ///           This value is to rotate the wheels.
     fn update_model(
         &self,
         vec: (Vec3, f32),
+        delta: f32,
         mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         // Saving different body parts to their own variable.
         // Each body part behaves differently.
         let mut body = Vec::<Mut<'_, Transform>>::with_capacity(1);
+        let mut brush = Vec::<Mut<'_, Transform>>::with_capacity(1);
         let mut left_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
         let mut right_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
 
@@ -431,12 +460,16 @@ impl Arenito {
                 Arenito3D::Frame => {
                     body.push(body_part.0);
                 }
+                Arenito3D::Brush => {
+                    brush.push(body_part.0);
+                }
             }
         }
 
-        // Since body is only one element, shadow it out of the vector!
-        let body = &mut body[0];
         let (d, l) = vec;
+        let body = &mut body[0];
+        let brush = &mut brush[0];
+        brush.rotate_local_z(-Self::BRUSH_SPEED * delta);
 
         match self.state {
             ArenitoState::Forward => {
@@ -471,6 +504,26 @@ impl Arenito {
             "c: {} acc: {} vel: {} º: {} - {:?}",
             self.center, self.acc, self.vel, self.rot, self.state
         )
+    }
+}
+
+impl WithDistanceCollision for Arenito {
+    fn get_pos(&self) -> Vec3 {
+        let q = Quat::from_euler(EulerRot::XYZ, self.rot.x, -self.rot.y, self.rot.z);
+        q.mul_vec3(self.brush_offset) + self.center
+    }
+
+    fn get_radius(&self) -> f32 {
+        0.4
+    }
+}
+
+/// Despawns cans when collided with Arenito
+pub fn eat_cans(mut commands: Commands, arenito: Res<Arenito>, cans: Query<(&CanData, Entity)>) {
+    for (can, ent) in cans.iter() {
+        if arenito.collides_with_dist(can) {
+            commands.entity(ent).despawn();
+        }
     }
 }
 
@@ -530,7 +583,7 @@ mod arenito_tests {
         // useful to make a point?
         for angle in [0.0, -1.31, 4.32, 6.16, -2.54] {
             arenito.rot.y = angle;
-            arenito.update_pos(16);
+            arenito.update_pos(0.016);
 
             cmp_vec(arenito.vel, Vec3::ZERO);
             cmp_vec(arenito.acc, Vec3::ZERO);
@@ -547,7 +600,7 @@ mod arenito_tests {
     fn flat_surface_absolute_rest_positive_x() {
         let mut arenito = Arenito::test();
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.056, 0.0, 0.0);
         let expected_acc = Vec3::new(3.5, 0.0, 0.0);
@@ -561,7 +614,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = FRAC_PI_4;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.03959, 0.0, 0.03959);
         let expected_acc = Vec3::new(2.47487, 0.0, 2.47487);
@@ -575,7 +628,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = FRAC_PI_2;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         // most zeros aren't actually zero, but very close
         let expected_vel = Vec3::new(0.0, 0.0, 0.056);
@@ -590,7 +643,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 3.0 * FRAC_PI_4;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.03959, 0.0, 0.03959);
         let expected_acc = Vec3::new(-2.47487, 0.0, 2.47487);
@@ -604,7 +657,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = PI;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.056, 0.0, 0.0);
         let expected_acc = Vec3::new(-3.5, 0.0, 0.0);
@@ -618,7 +671,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 5.0 * FRAC_PI_4;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.03959, 0.0, -0.03959);
         let expected_acc = Vec3::new(-2.47487, 0.0, -2.47487);
@@ -632,7 +685,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 3.0 * FRAC_PI_2;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.0, 0.0, -0.056);
         let expected_acc = Vec3::new(0.0, 0.0, -3.5);
@@ -646,7 +699,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 7.0 * FRAC_PI_4;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.03959, 0.0, -0.03959);
         let expected_acc = Vec3::new(2.47487, 0.0, -2.47487);
@@ -660,7 +713,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 0.1234;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.05557, 0.0, 0.00689);
         let expected_acc = Vec3::new(3.47338, 0.0, 0.43080);
@@ -674,7 +727,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 0.38;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.05200, 0.0, 0.020771);
         let expected_acc = Vec3::new(3.25032, 0.0, 1.29822);
@@ -688,7 +741,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 4.7551;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.00239, 0.0, -0.055948);
         let expected_acc = Vec3::new(0.14944, 0.0, -3.49680);
@@ -702,7 +755,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = -6.1362;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.0553, 0.0, 0.008197);
         let expected_acc = Vec3::new(3.46229, 0.0, 0.51233);
@@ -716,7 +769,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = -0.713244;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.042349, 0.0, -0.03664);
         let expected_acc = Vec3::new(2.6468, 0.0, -2.29001);
@@ -730,7 +783,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 3.70245;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.04742, 0.0, -0.02978);
         let expected_acc = Vec3::new(-2.9637, 0.0, -1.8617);
@@ -744,7 +797,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = -1.4037;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.00930, 0.0, -0.05522);
         let expected_acc = Vec3::new(0.58178, 0.0, -3.45130);
@@ -758,7 +811,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = -1.4037;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.00930, 0.0, -0.05522);
         let expected_acc = Vec3::new(0.58178, 0.0, -3.45130);
@@ -772,7 +825,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 1.65394;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.00465, 0.0, 0.055806);
         let expected_acc = Vec3::new(-0.29068, 0.0, 3.487908);
@@ -786,7 +839,7 @@ mod arenito_tests {
         let mut arenito = Arenito::test();
         arenito.rot.y = 0.52525;
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.04845, 0.0, 0.02808);
         let expected_acc = Vec3::new(3.02817, 0.0, 1.75502);
@@ -809,7 +862,7 @@ mod arenito_tests {
             Arenito::CENTER,
         );
         arenito.forward();
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.2892, 0.0, 0.0);
         let expected_acc = Vec3::new(3.5, 0.0, 0.0);
@@ -826,7 +879,7 @@ mod arenito_tests {
             Vec3::new(2.82842, 0.0, 2.82842),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         // println!("{}", arenito.acc);
 
@@ -844,7 +897,7 @@ mod arenito_tests {
             Vec3::new(0.0, 0.0, 4.00),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.0, 0.0, 1.106);
         let expected_acc = Vec3::new(0.0, 0.0, 3.5);
@@ -860,7 +913,7 @@ mod arenito_tests {
             Vec3::new(-2.82842, 0.0, 2.82842),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.90933, 0.0, 0.90933);
         let expected_acc = Vec3::new(-2.47487, 0.0, 2.47487);
@@ -876,7 +929,7 @@ mod arenito_tests {
             Vec3::new(-4.0, 0.0, 0.0),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-1.48183, 0.0, 0.0);
         let expected_acc = Vec3::new(-3.5, 0.0, 0.0);
@@ -892,7 +945,7 @@ mod arenito_tests {
             Vec3::new(-2.82842, 0.0, -2.82842),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-1.04781, 0.0, -1.04781);
         let expected_acc = Vec3::new(-2.47487, 0.0, -2.47487);
@@ -908,7 +961,7 @@ mod arenito_tests {
             Vec3::new(0.0, 0.0, -4.0),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.0, 0.0, -1.306);
         let expected_acc = Vec3::new(0.0, 0.0, -3.5);
@@ -924,7 +977,7 @@ mod arenito_tests {
             Vec3::new(2.82842, 0.0, -2.82842),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.923481, 0.0, -0.92348);
         let expected_acc = Vec3::new(2.47487, 0.0, -2.47487);
@@ -940,7 +993,7 @@ mod arenito_tests {
             Vec3::new(3.99986, 0.0, -0.032467),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(1.66779, 0.0, -0.01353);
         let expected_acc = Vec3::new(3.499884, 0.0, -0.02840);
@@ -956,7 +1009,7 @@ mod arenito_tests {
             Vec3::new(2.78507, 0.00000, 2.87113),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.75549, 0.00000, 0.77884);
         let expected_acc = Vec3::new(2.43693, 0.00000, 2.51224);
@@ -972,7 +1025,7 @@ mod arenito_tests {
             Vec3::new(-0.68794, 0.00000, -3.94040),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.23409, 0.00000, -1.34082);
         let expected_acc = Vec3::new(-0.60194, 0.00000, -3.44785);
@@ -988,7 +1041,7 @@ mod arenito_tests {
             Vec3::new(-2.84194, 0.00000, 2.81485),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-1.40726, 0.00000, 1.39384);
         let expected_acc = Vec3::new(-2.48670, 0.00000, 2.46299);
@@ -1004,7 +1057,7 @@ mod arenito_tests {
             Vec3::new(-0.69086, 0.00000, -3.93989),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.25065, 0.00000, -1.42944);
         let expected_acc = Vec3::new(-0.60450, 0.00000, -3.44740);
@@ -1020,7 +1073,7 @@ mod arenito_tests {
             Vec3::new(3.26943, 0.00000, 2.30452),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.93861, 0.00000, 0.66160);
         let expected_acc = Vec3::new(2.86075, 0.00000, 2.01646);
@@ -1036,7 +1089,7 @@ mod arenito_tests {
             Vec3::new(1.58864, 0.00000, 3.67100),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(0.72663, 0.00000, 1.67909);
         let expected_acc = Vec3::new(1.39006, 0.00000, 3.21212);
@@ -1052,7 +1105,7 @@ mod arenito_tests {
             Vec3::new(-2.15571, 0.00000, -3.36941),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-1.05915, 0.00000, -1.65546);
         let expected_acc = Vec3::new(-1.88625, 0.00000, -2.94823);
@@ -1068,7 +1121,7 @@ mod arenito_tests {
             Vec3::new(-2.26568, 0.00000, -3.29646),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.96848, 0.00000, -1.40909);
         let expected_acc = Vec3::new(-1.98247, 0.00000, -2.88441);
@@ -1084,7 +1137,7 @@ mod arenito_tests {
             Vec3::new(-1.32316, 0.00000, 3.77482),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         let expected_vel = Vec3::new(-0.50307, 0.00000, 1.43521);
         let expected_acc = Vec3::new(-1.15777, 0.00000, 3.30297);
@@ -1110,7 +1163,7 @@ mod arenito_tests {
             Vec3::new(0.47800, 0.00000, 0.00000),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         cmp_vec(arenito.vel, Vec3::ZERO);
         cmp_vec(arenito.acc, Vec3::ZERO);
@@ -1124,7 +1177,7 @@ mod arenito_tests {
             Vec3::new(0.0, 0.0, -0.47800),
             Arenito::CENTER,
         );
-        arenito.update_pos(16);
+        arenito.update_pos(0.016);
 
         cmp_vec(arenito.vel, Vec3::ZERO);
         cmp_vec(arenito.acc, Vec3::ZERO);
@@ -1144,7 +1197,7 @@ mod arenito_tests {
                 Vec3::new(cos, 0.0, sin) * rng.gen_range(0.0..FRIC_K),
                 Arenito::CENTER,
             );
-            arenito.update_pos(16);
+            arenito.update_pos(0.016);
 
             cmp_vec(arenito.vel, Vec3::ZERO);
             cmp_vec(arenito.acc, Vec3::ZERO);
@@ -1168,7 +1221,7 @@ mod arenito_tests {
                 Arenito::CENTER,
             );
             arenito.forward();
-            arenito.update_pos(16);
+            arenito.update_pos(0.016);
 
             assert!(arenito.vel.length() <= max_vel);
         }

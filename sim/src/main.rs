@@ -1,4 +1,6 @@
 pub mod arenito;
+pub mod cans;
+pub mod collision;
 pub mod scenes;
 pub mod sensor;
 pub mod static_shape;
@@ -40,10 +42,12 @@ fn main() {
         .add_plugins((
             SceneLoaderPlugin {
                 name: SceneName::BasicCans,
+                display_can_collision_sphere: true,
             },
             ArenitoPlugin {
                 img_width: 512.0,
                 img_height: 512.0,
+                enable_can_eating: true,
             },
         ))
         .run();
