@@ -273,7 +273,7 @@ mod sensor_read_tests {
     #[test]
     fn sensor_acc_reads_dont_go_to_negative_values() {
         let mut rng = thread_rng();
-        let mut arenito = Arenito::test();
+        let mut arenito = Arenito::new();
 
         for _ in 0..100 {
             arenito.acc = Vec3::new(
