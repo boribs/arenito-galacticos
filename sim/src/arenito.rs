@@ -14,6 +14,9 @@ use std::f32::consts::TAU;
 
 const FRIC_K: f32 = 0.5;
 
+const IMG_WIDTH: f32 = 512.0;
+const IMG_HEIGHT: f32 = 512.0;
+
 /* ----------------------------Arenito Plugin---------------------------- */
 
 /// A plugin for adding Arenito (the 3D robot) to
@@ -27,8 +30,6 @@ const FRIC_K: f32 = 0.5;
 ///
 /// *It also requires that `ObjPlugin` is added.
 pub struct ArenitoPlugin {
-    pub img_width: f32,
-    pub img_height: f32,
     pub enable_can_eating: bool,
 }
 
@@ -38,7 +39,7 @@ impl Plugin for ArenitoPlugin {
             app.add_plugins(ObjPlugin);
         }
 
-        app.insert_resource(Arenito::new(self.img_width, self.img_height))
+        app.insert_resource(Arenito::new())
             .add_systems(Startup, arenito_spawner)
             .add_systems(Update, (arenito_mover, arenito_ai_mover, draw_camera_area));
 
@@ -163,8 +164,6 @@ pub struct Arenito {
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
     brush_offset: Vec3, // brush pos relative to Arenito's center
-    img_width: f32,
-    img_height: f32,
 }
 
 impl Arenito {
@@ -179,7 +178,7 @@ impl Arenito {
     };
 
     /// Returns an empty, non-spawned Arenito.
-    pub fn new(img_width: f32, img_height: f32) -> Self {
+    pub fn new() -> Self {
         Arenito {
             center: Self::CENTER,
             vel: Vec3::ZERO,
@@ -189,8 +188,6 @@ impl Arenito {
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
-            img_width,
-            img_height,
         }
     }
 
@@ -307,7 +304,7 @@ impl Arenito {
                         Window {
                             title: "Arenito view".to_owned(),
                             visible: false,
-                            resolution: WindowResolution::new(self.img_width, self.img_height),
+                            resolution: WindowResolution::new(IMG_WIDTH, IMG_HEIGHT),
                             resizable: false,
                             ..default()
                         },
@@ -545,7 +542,7 @@ mod arenito_tests {
         /// Method for rapid object initialization, where camera output
         /// data is not needed.
         pub fn test() -> Self {
-            Self::new(0.0, 0.0)
+            Self::new()
         }
 
         /// Initializes Arenito with some velocity and acceleration.

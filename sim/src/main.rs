@@ -45,8 +45,6 @@ fn main() {
                 display_can_collision_sphere: true,
             },
             ArenitoPlugin {
-                img_width: 512.0,
-                img_height: 512.0,
                 enable_can_eating: true,
             },
         ))
