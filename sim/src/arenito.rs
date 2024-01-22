@@ -84,8 +84,13 @@ fn arenito_ai_mover(
         }
         HandlerState::Waiting => {
             if let Some(instr) = aisim.get_instruction() {
-                arenito.instruction_handler.set(instr);
-                arenito.instruction_handler.execute();
+                if instr == SimInstruction::ScreenShot {
+                    aisim.export_frame(&mut screenshot_manager, &window.single());
+                    aisim.confirm_instruction();
+                } else {
+                    arenito.instruction_handler.set(instr);
+                    arenito.instruction_handler.execute();
+                }
             }
         }
         _ => {}
