@@ -222,6 +222,7 @@ pub struct Arenito {
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
     brush_offset: Vec3, // brush pos relative to Arenito's center
+    instruction_handler: InstructionHandler,
 }
 
 impl Arenito {
@@ -244,6 +245,7 @@ impl Arenito {
             rot: Vec3::ZERO,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
+            instruction_handler: InstructionHandler::default(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
         }
     }
@@ -422,21 +424,58 @@ impl Arenito {
         arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
         let delta = delta_ms as f32 / 1000.0;
-        let vec = self.update_pos(delta);
-        self.update_model(vec, delta, arenito3d);
+        let (pos, rot) = self.update_pos(delta);
+        self.update_model(pos, rot, delta, arenito3d);
+    }
+
+    /// Calculates position difference after executing `instruction`.
+    fn calculate_next_pos(&self, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
     }
 
     /// Updates Arenito's position given some time in seconds (`delta`).
     /// This method is suposed to be called every frame, where delta
     /// is the time between this frame's render and the previous.
-    fn update_pos(&mut self, delta: f32) -> (Vec3, f32) {
-        todo!()
+    fn update_pos(&mut self, delta: f32) -> (Vec3, Quat) {
+        let mut pos = Vec3::ZERO;
+        let mut rot = Quat::IDENTITY;
+        let mut delta = delta;
+
+        // get (current instruction, remaining execution time)
+        // return if no current instruction
+        // if delta > remaining execution time
+        // calculate_next_pos with remaining execution time
+        // delta = delta - remaining execution time
+        // add next pos to final pos/rot diff
+        // current = get next instruction
+
+        // delta = min(delta, remaining execution time)
+        // caulcate_next_pos with delta
+        // remaining execution time -= delta
+
+        if let Some((instr, rem_time)) = self.instruction_handler.current() {
+            if delta > rem_time {
+                delta -= rem_time;
+                self.instruction_handler.next();
+            }
+
+            match self.instruction_handler.current() {
+                None => {}
+                Some((instr, rem_time)) => {
+                    let time = delta.min(rem_time);
+                    println!("executing for {}s", time);
+                    self.instruction_handler.remaining_time -= time;
+                }
+            };
+        }
+
+        (pos, rot)
     }
 
     /// Updates Arenito's rendered model.
     fn update_model(
         &self,
-        vec: (Vec3, f32),
+        pos_diff: Vec3,
+        rot_diff: Quat,
         delta: f32,
         mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
     ) {
