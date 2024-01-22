@@ -83,7 +83,7 @@ impl MPU6050 {
     /// This implementation skips all the math needed to convert
     /// from rotational speed to "current rotation" altogether.
     pub fn read_rot(arenito: &Arenito) -> Vec3 {
-        arenito.rot + SensorError::default()
+        arenito.rot.mul_vec3(Vec3::X) + SensorError::default()
     }
 }
 
@@ -345,10 +345,7 @@ mod ai_sim_mem_tests {
         let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_FORWARD];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(
-            Some(SimInstruction::MoveForward),
-            aisim.get_instruction()
-        );
+        assert_eq!(Some(SimInstruction::MoveForward), aisim.get_instruction());
     }
 
     #[test]
@@ -356,10 +353,7 @@ mod ai_sim_mem_tests {
         let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_LEFT];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(
-            Some(SimInstruction::MoveLeft),
-            aisim.get_instruction()
-        );
+        assert_eq!(Some(SimInstruction::MoveLeft), aisim.get_instruction());
     }
 
     #[test]
@@ -367,10 +361,7 @@ mod ai_sim_mem_tests {
         let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_RIGHT];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(
-            Some(SimInstruction::MoveRight),
-            aisim.get_instruction()
-        );
+        assert_eq!(Some(SimInstruction::MoveRight), aisim.get_instruction());
     }
 
     #[test]

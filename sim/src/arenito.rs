@@ -1,7 +1,7 @@
 use crate::{
     cans::CanData,
     collision::WithDistanceCollision,
-    sensor::{AISimMem, FromGyro, SimInstruction},
+    sensor::{AISimMem, SimInstruction},
     static_shape::*,
 };
 use bevy::{
@@ -38,7 +38,7 @@ impl Plugin for ArenitoPlugin {
 
         app.insert_resource(Arenito::new())
             .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, arenito_ai_mover);
+            .add_systems(Update, (arenito_ai_mover, draw_camera_area));
 
         if self.enable_can_eating {
             app.add_systems(Update, eat_cans);
@@ -99,13 +99,12 @@ fn arenito_ai_mover(
     arenito.update(time.delta().as_millis(), arenito3d);
 }
 
-#[allow(unused)]
 fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
     let mut points = arenito.cam_area.points.clone();
-    let q = Quat::from_euler(EulerRot::XYZ, arenito.rot.x, -arenito.rot.y, arenito.rot.z);
 
     for i in 0..points.len() {
-        points[i] = q.mul_vec3(points[i]) + Vec3::new(arenito.center.x, 0.0, arenito.center.z);
+        points[i] =
+            arenito.rot.mul_vec3(points[i]) + Vec3::new(arenito.center.x, 0.0, arenito.center.z);
     }
 
     for i in 0..points.len() - 1 {
@@ -239,7 +238,7 @@ pub struct Arenito {
     pub center: Vec3,
     pub vel: Vec3,
     pub acc: Vec3,
-    pub rot: Vec3,
+    pub rot: Quat,
     // Maybe put cam data inside CameraArea -- rename it to CameraData
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
@@ -262,7 +261,7 @@ impl Arenito {
             center: Self::CENTER,
             vel: Vec3::ZERO,
             acc: Vec3::ZERO,
-            rot: Vec3::ZERO,
+            rot: Quat::IDENTITY,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
@@ -414,7 +413,7 @@ impl Arenito {
         self.center = Self::CENTER;
         self.acc = Vec3::ZERO;
         self.vel = Vec3::ZERO;
-        self.rot = Vec3::ZERO;
+        self.rot = Quat::IDENTITY;
 
         for body_part in arenito3d {
             if *body_part.1 == Arenito3D::Frame {
@@ -452,7 +451,7 @@ impl Arenito {
     fn calculate_next_pos(&self, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
         match instruction {
             BaseInstruction::Forward => (
-                Vec3::from_gyro(&self.rot) * Self::VELOCITY * time,
+                self.rot.mul_vec3(Vec3::X) * Self::VELOCITY * time,
                 Quat::IDENTITY,
             ),
             BaseInstruction::Left => (
@@ -497,6 +496,9 @@ impl Arenito {
             };
         }
 
+        self.center += pos;
+        self.rot *= rot;
+
         (pos, rot)
     }
 
@@ -539,7 +541,7 @@ impl Arenito {
         body.translation += pos_diff;
         body.rotation *= rot_diff;
 
-        // todo!()
+        // wheel rotation
     }
 
     /// Prints the current stats of Arenito.
@@ -553,8 +555,7 @@ impl Arenito {
 
 impl WithDistanceCollision for Arenito {
     fn get_pos(&self) -> Vec3 {
-        let q = Quat::from_euler(EulerRot::XYZ, self.rot.x, -self.rot.y, self.rot.z);
-        q.mul_vec3(self.brush_offset) + self.center
+        self.rot.mul_vec3(self.brush_offset) + self.center
     }
 
     fn get_radius(&self) -> f32 {

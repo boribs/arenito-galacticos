@@ -82,10 +82,11 @@ aisim = AISimMem(mem)
     # aisim.wait_confirmation()
 
 for _ in range(3):
-    mv(aisim, AISimMem.MOV_FORWARD)
+    for _ in range(3):
+        mv(aisim, AISimMem.MOV_LEFT)
 
-for _ in range(10):
-    mv(aisim, AISimMem.MOV_LEFT)
+    # for _ in range(3):
+        mv(aisim, AISimMem.MOV_FORWARD)
 
     # im = Image.frombytes('RGB', (1024, 1024), aisim.mem.buf[1:3145728 + 1])
     # # for some reason blue and red channels are swapped?
