@@ -1,7 +1,7 @@
 use crate::{
     cans::CanData,
     collision::WithDistanceCollision,
-    sensor::{AISimMem, SimInstruction},
+    sensor::{AISimMem, FromGyro, SimInstruction},
     static_shape::*,
 };
 use bevy::{
@@ -37,7 +37,8 @@ impl Plugin for ArenitoPlugin {
         }
 
         app.insert_resource(Arenito::new())
-            .add_systems(Startup, arenito_spawner);
+            .add_systems(Startup, arenito_spawner)
+            .add_systems(Update, arenito_ai_mover);
 
         if self.enable_can_eating {
             app.add_systems(Update, eat_cans);
@@ -245,8 +246,8 @@ impl Arenito {
             rot: Vec3::ZERO,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
-            instruction_handler: InstructionHandler::default(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
+            instruction_handler: InstructionHandler::default(),
         }
     }
 
@@ -430,6 +431,14 @@ impl Arenito {
 
     /// Calculates position difference after executing `instruction`.
     fn calculate_next_pos(&self, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
+        match instruction {
+            BaseInstruction::Forward => (
+                Vec3::from_gyro(&self.rot) * Self::MAX_VELOCITY * time,
+                Quat::IDENTITY,
+            ),
+            BaseInstruction::Left => todo!(),
+            BaseInstruction::Right => todo!(),
+        }
     }
 
     /// Updates Arenito's position given some time in seconds (`delta`).
@@ -454,6 +463,10 @@ impl Arenito {
 
         if let Some((instr, rem_time)) = self.instruction_handler.current() {
             if delta > rem_time {
+                println!("Less than remaining time.");
+                let (npos, nrot) = self.calculate_next_pos(instr, rem_time);
+                pos += npos;
+                rot *= nrot;
                 delta -= rem_time;
                 self.instruction_handler.next();
             }
@@ -463,6 +476,9 @@ impl Arenito {
                 Some((instr, rem_time)) => {
                     let time = delta.min(rem_time);
                     println!("executing for {}s", time);
+                    let (npos, nrot) = self.calculate_next_pos(instr, time);
+                    pos += npos;
+                    rot *= nrot;
                     self.instruction_handler.remaining_time -= time;
                 }
             };
@@ -503,12 +519,13 @@ impl Arenito {
             }
         }
 
-        let (d, l) = vec;
         let body = &mut body[0];
         let brush = &mut brush[0];
         brush.rotate_local_z(-Self::BRUSH_SPEED * delta);
 
-        todo!()
+        body.translation += pos_diff;
+
+        // todo!()
     }
 
     /// Prints the current stats of Arenito.
@@ -541,6 +558,4 @@ pub fn eat_cans(mut commands: Commands, arenito: Res<Arenito>, cans: Query<(&Can
 }
 
 #[cfg(test)]
-mod arenito_tests {
-
-}
+mod arenito_tests {}
