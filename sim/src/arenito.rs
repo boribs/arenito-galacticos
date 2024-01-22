@@ -243,9 +243,7 @@ pub struct Arenito {
 }
 
 impl Arenito {
-    const ACCEL_SPEED: f32 = 4.0;
-    pub const MAX_VELOCITY: f32 = 3.0;
-    const ROT_SPEED: f32 = 1.5;
+    pub const VELOCITY: f32 = 1.5;
     const BRUSH_SPEED: f32 = 10.0;
     pub const CENTER: Vec3 = Vec3 {
         x: 0.0,
@@ -449,16 +447,16 @@ impl Arenito {
     fn calculate_next_pos(&self, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
         match instruction {
             BaseInstruction::Forward => (
-                Vec3::from_gyro(&self.rot) * Self::MAX_VELOCITY * time,
+                Vec3::from_gyro(&self.rot) * Self::VELOCITY * time,
                 Quat::IDENTITY,
             ),
             BaseInstruction::Left => (
                 Vec3::ZERO,
-                Quat::from_euler(EulerRot::XYZ, 0.0, Self::MAX_VELOCITY * time, 0.0),
+                Quat::from_euler(EulerRot::XYZ, 0.0, Self::VELOCITY * time, 0.0),
             ),
             BaseInstruction::Right => (
                 Vec3::ZERO,
-                Quat::from_euler(EulerRot::XYZ, 0.0, -Self::MAX_VELOCITY * time, 0.0),
+                Quat::from_euler(EulerRot::XYZ, 0.0, -Self::VELOCITY * time, 0.0),
             ),
         }
     }
