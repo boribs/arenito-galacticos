@@ -111,6 +111,102 @@ pub struct ArenitoCamera;
 #[derive(Component)]
 pub struct ArenitoCamWindow;
 
+#[derive(Clone, Copy, Debug)]
+enum BaseInstruction {
+    Forward,
+    Left,
+    Right,
+}
+
+#[derive(PartialEq)]
+enum HandlerState {
+    Waiting,
+    Executing,
+    Done,
+}
+
+/// Arenito's instructions are a combination of base instructions
+/// (move forward, backwards, left, right) and a time stamp (how long
+/// should that instruction be executed).
+/// There are also combined instructions (move back, then right).
+/// This struct keeps track of how long has an instruction been executed
+/// and what the next ones are.
+struct InstructionHandler {
+    instructions: Vec<(BaseInstruction, f32)>,
+    remaining_time: f32,
+    state: HandlerState,
+}
+
+impl InstructionHandler {
+    fn wait(&mut self) {
+        self.state = HandlerState::Waiting;
+    }
+
+    fn execute(&mut self) {
+        self.state = HandlerState::Executing;
+    }
+
+    fn done(&mut self) {
+        println!("done");
+        self.state = HandlerState::Done;
+    }
+
+    /// Sets the next instruction set.
+    /// Converts SimInstruction to BaseInstructions.
+    fn set(&mut self, instruction: SimInstruction) {
+        println!("Setting {:?}", instruction);
+        match instruction {
+            SimInstruction::MoveForward => {
+                self.instructions = vec![(BaseInstruction::Forward, 0.1)];
+            }
+            SimInstruction::MoveLeft => {
+                self.instructions = vec![(BaseInstruction::Left, 0.05)];
+            }
+            SimInstruction::MoveRight => {
+                self.instructions = vec![(BaseInstruction::Right, 0.05)];
+            }
+            other => panic!("Instruction {:?} not supported!", other),
+        }
+
+        self.remaining_time = self.instructions[0].1;
+        self.state = HandlerState::Executing;
+    }
+
+    /// Returns current base instruction with its remaining execution time.
+    fn current(&self) -> Option<(BaseInstruction, f32)> {
+        if self.instructions.len() == 0 {
+            None
+        } else {
+            Some((self.instructions[0].0, self.remaining_time))
+        }
+    }
+
+    /// Removes current instruction and advances to the next one.
+    /// Sets remaining time to instruction's total execution time.
+    fn next(&mut self) {
+        println!("Getting next");
+
+        self.instructions.remove(0);
+
+        if self.instructions.len() == 0 {
+            self.done();
+        } else {
+            println!("next is: {:?}", self.instructions[0]);
+            self.remaining_time = self.instructions[0].1;
+        }
+    }
+}
+
+impl Default for InstructionHandler {
+    fn default() -> Self {
+        InstructionHandler {
+            instructions: Vec::with_capacity(2),
+            remaining_time: 0.0,
+            state: HandlerState::Waiting,
+        }
+    }
+}
+
 /// Arenito is the main component of this simulation.
 ///
 /// It's responsible of both visual and "logical" updates of position,
