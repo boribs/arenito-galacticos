@@ -57,6 +57,7 @@ fn arenito_spawner(
     arenito.spawn(&mut commands, &mut meshes, &mut materials, &asset_server);
 }
 
+#[allow(unused)]
 /// Reads user input and makes Arenito move.
 fn arenito_mover(
     time: Res<Time>,
@@ -69,16 +70,31 @@ fn arenito_mover(
 
 /// Gets movement instruction from AI and executes.
 fn arenito_ai_mover(
+    time: Res<Time>,
     mut screenshot_manager: ResMut<ScreenshotManager>,
     mut arenito: ResMut<Arenito>,
     mut aisim: ResMut<AISimMem>,
     window: Query<Entity, With<ArenitoCamWindow>>,
+    arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
 ) {
-    if let Some(instr) = aisim.get_instruction() {
-        todo!()
+    match arenito.instruction_handler.state {
+        HandlerState::Done => {
+            aisim.confirm_instruction();
+            arenito.instruction_handler.wait();
+        }
+        HandlerState::Waiting => {
+            if let Some(instr) = aisim.get_instruction() {
+                arenito.instruction_handler.set(instr);
+                arenito.instruction_handler.execute();
+            }
+        }
+        _ => {}
     }
+
+    arenito.update(time.delta().as_millis(), arenito3d);
 }
 
+#[allow(unused)]
 fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
     let mut points = arenito.cam_area.points.clone();
     let q = Quat::from_euler(EulerRot::XYZ, arenito.rot.x, -arenito.rot.y, arenito.rot.z);
