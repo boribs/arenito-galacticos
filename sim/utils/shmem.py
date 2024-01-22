@@ -70,8 +70,6 @@ with open('../shmem_arenito') as f:
 mem = shared_memory.SharedMemory(create=False, name=osid)
 aisim = AISimMem(mem)
 
-mv(aisim, AISimMem.MOV_FORWARD)
-
 # constantly ask for images!
 # while True:
     # aisim.write_mov_instruction(AISimMem.MOV_FORWARD)
@@ -83,11 +81,11 @@ mv(aisim, AISimMem.MOV_FORWARD)
 
     # aisim.wait_confirmation()
 
-    # for _ in range(3):
-    #     mv(aisim, AISimMem.MOV_FORWARD)
+for _ in range(3):
+    mv(aisim, AISimMem.MOV_FORWARD)
 
-    # for _ in range(10):
-    #     mv(aisim, AISimMem.MOV_LEFT)
+for _ in range(10):
+    mv(aisim, AISimMem.MOV_LEFT)
 
     # im = Image.frombytes('RGB', (1024, 1024), aisim.mem.buf[1:3145728 + 1])
     # # for some reason blue and red channels are swapped?

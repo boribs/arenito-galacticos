@@ -164,14 +164,14 @@ impl InstructionHandler {
     }
 
     fn done(&mut self) {
-        println!("done");
+        // println!("done");
         self.state = HandlerState::Done;
     }
 
     /// Sets the next instruction set.
     /// Converts SimInstruction to BaseInstructions.
     fn set(&mut self, instruction: SimInstruction) {
-        println!("Setting {:?}", instruction);
+        // println!("Setting {:?}", instruction);
         match instruction {
             SimInstruction::MoveForward => {
                 self.instructions = vec![(BaseInstruction::Forward, 0.1)];
@@ -201,14 +201,14 @@ impl InstructionHandler {
     /// Removes current instruction and advances to the next one.
     /// Sets remaining time to instruction's total execution time.
     fn next(&mut self) {
-        println!("Getting next");
+        // println!("Getting next");
 
         self.instructions.remove(0);
 
         if self.instructions.len() == 0 {
             self.done();
         } else {
-            println!("next is: {:?}", self.instructions[0]);
+            // println!("next is: {:?}", self.instructions[0]);
             self.remaining_time = self.instructions[0].1;
         }
     }
@@ -452,8 +452,14 @@ impl Arenito {
                 Vec3::from_gyro(&self.rot) * Self::MAX_VELOCITY * time,
                 Quat::IDENTITY,
             ),
-            BaseInstruction::Left => todo!(),
-            BaseInstruction::Right => todo!(),
+            BaseInstruction::Left => (
+                Vec3::ZERO,
+                Quat::from_euler(EulerRot::XYZ, 0.0, Self::MAX_VELOCITY * time, 0.0),
+            ),
+            BaseInstruction::Right => (
+                Vec3::ZERO,
+                Quat::from_euler(EulerRot::XYZ, 0.0, -Self::MAX_VELOCITY * time, 0.0),
+            ),
         }
     }
 
@@ -465,21 +471,9 @@ impl Arenito {
         let mut rot = Quat::IDENTITY;
         let mut delta = delta;
 
-        // get (current instruction, remaining execution time)
-        // return if no current instruction
-        // if delta > remaining execution time
-        // calculate_next_pos with remaining execution time
-        // delta = delta - remaining execution time
-        // add next pos to final pos/rot diff
-        // current = get next instruction
-
-        // delta = min(delta, remaining execution time)
-        // caulcate_next_pos with delta
-        // remaining execution time -= delta
-
         if let Some((instr, rem_time)) = self.instruction_handler.current() {
             if delta > rem_time {
-                println!("Less than remaining time.");
+                // println!("Less than remaining time.");
                 let (npos, nrot) = self.calculate_next_pos(instr, rem_time);
                 pos += npos;
                 rot *= nrot;
@@ -491,7 +485,7 @@ impl Arenito {
                 None => {}
                 Some((instr, rem_time)) => {
                     let time = delta.min(rem_time);
-                    println!("executing for {}s", time);
+                    // println!("executing for {}s", time);
                     let (npos, nrot) = self.calculate_next_pos(instr, time);
                     pos += npos;
                     rot *= nrot;
@@ -540,6 +534,7 @@ impl Arenito {
         brush.rotate_local_z(-Self::BRUSH_SPEED * delta);
 
         body.translation += pos_diff;
+        body.rotation *= rot_diff;
 
         // todo!()
     }
