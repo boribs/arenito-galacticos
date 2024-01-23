@@ -36,6 +36,7 @@ class AISimMem:
     MOV_FORWARD = ord('a')
     MOV_LEFT = ord('i')
     MOV_RIGHT = ord('d')
+    MOV_LONG_RIGHT = ord('D')
 
     # memory footprint
     IMG_SIZE = 3_145_728
@@ -83,12 +84,12 @@ mv(aisim, AISimMem.MOV_LONG_RIGHT)
 
     # aisim.wait_confirmation()
 
-for _ in range(3):
-    for _ in range(3):
-        mv(aisim, AISimMem.MOV_LEFT)
+# for _ in range(3):
+#     for _ in range(3):
+#         mv(aisim, AISimMem.MOV_LEFT)
 
-    # for _ in range(3):
-        mv(aisim, AISimMem.MOV_FORWARD)
+#     # for _ in range(3):
+#         mv(aisim, AISimMem.MOV_FORWARD)
 
     # im = Image.frombytes('RGB', (1024, 1024), aisim.mem.buf[1:3145728 + 1])
     # # for some reason blue and red channels are swapped?

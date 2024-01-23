@@ -93,6 +93,7 @@ pub enum SimInstruction {
     MoveForward,
     MoveLeft,
     MoveRight,
+    MoveLongRight,
     ScreenShot,
 }
 
@@ -243,6 +244,7 @@ impl AISimMem {
                 AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
                 AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
                 AISimMem::MOV_RIGHT => Some(SimInstruction::MoveRight),
+                AISimMem::MOV_LONG_RIGHT => Some(SimInstruction::MoveLongRight),
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None
