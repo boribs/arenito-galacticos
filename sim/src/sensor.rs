@@ -93,6 +93,7 @@ pub enum SimInstruction {
     MoveForward,
     MoveLeft,
     MoveRight,
+    MoveLongRight,
     ScreenShot,
 }
 
@@ -168,6 +169,7 @@ impl AISimMem {
     const MOV_FORWARD: u8 = b'a';
     const MOV_LEFT: u8 = b'i';
     const MOV_RIGHT: u8 = b'd';
+    const MOV_LONG_RIGHT: u8 = b'D';
 
     // memory footprint
     // how much memory is used for synchronization
@@ -242,6 +244,7 @@ impl AISimMem {
                 AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
                 AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
                 AISimMem::MOV_RIGHT => Some(SimInstruction::MoveRight),
+                AISimMem::MOV_LONG_RIGHT => Some(SimInstruction::MoveLongRight),
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None
