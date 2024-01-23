@@ -83,14 +83,16 @@ impl MPU6050 {
     /// This implementation skips all the math needed to convert
     /// from rotational speed to "current rotation" altogether.
     pub fn read_rot(arenito: &Arenito) -> Vec3 {
-        arenito.rot + SensorError::default()
+        arenito.rot.mul_vec3(Vec3::X) + SensorError::default()
     }
 }
 
 /// Move instruction abstraction.
 #[derive(Debug, Clone, PartialEq)]
 pub enum SimInstruction {
-    Move(ArenitoState),
+    MoveForward,
+    MoveLeft,
+    MoveRight,
     ScreenShot,
 }
 
@@ -237,9 +239,9 @@ impl AISimMem {
         match self.sync_byte.get() {
             AISimMem::AI_FRAME_REQUEST => Some(SimInstruction::ScreenShot),
             AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
-                AISimMem::MOV_FORWARD => Some(SimInstruction::Move(ArenitoState::Forward)),
-                AISimMem::MOV_LEFT => Some(SimInstruction::Move(ArenitoState::Left)),
-                AISimMem::MOV_RIGHT => Some(SimInstruction::Move(ArenitoState::Right)),
+                AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
+                AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
+                AISimMem::MOV_RIGHT => Some(SimInstruction::MoveRight),
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None
@@ -273,7 +275,7 @@ mod sensor_read_tests {
     #[test]
     fn sensor_acc_reads_dont_go_to_negative_values() {
         let mut rng = thread_rng();
-        let mut arenito = Arenito::test();
+        let mut arenito = Arenito::new();
 
         for _ in 0..100 {
             arenito.acc = Vec3::new(
@@ -343,10 +345,7 @@ mod ai_sim_mem_tests {
         let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_FORWARD];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(
-            Some(SimInstruction::Move(ArenitoState::Forward)),
-            aisim.get_instruction()
-        );
+        assert_eq!(Some(SimInstruction::MoveForward), aisim.get_instruction());
     }
 
     #[test]
@@ -354,10 +353,7 @@ mod ai_sim_mem_tests {
         let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_LEFT];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(
-            Some(SimInstruction::Move(ArenitoState::Left)),
-            aisim.get_instruction()
-        );
+        assert_eq!(Some(SimInstruction::MoveLeft), aisim.get_instruction());
     }
 
     #[test]
@@ -365,10 +361,7 @@ mod ai_sim_mem_tests {
         let mut buf: Vec<u8> = vec![AISimMem::AI_MOVE_INSTRUCTION, AISimMem::MOV_RIGHT];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(
-            Some(SimInstruction::Move(ArenitoState::Right)),
-            aisim.get_instruction()
-        );
+        assert_eq!(Some(SimInstruction::MoveRight), aisim.get_instruction());
     }
 
     #[test]

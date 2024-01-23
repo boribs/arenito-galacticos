@@ -33,9 +33,9 @@ class AISimMem:
     SIM_AKNOWLEDGE_INSTRUCTION = 4
 
     # movement instruction constants
-    MOV_FORWARD = 10
-    MOV_LEFT = 11
-    MOV_RIGHT = 12
+    MOV_FORWARD = ord('a')
+    MOV_LEFT = ord('i')
+    MOV_RIGHT = ord('d')
 
     # memory footprint
     IMG_SIZE = 3_145_728
@@ -57,6 +57,7 @@ class AISimMem:
             pass
 
 def mv(aisim: AISimMem, mov: int):
+    print(f'sending {mov}')
     aisim.write_mov_instruction(mov)
     aisim.write_byte(AISimMem.AI_MOVE_INSTRUCTION)
     aisim.wait_confirmation()
@@ -70,7 +71,7 @@ mem = shared_memory.SharedMemory(create=False, name=osid)
 aisim = AISimMem(mem)
 
 # constantly ask for images!
-while True:
+# while True:
     # aisim.write_mov_instruction(AISimMem.MOV_FORWARD)
     # aisim.write_byte(AISimMem.AI_MOVE_INSTRUCTION)
 
@@ -80,11 +81,12 @@ while True:
 
     # aisim.wait_confirmation()
 
+for _ in range(3):
     for _ in range(3):
-        mv(aisim, AISimMem.MOV_FORWARD)
-
-    for _ in range(10):
         mv(aisim, AISimMem.MOV_LEFT)
+
+    # for _ in range(3):
+        mv(aisim, AISimMem.MOV_FORWARD)
 
     # im = Image.frombytes('RGB', (1024, 1024), aisim.mem.buf[1:3145728 + 1])
     # # for some reason blue and red channels are swapped?
