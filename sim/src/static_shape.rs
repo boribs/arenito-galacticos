@@ -144,7 +144,7 @@ impl CameraArea {
 
     /// Calculates the points (edges) that limit the camera's visible area,
     /// as well as the size of the trapeze.
-    pub fn compute_area(&mut self, cam_pos: Vec3) {
+    pub fn compute_area(&mut self, cam_pos: Vec3, arenito_y: f32) {
         // A and B are the closest points to the camera
         // in right-to-left order.
         // C and D are in left-to-right order, further away.
@@ -155,6 +155,7 @@ impl CameraArea {
         //
         //        cam
 
+        let cam_pos = cam_pos + Vec3::Y * (arenito_y - 0.01);
         let q = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, self.alpha);
         let mut points = CameraPrism::from_cam(&self).get_points();
 
@@ -187,7 +188,7 @@ impl CameraArea {
             let mxz = (p.z - cam_pos.z) / (p.x - cam_pos.x); // xz slope
 
             let x = cam_pos.x - (cam_pos.y / mxy);
-            points[i] = Vec3::new(x, 0.0, mxz * (x - cam_pos.x) + cam_pos.z);
+            points[i] = Vec3::new(x, 0.015, mxz * (x - cam_pos.x) + cam_pos.z);
         }
 
         self.points = points;
@@ -202,20 +203,6 @@ impl CameraArea {
             0.0,
             (self.points[2].z + self.points[3].z) / 2.0,
         );
-    }
-
-    pub fn get_mesh(&self) -> Mesh {
-        let mut points = self.points.clone();
-        points.push(points[0].clone());
-
-        let normals = vec![[1.0, 1.0, 1.0]; 5];
-        let uvs = vec![[1.0, 1.0]; 5];
-
-        let mut mesh = Mesh::new(PrimitiveTopology::LineStrip);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, points);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-        mesh
     }
 }
 

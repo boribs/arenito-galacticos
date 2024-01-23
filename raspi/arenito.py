@@ -6,9 +6,6 @@ import argparse
 from arenito_com import *
 from arenito_vision import *
 
-RES_X = 640
-RES_Y = 380
-
 # Cuenta cuantas instrucciones lleva buscando latas
 lr_count = 0
 LR_COUNT_MAX = 20
@@ -23,12 +20,12 @@ def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: Point):
 
     x, _ = det
 
-    if vis.centro_x_max <= x:
-        com.send_instruction(Instruction.MOVE_LEFT)
-    elif vis.centro_x_min >= x:
-        com.send_instruction(Instruction.MOVE_RIGHT)
+    if vis.center_x_max <= x:
+        com.send_instruction(Instruction.MoveRight)
+    elif vis.center_x_min >= x:
+        com.send_instruction(Instruction.MoveLeft)
     else: # está centrado, avanza
-        com.send_instruction(Instruction.MOVE_FORWARD)
+        com.send_instruction(Instruction.MoveForward)
 
     lr_count = 0
 
@@ -41,44 +38,48 @@ def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: MatL
     global lr_count
 
     if vis.reachable(hsv_frame, vis.r_dot):           # si puede, avanza
-        com.send_instruction(Instruction.MOVE_FORWARD)
+        com.send_instruction(Instruction.MoveForward)
     else:                                             # si no, gira
-        com.send_instruction(Instruction.MOVE_RIGHT)
+        com.send_instruction(Instruction.MoveRight)
 
     lr_count += 1
 
     if lr_count == LR_COUNT_MAX:
-        com.send_instruction(Instruction.MOVE_LONG_RIGHT)
+        com.send_instruction(Instruction.MoveLongRight)
         lr_count = 0
 
-def get_image(com: ArenitoComms) -> MatLike:
+def get_image(com: ArenitoComms, vis: ArenitoVision) -> MatLike:
     """
-    Gets an image from ArenitoComms and resizes it to be RES_X x RES_Y.
+    Gets an image from ArenitoComms and resizes it.
     """
 
-    return cv2.resize(com.get_image(), (RES_X, RES_Y), interpolation=cv2.INTER_LINEAR)
+    return vis.resize(com.get_image())
 
-def main(com: ArenitoComms, vis: ArenitoVision):
+def main(com: ArenitoComms, vis: ArenitoVision, no_move: bool):
     """
     Main loop.
-
-    TODO: Make every step more explicit.
     """
 
     while True:
-        frame = get_image(com)
+        frame = get_image(com, vis)
 
         if cv2.waitKey(1) == 27:
             break
 
-        det_img, detections = vis.find_blobs(frame)
-        vis.add_markings(det_img)
+        original = frame.copy()
+        blurred = vis.blur(frame)
 
-        cv2.imshow('asdf', det_img)
+        detections = vis.find_cans(blurred)
+        vis.add_markings(original, detections)
+
+        cv2.imshow('arenito pov', original)
+
+        if no_move:
+            continue
 
         if detections:
             det = detections[0]
-            send_move_instruction(com, vis, det)
+            send_move_instruction(com, vis, det.center)
         else:
             hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             send_roam_instruction(com, vis, hsv_frame)
@@ -91,19 +92,16 @@ if __name__ == '__main__':
 
     parser.add_argument('flink', nargs='?', type=str, default='../sim/shmem_arenito')
     parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--no_move', '-n', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
 
-    com = ArenitoComms()
-    vis = ArenitoVision(RES_X, RES_Y, int(RES_X * 0.2))
     args = parser.parse_args()
-
-    if args.sim:
-        com.connect_simulation(args.flink)
-    else:
-        com.connect_serial(args.port, args.baudrate, args.timeout)
-        com.init_video()
+    mode = AIMode.Simulation if args.sim else AIMode.Real
+    com = ArenitoComms(mode, args)
+    vis = ArenitoVision(mode, args)
 
     try:
-        main(com, vis)
+        main(com, vis, args.no_move)
     except Exception as e:
         print(e)
 
