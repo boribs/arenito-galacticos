@@ -38,13 +38,16 @@ impl Plugin for ArenitoPlugin {
 
         app.insert_resource(Arenito::new())
             .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, (arenito_ai_mover, draw_camera_area));
+            .add_systems(Update, (arenito_ai_mover, draw_camera_area, keyboard_control));
 
         if self.enable_can_eating {
             app.add_systems(Update, eat_cans);
         }
     }
 }
+
+#[derive(Component)]
+struct ControlText;
 
 /// Spawns Arenito.
 fn arenito_spawner(
@@ -55,17 +58,42 @@ fn arenito_spawner(
     mut arenito: ResMut<Arenito>,
 ) {
     arenito.spawn(&mut commands, &mut meshes, &mut materials, &asset_server);
+
+    let style = TextStyle {
+        font_size: 20.0,
+        ..default()
+    };
+    commands.spawn((
+        TextBundle::from_sections([
+                TextSection::new(
+                    " Mode: ",
+                    style.clone(),
+                ),
+                TextSection::new(
+                    format!("{:?}", arenito.control_mode),
+                    style,
+                ),
+            ],
+        ),
+        ControlText,
+    ));
 }
 
-#[allow(unused)]
 /// Reads user input and makes Arenito move.
-fn arenito_mover(
-    time: Res<Time>,
+fn keyboard_control(
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
+    mut text: Query<&mut Text, With<ControlText>>,
 ) {
-    todo!()
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        arenito.control_mode = match arenito.control_mode {
+            ControlMode::AI => ControlMode::Manual,
+            ControlMode::Manual => ControlMode::AI,
+        };
+
+        let mut text = text.single_mut();
+        text.sections[1].value = format!("{:?}", arenito.control_mode)
+    }
 }
 
 /// Gets movement instruction from AI and executes.
@@ -77,23 +105,25 @@ fn arenito_ai_mover(
     window: Query<Entity, With<ArenitoCamWindow>>,
     arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
 ) {
-    match arenito.instruction_handler.state {
-        HandlerState::Done => {
-            aisim.confirm_instruction();
-            arenito.instruction_handler.wait();
-        }
-        HandlerState::Waiting => {
-            if let Some(instr) = aisim.get_instruction() {
-                if instr == SimInstruction::ScreenShot {
-                    aisim.export_frame(&mut screenshot_manager, &window.single());
-                    aisim.confirm_instruction();
-                } else {
-                    arenito.instruction_handler.set(instr);
-                    arenito.instruction_handler.execute();
+    if arenito.control_mode == ControlMode::AI {
+        match arenito.instruction_handler.state {
+            HandlerState::Done => {
+                aisim.confirm_instruction();
+                arenito.instruction_handler.wait();
+            }
+            HandlerState::Waiting => {
+                if let Some(instr) = aisim.get_instruction() {
+                    if instr == SimInstruction::ScreenShot {
+                        aisim.export_frame(&mut screenshot_manager, &window.single());
+                        aisim.confirm_instruction();
+                    } else {
+                        arenito.instruction_handler.set(instr);
+                        arenito.instruction_handler.execute();
+                    }
                 }
             }
+            _ => {}
         }
-        _ => {}
     }
 
     arenito.update(time.delta().as_millis(), arenito3d);
@@ -231,6 +261,12 @@ impl Default for InstructionHandler {
     }
 }
 
+#[derive(Debug, PartialEq)]
+enum ControlMode {
+    Manual,
+    AI,
+}
+
 /// Arenito is the main component of this simulation.
 ///
 /// It's responsible of both visual and "logical" updates of position,
@@ -247,6 +283,7 @@ pub struct Arenito {
     pub cam_area: CameraArea,
     brush_offset: Vec3, // brush pos relative to Arenito's center
     instruction_handler: InstructionHandler,
+    control_mode: ControlMode,
 }
 
 impl Arenito {
@@ -269,6 +306,7 @@ impl Arenito {
             cam_area: CameraArea::default(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
             instruction_handler: InstructionHandler::default(),
+            control_mode: ControlMode::AI,
         }
     }
 
