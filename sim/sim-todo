@@ -6,7 +6,7 @@ Ambiente gráfico:
         ✔ Visualización de alambres (Gizmos) @done(24-01-23 08:09)
             https://bevyengine.org/examples-webgpu/3D%20Rendering/3d-gizmos/
     ☐ Movimiento de la cámara: rotación click n' drag
-    ✔ Movimiento de las ruedas del Arenito @done(23-06-21 18:48)
+    ✔ Movimiento de las ruedas del Arenito @done(24-01-24 14:05)
     ✔ Quitar todo 2D @done(24-01-23 08:09)
         ✔ Quitar noción espacial @done(24-01-05 23:41)
         ✔ Quitar Arenito2D @done(24-01-05 23:53)

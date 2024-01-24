@@ -583,6 +583,25 @@ impl Arenito {
         body.rotation *= rot_diff;
 
         // wheel rotation
+        let mut l = 1.0;
+        let mut r = 1.0;
+
+        let t = if rot_diff == Quat::IDENTITY {
+            pos_diff.length() * Self::VELOCITY
+        } else {
+            let (_, y, _) = rot_diff.to_euler(EulerRot::XYZ);
+            l = if y > 0.0 { 1.0 } else { -1.0 };
+            r = if y > 0.0 { -1.0 } else { 1.0 };
+
+            rot_diff.mul_vec3(Vec3::X).length() * Self::VELOCITY
+        };
+
+        for wheel in &mut left_wheels {
+            wheel.rotate_local_z(-t * l);
+        }
+        for wheel in &mut right_wheels {
+            wheel.rotate_local_z(-t * r);
+        }
     }
 
     /// Prints the current stats of Arenito.
