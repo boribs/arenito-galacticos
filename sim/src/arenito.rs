@@ -84,6 +84,7 @@ fn keyboard_control(
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     mut text: Query<&mut Text, With<ControlText>>,
+    mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         arenito.control_mode = match arenito.control_mode {
@@ -93,6 +94,8 @@ fn keyboard_control(
 
         let mut text = text.single_mut();
         text.sections[1].value = format!("{:?}", arenito.control_mode)
+    } else if keyboard_input.just_pressed(KeyCode::R) {
+        arenito.reset(&mut arenito3d);
     }
 }
 
@@ -248,6 +251,13 @@ impl InstructionHandler {
             // println!("next is: {:?}", self.instructions[0]);
             self.remaining_time = self.instructions[0].1;
         }
+    }
+
+    /// Resets the instruction handler.
+    fn reset(&mut self) {
+        self.instructions.clear();
+        self.remaining_time = 0.0;
+        self.state = HandlerState::Done;
     }
 }
 
@@ -455,6 +465,7 @@ impl Arenito {
         self.acc = Vec3::ZERO;
         self.vel = Vec3::ZERO;
         self.rot = Quat::IDENTITY;
+        self.instruction_handler.reset();
 
         for body_part in arenito3d {
             if *body_part.1 == Arenito3D::Frame {
