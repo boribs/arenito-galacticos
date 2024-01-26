@@ -1,6 +1,5 @@
 use crate::cans::*;
-use bevy::prelude::*;
-
+use bevy::{prelude::*, render::view::RenderLayers};
 pub enum SceneName {
     Test,
     Basic,
@@ -184,11 +183,14 @@ fn spawn_basic_scene_with_cans(
         ..default()
     });
 
-    commands.spawn((Camera3dBundle {
-        transform: Transform::from_xyz(0.01, 20.0, 0.0)
-            .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-        ..default()
-    },));
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.01, 20.0, 0.0)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            ..default()
+        },
+        RenderLayers::from_layers(&[0, 1]),
+    ));
 
     let data = [
         //   x,   z,   ry

@@ -6,7 +6,10 @@ use crate::{
 };
 use bevy::{
     prelude::*,
-    render::{camera::RenderTarget, view::screenshot::ScreenshotManager},
+    render::{
+        camera::RenderTarget,
+        view::{screenshot::ScreenshotManager, RenderLayers},
+    },
     window::{Window, WindowRef, WindowResolution},
 };
 use bevy_obj::*;
@@ -37,8 +40,11 @@ impl Plugin for ArenitoPlugin {
         }
 
         app.insert_resource(Arenito::new())
-            .add_systems(Startup, arenito_spawner)
-            .add_systems(Update, (arenito_ai_mover, draw_camera_area, keyboard_control));
+            .add_systems(Startup, (arenito_spawner, gizmo_config))
+            .add_systems(
+                Update,
+                (arenito_ai_mover, draw_camera_area, keyboard_control),
+            );
 
         if self.enable_can_eating {
             app.add_systems(Update, eat_cans);
@@ -65,18 +71,15 @@ fn arenito_spawner(
     };
     commands.spawn((
         TextBundle::from_sections([
-                TextSection::new(
-                    " Mode: ",
-                    style.clone(),
-                ),
-                TextSection::new(
-                    format!("{:?}", arenito.control_mode),
-                    style,
-                ),
-            ],
-        ),
+            TextSection::new(" Mode: ", style.clone()),
+            TextSection::new(format!("{:?}", arenito.control_mode), style),
+        ]),
         ControlText,
     ));
+}
+
+fn gizmo_config(mut config: ResMut<GizmoConfig>) {
+    config.render_layers = RenderLayers::layer(1);
 }
 
 /// Reads user input and makes Arenito move.
