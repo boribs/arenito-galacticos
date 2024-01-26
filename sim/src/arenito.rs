@@ -141,9 +141,9 @@ fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
     }
 
     for i in 0..points.len() - 1 {
-        gizmos.ray(points[i], points[i + 1] - points[i], Color::WHITE);
+        gizmos.line(points[i], points[i + 1], Color::WHITE);
     }
-    gizmos.ray(points[3], points[0] - points[3], Color::WHITE);
+    gizmos.line(points[3], points[0], Color::WHITE);
 
     arenito.draw_sphere(Color::WHITE, &mut gizmos);
 }
