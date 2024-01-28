@@ -1,7 +1,7 @@
 use crate::arenito::*;
 use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
 use rand::{prelude::thread_rng, Rng};
-use shared_memory::Shmem;
+use memmap::MmapMut;
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -127,9 +127,9 @@ impl AISimAddr {
 }
 
 /// Responsible for interacting with Arenito's AI process.
-/// Communicates through shared memory.
+/// Communicates through shared file mapping.
 ///
-/// The shared memory block serves as both the communication
+/// The shared file block serves as both the communication
 /// and the sync channel.
 /// The first byte is used to syncrchronize the simulation,
 /// as well as the AI, indicatin which process has write permission.
@@ -179,9 +179,9 @@ impl AISimMem {
     // sync byte + img size
     pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
 
-    pub fn new(shmem: &Shmem) -> Self {
+    pub fn new(mmap: &mut MmapMut) -> Self {
         unsafe {
-            let ptr = shmem.as_ptr();
+            let ptr = mmap.as_mut_ptr();
 
             Self {
                 sync_byte: AISimAddr(ptr),
