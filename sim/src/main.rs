@@ -10,10 +10,10 @@ use bevy::{prelude::*, window::ExitCondition, winit::WinitSettings};
 use memmap;
 use scenes::{SceneLoaderPlugin, SceneName};
 use sensor::AISimMem;
-use std::fs::OpenOptions;
+use std::{fs::OpenOptions, io::Write};
 
 fn main() {
-    let file = match OpenOptions::new()
+    let mut file = match OpenOptions::new()
         .read(true)
         .write(true)
         .open(AISimMem::MMAP_FILENAME)
@@ -21,6 +21,8 @@ fn main() {
         Ok(f) => f,
         Err(_) => AISimMem::create_shareable_file(),
     };
+    // Clear first bytes
+    let _ = file.write(&[0, 0, 0]);
 
     let mut mmap = unsafe {
         memmap::MmapOptions::new()
