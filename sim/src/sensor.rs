@@ -179,7 +179,9 @@ impl AISimMem {
     // how much memory is used for synchronization
     const SYNC_SIZE: usize = 1;
     // min size required to store image, found experimentally
-    //const IMG_SIZE: usize = 3_145_728;
+    #[cfg(target_os = "macos")]
+    const IMG_SIZE: usize = 3_145_728;
+    #[cfg(target_os = "windows")]
     const IMG_SIZE: usize = 786_432;
     // sync byte + img size
     pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
@@ -232,8 +234,8 @@ impl AISimMem {
                 Ok(dyn_img) => {
                     let img_raw = dyn_img.to_rgb8().into_raw();
 
-                    //println!("raw len: {}", img_raw.len());
-                    //println!("{}, {}", dyn_img.width(), dyn_img.height());
+                    // println!("raw len: {}", img_raw.len());
+                    // println!("{}, {}", dyn_img.width(), dyn_img.height());
 
                     if img_raw.len() != AISimMem::IMG_SIZE {
                         panic!("different image size!");

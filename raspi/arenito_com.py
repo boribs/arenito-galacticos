@@ -1,6 +1,6 @@
 # pyright: strict
 
-import subprocess, cv2
+import subprocess, cv2, os
 import numpy as np
 from argparse import Namespace
 from cv2.typing import MatLike
@@ -29,6 +29,11 @@ INSTRUCTION_MAP = {
     Instruction.MoveLongRight: 'D',
     Instruction.RequestFrame: 'ss', # I don't think I need you
 }
+
+# The simulation returns a 512 by 512 image on windows, and a 1024 by 1024 on mac.
+# I still don't know why. It should return a 512 by 512 on any system...
+INCOMING_IMAGE_RES = (512, 512) if os.name == 'nt' else (1024, 1024)
+IMAGE_SIZE = 786432 if os.name == 'nt' else 3_145_728
 
 class ArenitoComms:
     """
@@ -154,10 +159,6 @@ class SimInterface:
     AI_MOVE_INSTRUCTION = 3
     SIM_AKNOWLEDGE_INSTRUCTION = 4
 
-    # memory footprint
-    # IMAGE_SIZE = 3_145_728
-    IMAGE_SIZE = 786432 # image size (bytes)
-
     def __init__(self, filename: str):
         self.attach(filename)
 
@@ -208,9 +209,8 @@ class SimInterface:
 
         self.send_instruction(Instruction.RequestFrame)
 
-        raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
-        im = Image.frombytes('RGB', (1024, 1024), raw_img) # pyright: ignore[reportUnknownMemberType]
-        im = Image.frombytes('RGB', (512, 512), raw_img) # pyright: ignore[reportUnknownMemberType]
+        raw_img = self.mem[1 : IMAGE_SIZE + 1]
+        im = Image.frombytes('RGB', INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
 
         # for some reason blue and red channels are swapped?
         # r, g, b = im.split()
