@@ -6,9 +6,8 @@ from argparse import Namespace
 from cv2.typing import MatLike
 from enum import Enum, auto
 from serial import Serial
-from multiprocessing.shared_memory import SharedMemory
-from multiprocessing import resource_tracker
 from PIL import Image
+from mmap import mmap
 
 class AIMode(Enum):
     Simulation = auto()
@@ -27,7 +26,7 @@ INSTRUCTION_MAP = {
     Instruction.MoveLeft: 'i',
     Instruction.MoveRight: 'd',
     Instruction.MoveBack: 'r',
-    Instruction.MoveLongRight: 'l',
+    Instruction.MoveLongRight: 'D',
     Instruction.RequestFrame: 'ss', # I don't think I need you
 }
 
@@ -45,7 +44,7 @@ class ArenitoComms:
         self.sim_interface: SimInterface | None = None
 
         if mode == AIMode.Simulation:
-            self.connect_simulation(args.flink)
+            self.connect_simulation(args.filename)
         elif mode == AIMode.Real:
             self.connect_serial(args.port, args.baudrate, args.timeout)
             self.init_video()
@@ -66,12 +65,12 @@ class ArenitoComms:
 
         self.serial = SerialInterface(port, baudrate, timeout)
 
-    def connect_simulation(self, flink: str):
+    def connect_simulation(self, filename: str):
         """
         Attaches to simulation's shared memory.
         """
 
-        self.sim_interface = SimInterface(flink)
+        self.sim_interface = SimInterface(filename)
 
     def get_image(self) -> MatLike:
         """
@@ -156,24 +155,21 @@ class SimInterface:
     SIM_AKNOWLEDGE_INSTRUCTION = 4
 
     # memory footprint
-    IMAGE_SIZE = 3_145_728 # image size (bytes)
+    # IMAGE_SIZE = 3_145_728
+    IMAGE_SIZE = 786432 # image size (bytes)
 
-    def __init__(self, flink: str):
-        SimInterface.remove_shm_from_resource_tracker() # python 3.12 or less
+    def __init__(self, filename: str):
+        self.attach(filename)
 
-        self.attach(flink)
-
-    def attach(self, flink: str):
+    def attach(self, filename: str):
         """
         Attaches to simulation's shared memory.
         """
 
         # Simulation creates a file on flink (path).
         # Its contents are the name of the shared memory mapping.
-        with open(flink, 'r') as f:
-            osid = f.read()[1:]
-
-        self.mem = SharedMemory(create=False, name=osid)
+        with open(filename, 'r+') as f:
+            self.mem = mmap(f.fileno(), length=0)
 
     def close(self):
         """
@@ -187,14 +183,14 @@ class SimInterface:
         Reads sync byte.
         """
 
-        return self.mem.buf[0]
+        return self.mem[0]
 
     def set_sync_byte(self, val: int):
         """
         Sets sync byte.
         """
 
-        self.mem.buf[0] = val
+        self.mem[0] = val
 
     def set_mov_instruction(self, val: int):
         """
@@ -202,7 +198,7 @@ class SimInterface:
         when setting a movement instruction.
         """
 
-        self.mem.buf[1] = val
+        self.mem[1] = val
 
     def get_image(self) -> MatLike:
         """
@@ -212,8 +208,9 @@ class SimInterface:
 
         self.send_instruction(Instruction.RequestFrame)
 
-        raw_img = self.mem.buf[1 : SimInterface.IMAGE_SIZE + 1]
+        raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', (1024, 1024), raw_img) # pyright: ignore[reportUnknownMemberType]
+        im = Image.frombytes('RGB', (512, 512), raw_img) # pyright: ignore[reportUnknownMemberType]
 
         # for some reason blue and red channels are swapped?
         # r, g, b = im.split()
@@ -226,7 +223,7 @@ class SimInterface:
         Stalls until sync byte equals SimInterface.SIM_AKNOWLEDGE_INSTRUCTION.
         """
 
-        while self.mem.buf[0] != SimInterface.SIM_AKNOWLEDGE_INSTRUCTION:
+        while self.mem[0] != SimInterface.SIM_AKNOWLEDGE_INSTRUCTION:
             pass
 
     def send_instruction(self, instr: Instruction):
@@ -242,24 +239,3 @@ class SimInterface:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
             self.wait_confirmation()
-
-    def remove_shm_from_resource_tracker(): # pyright: ignore
-        """Monkey-patch multiprocessing.resource_tracker so SharedMemory won't be tracked
-
-        More details at: https://bugs.python.org/issue38119
-        """
-
-        def fix_register(name, rtype): # pyright: ignore
-            if rtype == "shared_memory":
-                return
-            return resource_tracker._resource_tracker.register(self, name, rtype) # pyright: ignore
-        resource_tracker.register = fix_register
-
-        def fix_unregister(name, rtype): # pyright: ignore
-            if rtype == "shared_memory":
-                return
-            return resource_tracker._resource_tracker.unregister(self, name, rtype) # pyright: ignore
-        resource_tracker.unregister = fix_unregister
-
-        if "shared_memory" in resource_tracker._CLEANUP_FUNCS: # pyright: ignore
-            del resource_tracker._CLEANUP_FUNCS["shared_memory"] # pyright: ignore
