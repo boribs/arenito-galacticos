@@ -5,20 +5,22 @@ pub mod scenes;
 pub mod sensor;
 pub mod static_shape;
 
-use std::fs::OpenOptions;
 use arenito::ArenitoPlugin;
 use bevy::{prelude::*, window::ExitCondition, winit::WinitSettings};
+use memmap;
 use scenes::{SceneLoaderPlugin, SceneName};
 use sensor::AISimMem;
-use memmap;
+use std::fs::OpenOptions;
 
 fn main() {
-    // this could all be done in AISimMem::new()
-    let file = OpenOptions::new()
+    let file = match OpenOptions::new()
         .read(true)
         .write(true)
-        .open("file")
-        .expect("Unable to open file.");
+        .open(AISimMem::MMAP_FILENAME)
+    {
+        Ok(f) => f,
+        Err(_) => AISimMem::create_shareable_file(),
+    };
 
     let mut mmap = unsafe {
         memmap::MmapOptions::new()

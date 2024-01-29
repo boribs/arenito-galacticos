@@ -1,7 +1,11 @@
 use crate::arenito::*;
 use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
-use rand::{prelude::thread_rng, Rng};
 use memmap::MmapMut;
+use rand::{prelude::thread_rng, Rng};
+use std::{
+    fs::{File, OpenOptions},
+    io::{Seek, SeekFrom, Write},
+};
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -178,6 +182,7 @@ impl AISimMem {
     const IMG_SIZE: usize = 3_145_728;
     // sync byte + img size
     pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
+    pub const MMAP_FILENAME: &'static str = "file.mmap";
 
     pub fn new(mmap: &mut MmapMut) -> Self {
         unsafe {
@@ -188,6 +193,19 @@ impl AISimMem {
                 memspace: AISimAddr(ptr.add(1)),
             }
         }
+    }
+
+    pub fn create_shareable_file() -> File {
+        let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(Self::MMAP_FILENAME)
+            .unwrap();
+        file.seek(SeekFrom::Start(Self::MIN_REQUIRED_MEMORY as u64))
+            .unwrap();
+        file.write_all(&[0]).unwrap();
+        file
     }
 
     /// Sets the sync flag of the mapping.
