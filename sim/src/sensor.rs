@@ -1,7 +1,11 @@
 use crate::arenito::*;
 use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
+use memmap::MmapMut;
 use rand::{prelude::thread_rng, Rng};
-use shared_memory::Shmem;
+use std::{
+    fs::{File, OpenOptions},
+    io::{Seek, SeekFrom, Write},
+};
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -127,9 +131,9 @@ impl AISimAddr {
 }
 
 /// Responsible for interacting with Arenito's AI process.
-/// Communicates through shared memory.
+/// Communicates through shared file mapping.
 ///
-/// The shared memory block serves as both the communication
+/// The shared file block serves as both the communication
 /// and the sync channel.
 /// The first byte is used to syncrchronize the simulation,
 /// as well as the AI, indicatin which process has write permission.
@@ -175,19 +179,36 @@ impl AISimMem {
     // how much memory is used for synchronization
     const SYNC_SIZE: usize = 1;
     // min size required to store image, found experimentally
+    #[cfg(target_os = "macos")]
     const IMG_SIZE: usize = 3_145_728;
+    #[cfg(target_os = "windows")]
+    const IMG_SIZE: usize = 786_432;
     // sync byte + img size
     pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
+    pub const MMAP_FILENAME: &'static str = "file.mmap";
 
-    pub fn new(shmem: &Shmem) -> Self {
+    pub fn new(mmap: &mut MmapMut) -> Self {
         unsafe {
-            let ptr = shmem.as_ptr();
+            let ptr = mmap.as_mut_ptr();
 
             Self {
                 sync_byte: AISimAddr(ptr),
                 memspace: AISimAddr(ptr.add(1)),
             }
         }
+    }
+
+    pub fn create_shareable_file() -> File {
+        let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(Self::MMAP_FILENAME)
+            .unwrap();
+        file.seek(SeekFrom::Start(Self::MIN_REQUIRED_MEMORY as u64))
+            .unwrap();
+        file.write_all(&[0]).unwrap();
+        file
     }
 
     /// Sets the sync flag of the mapping.
@@ -212,6 +233,9 @@ impl AISimMem {
             screenshot_manager.take_screenshot(*window, move |img| match img.try_into_dynamic() {
                 Ok(dyn_img) => {
                     let img_raw = dyn_img.to_rgb8().into_raw();
+
+                    // println!("raw len: {}", img_raw.len());
+                    // println!("{}, {}", dyn_img.width(), dyn_img.height());
 
                     if img_raw.len() != AISimMem::IMG_SIZE {
                         panic!("different image size!");

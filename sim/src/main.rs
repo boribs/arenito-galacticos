@@ -7,26 +7,27 @@ pub mod static_shape;
 
 use arenito::ArenitoPlugin;
 use bevy::{prelude::*, window::ExitCondition, winit::WinitSettings};
+use memmap;
 use scenes::{SceneLoaderPlugin, SceneName};
 use sensor::AISimMem;
-use shared_memory::*;
+use std::{fs::OpenOptions, io::Write};
 
 fn main() {
-    let flink = "shmem_arenito";
-    let shmem: Shmem = match ShmemConf::new()
-        .size(AISimMem::MIN_REQUIRED_MEMORY)
-        .flink(flink)
-        .create()
+    let mut file = match OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(AISimMem::MMAP_FILENAME)
     {
-        Ok(m) => {
-            println!("created successfully");
-            m
-        }
-        Err(ShmemError::LinkExists) => {
-            println!("already exists. connecting.");
-            ShmemConf::new().size(100).flink(flink).open().unwrap()
-        }
-        Err(_) => panic!("you did something very wrong."),
+        Ok(f) => f,
+        Err(_) => AISimMem::create_shareable_file(),
+    };
+    // Clear first bytes
+    let _ = file.write(&[0, 0, 0]);
+
+    let mut mmap = unsafe {
+        memmap::MmapOptions::new()
+            .map_mut(&file)
+            .expect("Could not access data from file.")
     };
 
     App::new()
@@ -38,7 +39,7 @@ fn main() {
             return_from_run: true,
             ..default()
         })
-        .insert_resource(AISimMem::new(&shmem))
+        .insert_resource(AISimMem::new(&mut mmap))
         .add_plugins((
             SceneLoaderPlugin {
                 name: SceneName::BasicCans,

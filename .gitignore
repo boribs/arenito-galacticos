@@ -144,3 +144,6 @@ log.txt
 
 # Vscode
 .vscode
+
+# Shared files!
+*.mmap
