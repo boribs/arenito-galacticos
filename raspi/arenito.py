@@ -48,20 +48,13 @@ def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: MatL
         com.send_instruction(Instruction.MoveLongRight)
         lr_count = 0
 
-def get_image(com: ArenitoComms, vis: ArenitoVision) -> MatLike:
-    """
-    Gets an image from ArenitoComms and resizes it.
-    """
-
-    return vis.resize(com.get_image())
-
 def main(com: ArenitoComms, vis: ArenitoVision, no_move: bool):
     """
     Main loop.
     """
 
     while True:
-        frame = get_image(com, vis)
+        frame = com.get_image()
 
         if cv2.waitKey(1) == 27:
             break
