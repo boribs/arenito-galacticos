@@ -6,6 +6,7 @@ use std::{
     fs::{File, OpenOptions},
     io::{Seek, SeekFrom, Write},
 };
+use image::imageops::FilterType;
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -179,9 +180,6 @@ impl AISimMem {
     // how much memory is used for synchronization
     const SYNC_SIZE: usize = 1;
     // min size required to store image, found experimentally
-    #[cfg(target_os = "macos")]
-    const IMG_SIZE: usize = 3_145_728;
-    #[cfg(target_os = "windows")]
     const IMG_SIZE: usize = 786_432;
     // sync byte + img size
     pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
@@ -232,14 +230,17 @@ impl AISimMem {
         let _ =
             screenshot_manager.take_screenshot(*window, move |img| match img.try_into_dynamic() {
                 Ok(dyn_img) => {
-                    let img_raw = dyn_img.to_rgb8().into_raw();
+                    let img_raw = dyn_img
+                        .resize(512, 512, FilterType::Triangle)
+                        .to_rgb8()
+                        .into_raw();
 
                     // println!("raw len: {}", img_raw.len());
                     // println!("{}, {}", dyn_img.width(), dyn_img.height());
 
-                    if img_raw.len() != AISimMem::IMG_SIZE {
-                        panic!("different image size!");
-                    }
+                    // if img_raw.len() != AISimMem::IMG_SIZE {
+                    //     panic!("different image size!");
+                    // }
 
                     memspace.write(&img_raw);
                     sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
