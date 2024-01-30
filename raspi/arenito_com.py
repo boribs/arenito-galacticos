@@ -1,6 +1,6 @@
 # pyright: strict
 
-import subprocess, cv2, os
+import subprocess, cv2
 import numpy as np
 from argparse import Namespace
 from cv2.typing import MatLike
@@ -30,10 +30,8 @@ INSTRUCTION_MAP = {
     Instruction.RequestFrame: 'ss', # I don't think I need you
 }
 
-# The simulation returns a 512 by 512 image on windows, and a 1024 by 1024 on mac.
-# I still don't know why. It should return a 512 by 512 on any system...
-INCOMING_IMAGE_RES = (512, 512) if os.name == 'nt' else (1024, 1024)
-IMAGE_SIZE = 786432 if os.name == 'nt' else 3_145_728
+INCOMING_IMAGE_RES = (512, 512)
+IMAGE_SIZE = 786_432
 
 class ArenitoComms:
     """

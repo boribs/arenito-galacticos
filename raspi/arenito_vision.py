@@ -71,7 +71,7 @@ class ArenitoVision:
     """
 
     RESOLUTIONS = {
-        AIMode.Simulation : (500, 500),
+        AIMode.Simulation : (512, 512),
         AIMode.Real : (640, 380),
     }
 
@@ -174,13 +174,6 @@ class ArenitoVision:
         params.maxInertiaRatio = 0.7
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
-
-    def resize(self, img: MatLike) -> MatLike:
-        """
-        Resizes the raw image to the expected size.
-        """
-
-        return cv2.resize(img, (self.res_x, self.res_y))
 
     def add_markings(self, det_img: MatLike, detections: list[Detection]):
         """
