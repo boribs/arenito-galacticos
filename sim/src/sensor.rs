@@ -615,11 +615,41 @@ mod proximity_sensor_tests {
     }
 
     #[test]
-    fn test_point_inside_triangle_1() {}
+    fn test_point_inside_triangle_1() {
+        let triangle = Triangle {
+            a: Vec3::new(0.0, 0.0, 1.0),
+            b: Vec3::new(0.0, 0.0, -1.0),
+            c: Vec3::new(1.0, 0.0, 0.0),
+        };
+
+        assert!(ProximitySensor::point_inside_triangle(Vec3::ZERO, triangle))
+    }
 
     #[test]
-    fn test_point_inside_triangle_2() {}
+    fn test_point_inside_triangle_2() {
+        let triangle = Triangle {
+            a: Vec3::new(0.0, 0.0, 1.0),
+            b: Vec3::new(0.0, 0.0, -1.0),
+            c: Vec3::new(1.0, 0.0, 0.0),
+        };
+
+        assert!(ProximitySensor::point_inside_triangle(
+            Vec3::new(0.1, 0.0, 0.24),
+            triangle
+        ))
+    }
 
     #[test]
-    fn test_point_outside_triangle() {}
+    fn test_point_outside_triangle() {
+        let triangle = Triangle {
+            a: Vec3::new(0.0, 0.0, 1.0),
+            b: Vec3::new(0.0, 0.0, -1.0),
+            c: Vec3::new(1.0, 0.0, 0.0),
+        };
+
+        assert!(!ProximitySensor::point_inside_triangle(
+            Vec3::new(4.0, 0.0, 0.0),
+            triangle
+        ))
+    }
 }
