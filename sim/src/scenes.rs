@@ -1,9 +1,11 @@
 use crate::cans::*;
+use crate::static_shape::Obstacle;
 use bevy::{prelude::*, render::view::RenderLayers};
 pub enum SceneName {
     Test,
     Basic,
     BasicCans,
+    Obstacle,
 }
 
 pub struct SceneLoaderPlugin {
@@ -19,6 +21,7 @@ impl Plugin for SceneLoaderPlugin {
             SceneName::Test => spawn_test_scene,
             SceneName::Basic => spawn_basic_plane_scene,
             SceneName::BasicCans => spawn_basic_scene_with_cans,
+            SceneName::Obstacle => spawn_obstacle_scene,
         };
 
         app.add_systems(PreStartup, init_can_manager);
@@ -210,12 +213,60 @@ fn spawn_basic_scene_with_cans(
 
         can_manager.spawn(
             &mut commands,
-            CanData {
-                pos: Vec3::new(x, 0.2, z),
-                rot: Quat::from_euler(EulerRot::XYZ, 0.0, ry, 1.56),
-                size: CanSize::Big,
-                texture: CanTexture::Shiny,
-            },
-        );
-    }
+
+fn spawn_obstacle_scene(
+    _asset_server: Res<AssetServer>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut _can_manager: ResMut<CanManager>,
+) {
+    let plane_size = 10.0;
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(shape::Plane::from_size(plane_size).into()),
+        material: materials.add(StandardMaterial {
+            base_color: Color::MIDNIGHT_BLUE,
+            ..default()
+        }),
+        transform: Transform::from_xyz(0.0, 0.01, 0.0),
+        ..default()
+    });
+
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 15000.0,
+            ..default()
+        },
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-0.4),
+            ..default()
+        },
+        ..default()
+    });
+
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(-10.01, 10.0, 3.0)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            ..default()
+        },
+        RenderLayers::from_layers(&[0, 1]),
+    ));
+
+    let mesh = meshes.add(Obstacle::get_mesh());
+    commands.spawn((
+        PbrBundle {
+            mesh: mesh.clone(),
+            material: materials.add(StandardMaterial {
+                base_color: Color::RED,
+                ..default()
+            }),
+            transform: Transform::from_xyz(4.0, 0.0, 0.0),
+            ..default()
+        },
+        Obstacle::new(mesh.clone())
+    ),
+);
 }
