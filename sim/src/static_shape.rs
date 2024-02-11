@@ -1,5 +1,5 @@
-use bevy::{prelude::*, render::render_resource::*};
 use crate::collision::WithMeshCollision;
+use bevy::{prelude::*, render::render_resource::*};
 
 /// Visual representation of the viewport of a virtual 3d Camera
 #[derive(Component)]
@@ -216,14 +216,12 @@ impl Default for CameraArea {
 /// Simple obstacle struct to facilitate mesh collision testing.
 #[derive(Component)]
 pub struct Obstacle {
-    mesh_handle: Handle<Mesh>
+    mesh_handle: Handle<Mesh>,
 }
 
 impl Obstacle {
     pub fn new(mesh_handle: Handle<Mesh>) -> Self {
-        Self {
-            mesh_handle
-        }
+        Self { mesh_handle }
     }
     pub fn get_mesh() -> Mesh {
         let vertices = vec![
