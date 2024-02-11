@@ -215,14 +215,9 @@ impl Default for CameraArea {
 
 /// Simple obstacle struct to facilitate mesh collision testing.
 #[derive(Component)]
-pub struct Obstacle {
-    mesh_handle: Handle<Mesh>,
-}
+pub struct Obstacle;
 
 impl Obstacle {
-    pub fn new(mesh_handle: Handle<Mesh>) -> Self {
-        Self { mesh_handle }
-    }
     pub fn get_mesh() -> Mesh {
         let vertices = vec![
             Vec3::new(0.0, 0.0, -1.0),
