@@ -533,7 +533,7 @@ mod proximity_sensor_tests {
         let prox = ProximitySensor {
             pos: Vec3::new(0.5, 0.0, 0.0),
             rot: Quat::IDENTITY,
-            range: 2.0
+            range: 2.0,
         };
 
         let prox = prox.get_orientation(&arenito);
@@ -551,7 +551,7 @@ mod proximity_sensor_tests {
         let prox = ProximitySensor {
             pos: Vec3::new(0.5, 0.0, 0.0),
             rot: Quat::IDENTITY,
-            range: 2.0
+            range: 2.0,
         };
 
         let prox = prox.get_orientation(&arenito);
@@ -608,10 +608,7 @@ mod proximity_sensor_tests {
             c: Vec3::new(0.0, 1.0, 0.0),
         };
 
-        assert_eq!(
-            ProximitySensor::get_collision_point(line, triangle),
-            None
-        )
+        assert_eq!(ProximitySensor::get_collision_point(line, triangle), None)
     }
 
     #[test]
