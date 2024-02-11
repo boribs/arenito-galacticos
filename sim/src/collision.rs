@@ -1,6 +1,32 @@
 use bevy::prelude::*;
 
-/// Every collidable object must implement some collision trait
+#[derive(Copy, Clone)]
+pub struct Line {
+    pub org: Vec3,
+    pub dir: Vec3,
+}
+
+#[derive(Copy, Clone)]
+pub struct Triangle {
+    pub a: Vec3,
+    pub b: Vec3,
+    pub c: Vec3,
+}
+
+pub struct Plane {
+    pub p: Vec3,
+    pub normal: Vec3,
+}
+
+impl Plane {
+    pub fn from_triangle(triangle: Triangle) -> Self {
+        let (a, b, c) = (triangle.a, triangle.b, triangle.c);
+        Self {
+            p: a,
+            normal: (b - a).cross(c - a).normalize_or_zero(),
+        }
+    }
+}
 
 /// Distance collision (spherical collision)
 pub trait WithDistanceCollision {

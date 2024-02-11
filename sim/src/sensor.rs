@@ -1,4 +1,4 @@
-use crate::{arenito::*, collision::WithMeshCollision};
+use crate::{arenito::*, collision::*};
 use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
 use image::imageops::FilterType;
 use memmap::MmapMut;
@@ -289,34 +289,6 @@ impl AISimMem {
     }
 }
 
-#[derive(Copy, Clone)]
-struct Line {
-    org: Vec3,
-    dir: Vec3,
-}
-
-#[derive(Copy, Clone)]
-struct Triangle {
-    a: Vec3,
-    b: Vec3,
-    c: Vec3,
-}
-
-struct Plane {
-    p: Vec3,
-    normal: Vec3,
-}
-
-impl Plane {
-    fn from_triangle(triangle: Triangle) -> Self {
-        let (a, b, c) = (triangle.a, triangle.b, triangle.c);
-        Self {
-            p: a,
-            normal: (b - a).cross(c - a).normalize_or_zero(),
-        }
-    }
-}
-
 /// Proximity sensor, inspired by E18-D80NK.
 ///
 /// It's initial `pos` and `rot` values are position and rotation offset
@@ -585,4 +557,25 @@ mod proximity_sensor_tests {
         assert_eq!(prox.pos, Vec3::new(0.5, 0.0, 0.0));
         assert_eq!(prox.rot, Quat::from_euler(EulerRot::XYZ, 0.0, 0.1, -0.3));
     }
+
+    #[test]
+    fn test_get_collision_point_1() {}
+
+    #[test]
+    fn test_get_collision_point_2() {}
+
+    #[test]
+    fn test_get_collision_point_no_collision() {}
+
+    #[test]
+    fn test_get_collision_point_no_collision_very_close() {}
+
+    #[test]
+    fn test_point_inside_triangle_1() {}
+
+    #[test]
+    fn test_point_inside_triangle_2() {}
+
+    #[test]
+    fn test_point_outside_triangle() {}
 }
