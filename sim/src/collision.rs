@@ -43,9 +43,7 @@ pub trait WithDistanceCollision {
 #[allow(unused)]
 /// Mesh collision (convex hull collision)
 pub trait WithMeshCollision {
-    fn get_hull(&self, meshes: &Res<Assets<Mesh>>) -> Vec<Vec3> {
-        let mesh = meshes.get(self.get_mesh_handle()).unwrap();
-
+    fn get_hull(&self, mesh: &Mesh, transform: &Transform) -> Vec<Vec3> {
         // println!("{:?}", mesh.primitive_topology());
 
         mesh.attribute(Mesh::ATTRIBUTE_POSITION)
@@ -53,9 +51,13 @@ pub trait WithMeshCollision {
             .as_float3()
             .unwrap()
             .iter()
-            .map(|s| Vec3::from_array(*s))
+            .map(|s| {
+                let v = transform.rotation.mul_vec3(Vec3::from_array(*s));
+                v + transform.translation
+            })
             .collect()
     }
+}
 
 #[cfg(test)]
 mod geometric_primitive_tests {
