@@ -353,16 +353,17 @@ impl ProximitySensor {
     pub fn collides_with_mesh(
         &self,
         object: &impl WithMeshCollision,
-        meshes: &Res<Assets<Mesh>>,
+        mesh: &Mesh,
+        transform: &Transform,
     ) -> Option<f32> {
         let line = Line {
             dir: self.rot.mul_vec3(Vec3::X),
             org: self.pos,
         };
 
-        let mut dist = -1.0;
+        let mut dist = self.range + 10.0;
 
-        let hull = object.get_hull(meshes);
+        let hull = object.get_hull(mesh, transform);
         let mut vertices = hull.iter();
 
         for _ in 0..(vertices.len() / 3) {
@@ -384,7 +385,9 @@ impl ProximitySensor {
             };
         }
 
-        if dist == -1.0 {
+        // println!("dist: {}", dist);
+
+        if dist > self.range {
             None
         } else {
             Some(dist)
