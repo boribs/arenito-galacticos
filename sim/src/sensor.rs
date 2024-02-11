@@ -315,18 +315,20 @@ impl ProximitySensor {
         gizmos.ray(self.pos, self.rot.mul_vec3(Vec3::X) * range, color);
     }
 
-    /// Calculates the collision point with triangle abc, considering current
-    /// position and rotation.
+    /// Calculates the collision point with the plane formed by triangle abc,
+    /// considering current position and rotation.
     fn get_collision_point(line: Line, triangle: Triangle) -> Option<Vec3> {
-        const EPSILON: f32 = 0.001;
+        const EPSILON: f32 = 0.0000001;
 
         let p = Plane::from_triangle(triangle);
 
-        if p.normal.dot(line.dir) < EPSILON {
+        // parallel or not touching
+        let norline = p.normal.dot(line.dir);
+        if norline.abs() < EPSILON {
             return None;
         }
 
-        let t = (p.normal.dot(p.p) - p.normal.dot(line.org)) / p.normal.dot(line.dir);
+        let t = (p.normal.dot(p.p) - p.normal.dot(line.org)) / norline;
         Some(line.org + (line.dir * t))
     }
 
@@ -559,16 +561,58 @@ mod proximity_sensor_tests {
     }
 
     #[test]
-    fn test_get_collision_point_1() {}
+    fn test_get_collision_point_1() {
+        let line = Line {
+            org: Vec3::new(-1.0, 0.0, 0.0),
+            dir: Vec3::X,
+        };
+        let triangle = Triangle {
+            a: Vec3::new(0.0, -1.0, -1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(0.0, 1.0, 0.0),
+        };
+
+        assert_eq!(
+            ProximitySensor::get_collision_point(line, triangle),
+            Some(Vec3::ZERO)
+        )
+    }
 
     #[test]
-    fn test_get_collision_point_2() {}
+    fn test_get_collision_point_2() {
+        let line = Line {
+            org: Vec3::new(-1.0, 0.0, 0.0),
+            dir: Vec3::X,
+        };
+        let triangle = Triangle {
+            a: Vec3::new(0.0, -1.0, -1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(0.0, 1.0, 0.0),
+        };
+
+        assert_eq!(
+            ProximitySensor::get_collision_point(line, triangle),
+            Some(Vec3::ZERO)
+        )
+    }
 
     #[test]
-    fn test_get_collision_point_no_collision() {}
+    fn test_get_collision_point_no_collision() {
+        let line = Line {
+            org: Vec3::new(-2.0, 0.0, 0.0),
+            dir: Vec3::new(0.0, 0.5, 0.0),
+        };
+        let triangle = Triangle {
+            a: Vec3::new(0.0, -1.0, -1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(0.0, 1.0, 0.0),
+        };
 
-    #[test]
-    fn test_get_collision_point_no_collision_very_close() {}
+        assert_eq!(
+            ProximitySensor::get_collision_point(line, triangle),
+            None
+        )
+    }
 
     #[test]
     fn test_point_inside_triangle_1() {}
