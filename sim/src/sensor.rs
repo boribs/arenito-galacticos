@@ -546,3 +546,43 @@ mod ai_sim_mem_tests {
         assert_eq!(buf[0], AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
     }
 }
+
+#[cfg(test)]
+mod proximity_sensor_tests {
+    use super::*;
+
+    #[test]
+    fn get_orientation_test1() {
+        let mut arenito = Arenito::new();
+        arenito.center = Vec3::ZERO;
+
+        let prox = ProximitySensor {
+            pos: Vec3::new(0.5, 0.0, 0.0),
+            rot: Quat::IDENTITY,
+            range: 2.0
+        };
+
+        let prox = prox.get_orientation(&arenito);
+
+        assert_eq!(prox.pos, Vec3::new(0.5, 0.0, 0.0));
+        assert_eq!(prox.rot, Quat::IDENTITY);
+    }
+
+    #[test]
+    fn get_orientation_test2() {
+        let mut arenito = Arenito::new();
+        arenito.center = Vec3::ZERO;
+        arenito.rot = Quat::from_euler(EulerRot::XYZ, 0.0, 0.1, -0.3);
+
+        let prox = ProximitySensor {
+            pos: Vec3::new(0.5, 0.0, 0.0),
+            rot: Quat::IDENTITY,
+            range: 2.0
+        };
+
+        let prox = prox.get_orientation(&arenito);
+
+        assert_eq!(prox.pos, Vec3::new(0.5, 0.0, 0.0));
+        assert_eq!(prox.rot, Quat::from_euler(EulerRot::XYZ, 0.0, 0.1, -0.3));
+    }
+}
