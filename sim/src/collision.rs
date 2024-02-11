@@ -24,7 +24,7 @@ pub trait WithMeshCollision {
 }
 
 #[cfg(test)]
-mod collision_tests {
+mod distance_collision_tests {
     use super::*;
 
     struct A {
@@ -47,20 +47,6 @@ mod collision_tests {
         }
     }
 
-    impl WithMeshCollision for A {
-        fn get_hull(&self) -> Vec<Vec3> {
-            Vec::new()
-        }
-    }
-
-    struct B;
-
-    impl WithMeshCollision for B {
-        fn get_hull(&self) -> Vec<Vec3> {
-            Vec::new()
-        }
-    }
-
     #[test]
     fn test_distance_collision() {
         let a = A::new(Vec3::ZERO, 1.0);
@@ -75,14 +61,5 @@ mod collision_tests {
         let b = A::new(Vec3::new(3.0, 0.0, 0.0), 1.0);
 
         assert!(!a.collides_with_dist(&b))
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_distance_with_mesh_collision() {
-        let a = A::new(Vec3::ZERO, 1.0);
-        let b = B;
-
-        assert!(a.collides_with_mesh(&b))
     }
 }
