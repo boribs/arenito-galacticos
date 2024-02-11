@@ -1,12 +1,12 @@
-use crate::arenito::*;
+use crate::{arenito::*, collision::WithMeshCollision};
 use bevy::{prelude::*, render::view::screenshot::ScreenshotManager};
+use image::imageops::FilterType;
 use memmap::MmapMut;
 use rand::{prelude::thread_rng, Rng};
 use std::{
     fs::{File, OpenOptions},
     io::{Seek, SeekFrom, Write},
 };
-use image::imageops::FilterType;
 
 /// This trait aims to unify the calculation of a direction vector from
 /// the output of MPU6050's gyroscope.
@@ -312,7 +312,108 @@ impl Plane {
         let (a, b, c) = (triangle.a, triangle.b, triangle.c);
         Self {
             p: a,
-            normal: (b - a).cross(c - a).normalize_or_zero()
+            normal: (b - a).cross(c - a).normalize_or_zero(),
+        }
+    }
+}
+
+/// Proximity sensor, inspired by E18-D80NK.
+///
+/// It's initial `pos` and `rot` values are position and rotation offset
+/// relative to Arenito.
+/// Every frame its values must be computed relative to Arenito's current
+/// position. This is done using `ProximitySensor::get_orientation().`
+pub struct ProximitySensor {
+    pub range: f32, // can't be negative!
+    pub pos: Vec3,
+    pub rot: Quat,
+}
+
+impl ProximitySensor {
+    /// Computes current position and rotation of sensor, returns new ProximitySensor.
+    pub fn get_orientation(&self, arenito: &Arenito) -> Self {
+        ProximitySensor {
+            pos: self.pos + arenito.center,
+            rot: self.rot * arenito.rot,
+            ..*self
+        }
+    }
+
+    pub fn draw_ray(&self, range: f32, color: Color, gizmos: &mut Gizmos) {
+        gizmos.ray(self.pos, self.rot.mul_vec3(Vec3::X) * range, color);
+    }
+
+    /// Calculates the collision point with triangle abc, considering current
+    /// position and rotation.
+    fn get_collision_point(line: Line, triangle: Triangle) -> Option<Vec3> {
+        const EPSILON: f32 = 0.001;
+
+        let p = Plane::from_triangle(triangle);
+
+        if p.normal.dot(line.dir) < EPSILON {
+            return None;
+        }
+
+        let t = (p.normal.dot(p.p) - p.normal.dot(line.org)) / p.normal.dot(line.dir);
+        Some(line.org + (line.dir * t))
+    }
+
+    fn point_inside_triangle(p: Vec3, triangle: Triangle) -> bool {
+        let u = triangle.b - triangle.a;
+        let v = triangle.c - triangle.a;
+        let w = p - triangle.a;
+
+        let uu = u.dot(u);
+        let uv = u.dot(v);
+        let vv = v.dot(v);
+        let wu = w.dot(u);
+        let wv = w.dot(v);
+        let uv2uuvv = (uv * uv) - (uu * vv);
+
+        let alpha = ((uv * wv) - (vv * wu)) / uv2uuvv;
+        let beta = ((uv * wu) - (uu * wv)) / uv2uuvv;
+
+        alpha >= 0.0 && beta >= 0.0 && alpha + beta <= 1.0
+    }
+
+    pub fn collides_with_mesh(
+        &self,
+        object: &impl WithMeshCollision,
+        meshes: &Res<Assets<Mesh>>,
+    ) -> Option<f32> {
+        let line = Line {
+            dir: self.rot.mul_vec3(Vec3::X),
+            org: self.pos,
+        };
+
+        let mut dist = -1.0;
+
+        let hull = object.get_hull(meshes);
+        let mut vertices = hull.iter();
+
+        for _ in 0..(vertices.len() / 3) {
+            let a = *vertices.next().unwrap();
+            let b = *vertices.next().unwrap();
+            let c = *vertices.next().unwrap();
+            let triangle = Triangle { a, b, c };
+
+            match Self::get_collision_point(line, triangle) {
+                None => {}
+                Some(point) => {
+                    if Self::point_inside_triangle(point, triangle) {
+                        let d = self.pos.distance(point);
+                        if d <= self.range && d <= dist {
+                            dist = d;
+                        }
+                    }
+                }
+            };
+        }
+
+        if dist == -1.0 {
+            None
+        } else {
+            Some(dist)
         }
     }
 }
