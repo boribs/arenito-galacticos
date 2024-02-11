@@ -105,6 +105,16 @@ fn keyboard_control(
     } else if keyboard_input.just_pressed(KeyCode::R) {
         arenito.reset(&mut arenito3d);
     }
+
+    if arenito.control_mode == ControlMode::Manual && arenito.instruction_handler.available() {
+        if keyboard_input.just_pressed(KeyCode::W) {
+            arenito.instruction_handler.set(SimInstruction::MoveForward);
+        } else if keyboard_input.just_pressed(KeyCode::A) {
+            arenito.instruction_handler.set(SimInstruction::MoveLeft);
+        } else if keyboard_input.just_pressed(KeyCode::D) {
+            arenito.instruction_handler.set(SimInstruction::MoveRight);
+        }
+    }
 }
 
 /// Gets movement instruction from AI and executes.
@@ -200,6 +210,11 @@ struct InstructionHandler {
 }
 
 impl InstructionHandler {
+    /// For manual mode. Indicates if InstructionHandler is done executing.
+    fn available(&self) -> bool {
+        self.state != HandlerState::Executing
+    }
+
     fn wait(&mut self) {
         self.state = HandlerState::Waiting;
     }
@@ -209,7 +224,6 @@ impl InstructionHandler {
     }
 
     fn done(&mut self) {
-        // println!("done");
         self.state = HandlerState::Done;
     }
 
