@@ -213,6 +213,15 @@ fn spawn_basic_scene_with_cans(
 
         can_manager.spawn(
             &mut commands,
+            CanData {
+                pos: Vec3::new(x, 0.2, z),
+                rot: Quat::from_euler(EulerRot::XYZ, 0.0, ry, 1.56),
+                size: CanSize::Big,
+                texture: CanTexture::Shiny,
+            },
+        );
+    }
+}
 
 fn spawn_obstacle_scene(
     _asset_server: Res<AssetServer>,
@@ -248,7 +257,7 @@ fn spawn_obstacle_scene(
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(-10.01, 10.0, 3.0)
+            transform: Transform::from_xyz(-1.01, 10.0, 3.0)
                 .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
             ..default()
         },
