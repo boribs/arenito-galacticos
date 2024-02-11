@@ -289,6 +289,34 @@ impl AISimMem {
     }
 }
 
+#[derive(Copy, Clone)]
+struct Line {
+    org: Vec3,
+    dir: Vec3,
+}
+
+#[derive(Copy, Clone)]
+struct Triangle {
+    a: Vec3,
+    b: Vec3,
+    c: Vec3,
+}
+
+struct Plane {
+    p: Vec3,
+    normal: Vec3,
+}
+
+impl Plane {
+    fn from_triangle(triangle: Triangle) -> Self {
+        let (a, b, c) = (triangle.a, triangle.b, triangle.c);
+        Self {
+            p: a,
+            normal: (b - a).cross(c - a).normalize_or_zero()
+        }
+    }
+}
+
 #[cfg(test)]
 mod sensor_read_tests {
     use super::*;
