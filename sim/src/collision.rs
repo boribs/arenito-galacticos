@@ -56,7 +56,47 @@ pub trait WithMeshCollision {
             .map(|s| Vec3::from_array(*s))
             .collect()
     }
-    fn get_mesh_handle(&self) -> Handle<Mesh>;
+
+#[cfg(test)]
+mod geometric_primitive_tests {
+    use super::*;
+
+    fn cmp_float(a: f32, b: f32) {
+        const ERR: f32 = 0.00001;
+        assert!((a - b).abs() < ERR, "a: {} not similar enough to b: {}", a, b);
+    }
+
+    fn cmp_vec3(a: Vec3, b: Vec3) {
+        cmp_float(a.x, b.x);
+        cmp_float(a.y, b.y);
+        cmp_float(a.z, b.z);
+    }
+
+    #[test]
+    fn test_plane_from_triangle_1() {
+        let triangle = Triangle {
+            a: Vec3::new(0.0, -1.0, -1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(0.0, 1.0, 0.0),
+        };
+        let plane = Plane::from_triangle(triangle);
+
+        assert_eq!(plane.p, Vec3::new(0.0, -1.0, -1.0));
+        cmp_vec3(plane.normal, Vec3::new(-1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn test_plane_from_triangle_2() {
+        let triangle = Triangle {
+            a: Vec3::new(1.0, -1.0, 1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(2.0, 1.0, 3.0),
+        };
+        let plane = Plane::from_triangle(triangle);
+
+        assert_eq!(plane.p, Vec3::new(1.0, -1.0, 1.0));
+        cmp_vec3(plane.normal, Vec3::new(0.0, 0.707107, -0.707107));
+    }
 }
 
 #[cfg(test)]
