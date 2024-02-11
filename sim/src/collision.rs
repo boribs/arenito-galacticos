@@ -17,10 +17,20 @@ pub trait WithDistanceCollision {
 #[allow(unused)]
 /// Mesh collision (convex hull collision)
 pub trait WithMeshCollision {
-    fn collides_with_mesh(&self, object: &impl WithMeshCollision) -> bool {
-        todo!()
+    fn get_hull(&self, meshes: &Res<Assets<Mesh>>) -> Vec<Vec3> {
+        let mesh = meshes.get(self.get_mesh_handle()).unwrap();
+
+        // println!("{:?}", mesh.primitive_topology());
+
+        mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            .unwrap()
+            .as_float3()
+            .unwrap()
+            .iter()
+            .map(|s| Vec3::from_array(*s))
+            .collect()
     }
-    fn get_hull(&self) -> Vec<Vec3>;
+    fn get_mesh_handle(&self) -> Handle<Mesh>;
 }
 
 #[cfg(test)]
