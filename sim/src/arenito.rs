@@ -327,7 +327,7 @@ impl Arenito {
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
             proximity_sensors: vec![ProximitySensor {
-                range: 4.0,
+                range: 6.0,
                 pos: Vec3::new(0.75, 0.1, 0.0),
                 rot: Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0),
             }],
@@ -659,20 +659,20 @@ pub fn eat_cans(mut commands: Commands, arenito: Res<Arenito>, cans: Query<(&Can
 
 pub fn scan_distance(
     arenito: Res<Arenito>,
-    obstacle: Query<&Obstacle>,
+    obstacle: Query<(&Obstacle, &Handle<Mesh>, &Transform)>,
     meshes: Res<Assets<Mesh>>,
     mut gizmos: Gizmos,
 ) {
+    let (obstacle, mesh_handle, transform) = obstacle.single();
+    let mesh = meshes.get(mesh_handle).unwrap();
+
     for prox in arenito.proximity_sensors.iter() {
         let prox = prox.get_orientation(&arenito);
-        let obstacle = obstacle.single();
 
-        let range = match prox.collides_with_mesh(obstacle, &meshes) {
+        let range = match prox.collides_with_mesh(obstacle, &mesh, &transform) {
             None => prox.range + 0.0001,
             Some(val) => val,
         };
-
-        println!("{} vs {}", range, prox.range);
 
         let color = if range < prox.range {
             Color::YELLOW
