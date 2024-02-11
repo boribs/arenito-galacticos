@@ -1,7 +1,7 @@
 use crate::{
     cans::CanData,
     collision::WithDistanceCollision,
-    sensor::{AISimMem, SimInstruction},
+    sensor::{AISimMem, ProximitySensor, SimInstruction},
     static_shape::*,
 };
 use bevy::{
@@ -43,7 +43,12 @@ impl Plugin for ArenitoPlugin {
             .add_systems(Startup, (arenito_spawner, gizmo_config))
             .add_systems(
                 Update,
-                (arenito_ai_mover, draw_camera_area, keyboard_control),
+                (
+                    arenito_ai_mover,
+                    draw_camera_area,
+                    keyboard_control,
+                    scan_distance,
+                ),
             );
 
         if self.enable_can_eating {
@@ -297,6 +302,7 @@ pub struct Arenito {
     brush_offset: Vec3, // brush pos relative to Arenito's center
     instruction_handler: InstructionHandler,
     control_mode: ControlMode,
+    proximity_sensors: Vec<ProximitySensor>,
 }
 
 impl Arenito {
@@ -320,6 +326,11 @@ impl Arenito {
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
+            proximity_sensors: vec![ProximitySensor {
+                range: 4.0,
+                pos: Vec3::new(0.75, 0.1, 0.0),
+                rot: Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0),
+            }],
         }
     }
 
@@ -646,5 +657,28 @@ pub fn eat_cans(mut commands: Commands, arenito: Res<Arenito>, cans: Query<(&Can
     }
 }
 
-#[cfg(test)]
-mod arenito_tests {}
+pub fn scan_distance(
+    arenito: Res<Arenito>,
+    obstacle: Query<&Obstacle>,
+    meshes: Res<Assets<Mesh>>,
+    mut gizmos: Gizmos,
+) {
+    for prox in arenito.proximity_sensors.iter() {
+        let prox = prox.get_orientation(&arenito);
+        let obstacle = obstacle.single();
+
+        let range = match prox.collides_with_mesh(obstacle, &meshes) {
+            None => prox.range + 0.0001,
+            Some(val) => val,
+        };
+
+        println!("{} vs {}", range, prox.range);
+
+        let color = if range < prox.range {
+            Color::YELLOW
+        } else {
+            Color::GREEN
+        };
+        prox.draw_ray(range, color, &mut gizmos);
+    }
+}
