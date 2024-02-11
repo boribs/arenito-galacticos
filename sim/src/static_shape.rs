@@ -240,8 +240,4 @@ impl Obstacle {
     }
 }
 
-impl WithMeshCollision for Obstacle {
-    fn get_mesh_handle(&self) -> Handle<Mesh> {
-        self.mesh_handle.clone()
-    }
-}
+impl WithMeshCollision for Obstacle {}
