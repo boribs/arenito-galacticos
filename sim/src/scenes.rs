@@ -275,6 +275,6 @@ fn spawn_obstacle_scene(
             transform: Transform::from_xyz(4.0, 0.0, 0.0),
             ..default()
         },
-        Obstacle::new(mesh.clone()),
+        Obstacle,
     ));
 }

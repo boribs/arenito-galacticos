@@ -65,7 +65,12 @@ mod geometric_primitive_tests {
 
     fn cmp_float(a: f32, b: f32) {
         const ERR: f32 = 0.00001;
-        assert!((a - b).abs() < ERR, "a: {} not similar enough to b: {}", a, b);
+        assert!(
+            (a - b).abs() < ERR,
+            "a: {} not similar enough to b: {}",
+            a,
+            b
+        );
     }
 
     fn cmp_vec3(a: Vec3, b: Vec3) {
