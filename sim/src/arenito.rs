@@ -109,6 +109,8 @@ fn keyboard_control(
     if arenito.control_mode == ControlMode::Manual && arenito.instruction_handler.available() {
         if keyboard_input.just_pressed(KeyCode::W) {
             arenito.instruction_handler.set(SimInstruction::MoveForward);
+        } else if keyboard_input.just_pressed(KeyCode::S) {
+            arenito.instruction_handler.set(SimInstruction::MoveBack);
         } else if keyboard_input.just_pressed(KeyCode::A) {
             arenito.instruction_handler.set(SimInstruction::MoveLeft);
         } else if keyboard_input.just_pressed(KeyCode::D) {
@@ -185,6 +187,7 @@ pub struct ArenitoCamWindow;
 
 #[derive(Clone, Copy, Debug)]
 enum BaseInstruction {
+    Back,
     Forward,
     Left,
     Right,
@@ -232,6 +235,9 @@ impl InstructionHandler {
     fn set(&mut self, instruction: SimInstruction) {
         // println!("Setting {:?}", instruction);
         match instruction {
+            SimInstruction::MoveBack => {
+                self.instructions = vec![(BaseInstruction::Back, 0.1)];
+            }
             SimInstruction::MoveForward => {
                 self.instructions = vec![(BaseInstruction::Forward, 0.1)];
             }
@@ -530,6 +536,10 @@ impl Arenito {
     /// Calculates position difference after executing `instruction`.
     fn calculate_next_pos(&self, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
         match instruction {
+            BaseInstruction::Back => (
+                self.rot.mul_vec3(Vec3::X) * Self::VELOCITY * -1.0 * time,
+                Quat::IDENTITY,
+            ),
             BaseInstruction::Forward => (
                 self.rot.mul_vec3(Vec3::X) * Self::VELOCITY * time,
                 Quat::IDENTITY,

@@ -95,6 +95,7 @@ impl MPU6050 {
 /// Move instruction abstraction.
 #[derive(Debug, Clone, PartialEq)]
 pub enum SimInstruction {
+    MoveBack,
     MoveForward,
     MoveLeft,
     MoveRight,
