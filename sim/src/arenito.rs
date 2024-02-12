@@ -169,22 +169,6 @@ fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
-/// Component used as an identifier for the different
-/// body parts in 3D Arenito.
-#[derive(Component, PartialEq)]
-pub enum Arenito3D {
-    Frame,
-    LeftWheel,
-    RightWheel,
-    Brush,
-}
-
-#[derive(Component)]
-pub struct ArenitoCamera;
-
-#[derive(Component)]
-pub struct ArenitoCamWindow;
-
 #[derive(Clone, Copy, Debug)]
 enum BaseInstruction {
     Back,
@@ -305,6 +289,24 @@ enum ControlMode {
     AI,
 }
 
+#[derive(Component)]
+pub struct ArenitoCompFrame;
+
+#[derive(Component)]
+pub struct ArenitoCompLeftWheel;
+
+#[derive(Component)]
+pub struct ArenitoCompRightWheel;
+
+#[derive(Component)]
+pub struct ArenitoCompBrush;
+
+#[derive(Component)]
+pub struct ArenitoCamera;
+
+#[derive(Component)]
+pub struct ArenitoCamWindow;
+
 /// Arenito is the main component of this simulation.
 ///
 /// It's responsible of both visual and "logical" updates of position,
@@ -374,7 +376,7 @@ impl Arenito {
                     transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
                     ..default()
                 },
-                Arenito3D::Frame,
+                ArenitoCompFrame,
             ))
             .with_children(|parent| {
                 const WOX: f32 = 0.5;
@@ -401,7 +403,7 @@ impl Arenito {
                             transform: Transform::from_xyz(t.x, t.y, t.z),
                             ..default()
                         },
-                        Arenito3D::RightWheel,
+                        ArenitoCompLeftWheel
                     ));
                 }
 
@@ -428,7 +430,7 @@ impl Arenito {
                         transform: bt,
                         ..default()
                     },
-                    Arenito3D::Brush,
+                    ArenitoCompBrush,
                 ));
 
                 parent.spawn(PbrBundle {
