@@ -383,9 +383,11 @@ impl Arenito {
                 const WOY: f32 = -0.2;
                 const WOZ: f32 = 0.85;
 
-                let wheel_offsets = [
+                let rwheel_offsets = [
                     Vec3::new(WOX, -WOY, WOZ),
                     Vec3::new(-WOX, -WOY, WOZ),
+                ];
+                let lwheel_offsets = [
                     Vec3::new(WOX, -WOY, -WOZ),
                     Vec3::new(-WOX, -WOY, -WOZ),
                 ];
@@ -393,8 +395,22 @@ impl Arenito {
                 let wheel_mesh = asset_server.load("models/rueda.obj");
                 let wheel_material = materials.add(Color::rgb(0.8, 0.3, 0.6).into());
 
-                for wheel_offset in wheel_offsets {
-                    let t = self.center + wheel_offset;
+                for wheel_offset in rwheel_offsets.iter() {
+                    let t = self.center + *wheel_offset;
+
+                    parent.spawn((
+                        PbrBundle {
+                            mesh: wheel_mesh.clone(),
+                            material: wheel_material.clone(),
+                            transform: Transform::from_xyz(t.x, t.y, t.z),
+                            ..default()
+                        },
+                        ArenitoCompRightWheel
+                    ));
+                }
+
+                for wheel_offset in lwheel_offsets.iter() {
+                    let t = self.center + *wheel_offset;
 
                     parent.spawn((
                         PbrBundle {
