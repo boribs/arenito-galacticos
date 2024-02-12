@@ -296,24 +296,25 @@ impl AISimMem {
 /// relative to Arenito.
 /// Every frame its values must be computed relative to Arenito's current
 /// position. This is done using `ProximitySensor::get_orientation().`
+#[derive(Component)]
 pub struct ProximitySensor {
-    pub range: f32, // can't be negative!
-    pub pos: Vec3,
-    pub rot: Quat,
+    pub max_range: f32,
+    pub range: f32,
 }
 
 impl ProximitySensor {
-    /// Computes current position and rotation of sensor, returns new ProximitySensor.
-    pub fn get_orientation(&self, arenito: &Arenito) -> Self {
-        ProximitySensor {
-            pos: self.pos + arenito.center,
-            rot: self.rot * arenito.rot,
-            ..*self
-        }
-    }
+    pub fn draw_ray(&self, self_transform: &Transform, gizmos: &mut Gizmos) {
+        let color = if self.range == self.max_range {
+            Color::GREEN
+        } else {
+            Color::YELLOW
+        };
 
-    pub fn draw_ray(&self, range: f32, color: Color, gizmos: &mut Gizmos) {
-        gizmos.ray(self.pos, self.rot.mul_vec3(Vec3::X) * range, color);
+        gizmos.ray(
+            self_transform.translation,
+            self_transform.rotation.mul_vec3(Vec3::X) * self.range,
+            color
+        );
     }
 
     /// Calculates the collision point with the plane formed by triangle abc,
@@ -333,6 +334,7 @@ impl ProximitySensor {
         Some(line.org + (line.dir * t))
     }
 
+    /// Checks whether a point is inside a triangle or not.
     fn point_inside_triangle(p: Vec3, triangle: Triangle) -> bool {
         let u = triangle.b - triangle.a;
         let v = triangle.c - triangle.a;
@@ -353,13 +355,14 @@ impl ProximitySensor {
 
     pub fn collides_with_mesh(
         &self,
+        self_transform: &Transform,
         object: &impl WithMeshCollision,
         mesh: &Mesh,
         transform: &Transform,
     ) -> Option<f32> {
         let line = Line {
-            dir: self.rot.mul_vec3(Vec3::X),
-            org: self.pos,
+            dir: self_transform.rotation.mul_vec3(Vec3::X),
+            org: self_transform.translation,
         };
 
         let mut dist = self.range + 10.0;
@@ -377,7 +380,7 @@ impl ProximitySensor {
                 None => {}
                 Some(point) => {
                     if Self::point_inside_triangle(point, triangle) {
-                        let d = self.pos.distance(point);
+                        let d = self_transform.translation.distance(point);
                         if d <= self.range && d <= dist {
                             dist = d;
                         }
@@ -392,6 +395,15 @@ impl ProximitySensor {
             None
         } else {
             Some(dist)
+        }
+    }
+}
+
+impl Default for ProximitySensor {
+    fn default() -> Self {
+        Self {
+            max_range: 2.0,
+            range: 2.0,
         }
     }
 }
@@ -528,41 +540,6 @@ mod ai_sim_mem_tests {
 #[cfg(test)]
 mod proximity_sensor_tests {
     use super::*;
-
-    #[test]
-    fn get_orientation_test1() {
-        let mut arenito = Arenito::new();
-        arenito.center = Vec3::ZERO;
-
-        let prox = ProximitySensor {
-            pos: Vec3::new(0.5, 0.0, 0.0),
-            rot: Quat::IDENTITY,
-            range: 2.0,
-        };
-
-        let prox = prox.get_orientation(&arenito);
-
-        assert_eq!(prox.pos, Vec3::new(0.5, 0.0, 0.0));
-        assert_eq!(prox.rot, Quat::IDENTITY);
-    }
-
-    #[test]
-    fn get_orientation_test2() {
-        let mut arenito = Arenito::new();
-        arenito.center = Vec3::ZERO;
-        arenito.rot = Quat::from_euler(EulerRot::XYZ, 0.0, 0.1, -0.3);
-
-        let prox = ProximitySensor {
-            pos: Vec3::new(0.5, 0.0, 0.0),
-            rot: Quat::IDENTITY,
-            range: 2.0,
-        };
-
-        let prox = prox.get_orientation(&arenito);
-
-        assert_eq!(prox.pos, Vec3::new(0.5, 0.0, 0.0));
-        assert_eq!(prox.rot, Quat::from_euler(EulerRot::XYZ, 0.0, 0.1, -0.3));
-    }
 
     #[test]
     fn test_get_collision_point_1() {
