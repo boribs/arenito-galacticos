@@ -379,11 +379,15 @@ impl Arenito {
                 Arenito3D::Frame,
             ))
             .with_children(|parent| {
+                const WOX: f32 = 0.5;
+                const WOY: f32 = -0.2;
+                const WOZ: f32 = 0.85;
+
                 let wheel_offsets = [
-                    Vec3::new(0.5, -0.2, 0.85),
-                    Vec3::new(-0.5, -0.2, 0.85),
-                    Vec3::new(0.5, -0.2, -0.85),
-                    Vec3::new(-0.5, -0.2, -0.85),
+                    Vec3::new(WOX, -WOY, WOZ),
+                    Vec3::new(-WOX, -WOY, WOZ),
+                    Vec3::new(WOX, -WOY, -WOZ),
+                    Vec3::new(-WOX, -WOY, -WOZ),
                 ];
 
                 let wheel_mesh = asset_server.load("models/rueda.obj");
