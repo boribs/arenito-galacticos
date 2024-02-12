@@ -92,7 +92,7 @@ fn keyboard_control(
     mut arenito: ResMut<Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     mut text: Query<&mut Text, With<ControlText>>,
-    mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
+    mut arenito_frame: Query<&mut Transform, With<ArenitoCompFrame>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
         arenito.control_mode = match arenito.control_mode {
@@ -103,7 +103,7 @@ fn keyboard_control(
         let mut text = text.single_mut();
         text.sections[1].value = format!("{:?}", arenito.control_mode)
     } else if keyboard_input.just_pressed(KeyCode::R) {
-        arenito.reset(&mut arenito3d);
+        arenito.reset(&mut arenito_frame.single_mut());
     }
 
     if arenito.control_mode == ControlMode::Manual && arenito.instruction_handler.available() {
@@ -126,7 +126,12 @@ fn arenito_ai_mover(
     mut arenito: ResMut<Arenito>,
     mut aisim: ResMut<AISimMem>,
     window: Query<Entity, With<ArenitoCamWindow>>,
-    arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
+    arenito_body: ParamSet<(
+        Query<&mut Transform, With<ArenitoCompFrame>>,
+        Query<&mut Transform, With<ArenitoCompBrush>>,
+        Query<&mut Transform, With<ArenitoCompLeftWheel>>,
+        Query<&mut Transform, With<ArenitoCompRightWheel>>,
+    )>,
 ) {
     if arenito.control_mode == ControlMode::AI {
         match arenito.instruction_handler.state {
@@ -149,7 +154,7 @@ fn arenito_ai_mover(
         }
     }
 
-    arenito.update(time.delta().as_millis(), arenito3d);
+    arenito.update(time.delta().as_millis(), arenito_body);
 }
 
 fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
@@ -348,9 +353,7 @@ impl Arenito {
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
-            proximity_sensor_offsets: vec![
-                Transform::from_xyz(0.74, 0.1, 0.0),
-            ],
+            proximity_sensor_offsets: vec![Transform::from_xyz(0.74, 0.1, 0.0)],
         }
     }
 
@@ -383,14 +386,8 @@ impl Arenito {
                 const WOY: f32 = -0.2;
                 const WOZ: f32 = 0.85;
 
-                let rwheel_offsets = [
-                    Vec3::new(WOX, -WOY, WOZ),
-                    Vec3::new(-WOX, -WOY, WOZ),
-                ];
-                let lwheel_offsets = [
-                    Vec3::new(WOX, -WOY, -WOZ),
-                    Vec3::new(-WOX, -WOY, -WOZ),
-                ];
+                let rwheel_offsets = [Vec3::new(WOX, -WOY, WOZ), Vec3::new(-WOX, -WOY, WOZ)];
+                let lwheel_offsets = [Vec3::new(WOX, -WOY, -WOZ), Vec3::new(-WOX, -WOY, -WOZ)];
 
                 let wheel_mesh = asset_server.load("models/rueda.obj");
                 let wheel_material = materials.add(Color::rgb(0.8, 0.3, 0.6).into());
@@ -405,7 +402,7 @@ impl Arenito {
                             transform: Transform::from_xyz(t.x, t.y, t.z),
                             ..default()
                         },
-                        ArenitoCompRightWheel
+                        ArenitoCompRightWheel,
                     ));
                 }
 
@@ -419,7 +416,7 @@ impl Arenito {
                             transform: Transform::from_xyz(t.x, t.y, t.z),
                             ..default()
                         },
-                        ArenitoCompLeftWheel
+                        ArenitoCompLeftWheel,
                     ));
                 }
 
@@ -429,7 +426,7 @@ impl Arenito {
                             transform: *prox_offset,
                             ..default()
                         },
-                        ProximitySensor::default()
+                        ProximitySensor::default(),
                     ));
                 }
 
@@ -507,21 +504,15 @@ impl Arenito {
     /// Resets the state of Arenito.
     /// This includes despawning and spawning the models. It was easier than
     /// resetting everything to it's original state.
-    pub fn reset(&mut self, arenito3d: &mut Query<(&mut Transform, &Arenito3D, Entity)>) {
+    pub fn reset(&mut self, arenito_frame: &mut Transform) {
         self.center = Self::CENTER;
         self.acc = Vec3::ZERO;
         self.vel = Vec3::ZERO;
         self.rot = Quat::IDENTITY;
         self.instruction_handler.reset();
 
-        for body_part in arenito3d {
-            if *body_part.1 == Arenito3D::Frame {
-                let mut transform = body_part.0;
-                transform.translation = self.center;
-                transform.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0);
-                break;
-            }
-        }
+        arenito_frame.translation = self.center;
+        arenito_frame.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0);
     }
 
     /// Applies the movement given some delta time.
@@ -539,11 +530,17 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
-        arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
+        arenito_body: ParamSet<(
+            Query<&mut Transform, With<ArenitoCompFrame>>,
+            Query<&mut Transform, With<ArenitoCompBrush>>,
+            Query<&mut Transform, With<ArenitoCompLeftWheel>>,
+            Query<&mut Transform, With<ArenitoCompRightWheel>>,
+        )>,
     ) {
         let delta = delta_ms as f32 / 1000.0;
         let (pos, rot) = self.update_pos(delta);
-        self.update_model(pos, rot, delta, arenito3d);
+
+        self.update_model(pos, rot, delta, arenito_body);
     }
 
     /// Calculates position difference after executing `instruction`.
@@ -611,38 +608,21 @@ impl Arenito {
         pos_diff: Vec3,
         rot_diff: Quat,
         delta: f32,
-        mut arenito3d: Query<(&mut Transform, &Arenito3D, Entity)>,
+        mut arenito_body: ParamSet<(
+            Query<&mut Transform, With<ArenitoCompFrame>>,
+            Query<&mut Transform, With<ArenitoCompBrush>>,
+            Query<&mut Transform, With<ArenitoCompLeftWheel>>,
+            Query<&mut Transform, With<ArenitoCompRightWheel>>,
+        )>,
     ) {
-        // Saving different body parts to their own variable.
-        // Each body part behaves differently.
-        let mut body = Vec::<Mut<'_, Transform>>::with_capacity(1);
-        let mut brush = Vec::<Mut<'_, Transform>>::with_capacity(1);
-        let mut left_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
-        let mut right_wheels = Vec::<Mut<'_, Transform>>::with_capacity(2);
+        let mut arenito_frame = arenito_body.p0();
+        let mut arenito_frame = arenito_frame.single_mut();
+        arenito_frame.translation += pos_diff;
+        arenito_frame.rotation *= rot_diff;
 
-        for body_part in &mut arenito3d {
-            match body_part.1 {
-                Arenito3D::LeftWheel => {
-                    left_wheels.push(body_part.0);
-                }
-                Arenito3D::RightWheel => {
-                    right_wheels.push(body_part.0);
-                }
-                Arenito3D::Frame => {
-                    body.push(body_part.0);
-                }
-                Arenito3D::Brush => {
-                    brush.push(body_part.0);
-                }
-            }
-        }
-
-        let body = &mut body[0];
-        let brush = &mut brush[0];
-        brush.rotate_local_z(-Self::BRUSH_SPEED * delta);
-
-        body.translation += pos_diff;
-        body.rotation *= rot_diff;
+        let mut arenito_brush = arenito_body.p1();
+        let mut arenito_brush = arenito_brush.single_mut();
+        arenito_brush.rotate_local_z(-Self::BRUSH_SPEED * delta);
 
         // wheel rotation
         let mut l = 1.0;
@@ -658,10 +638,10 @@ impl Arenito {
             rot_diff.mul_vec3(Vec3::X).length() * Self::VELOCITY
         };
 
-        for wheel in &mut left_wheels {
+        for mut wheel in arenito_body.p2().iter_mut() {
             wheel.rotate_local_z(-t * l);
         }
-        for wheel in &mut right_wheels {
+        for mut wheel in arenito_body.p3().iter_mut() {
             wheel.rotate_local_z(-t * r);
         }
     }
