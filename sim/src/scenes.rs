@@ -264,15 +264,27 @@ fn spawn_obstacle_scene(
         RenderLayers::from_layers(&[0, 1]),
     ));
 
-    let mesh = meshes.add(Obstacle::get_mesh());
     commands.spawn((
         PbrBundle {
-            mesh: mesh.clone(),
+            mesh: meshes.add(Obstacle::get_simple_mesh()),
             material: materials.add(StandardMaterial {
                 base_color: Color::RED,
                 ..default()
             }),
             transform: Transform::from_xyz(4.0, 0.0, 0.0),
+            ..default()
+        },
+        Obstacle,
+    ));
+
+    commands.spawn((
+        PbrBundle {
+            mesh: meshes.add(Obstacle::get_cube_mesh()),
+            material: materials.add(StandardMaterial {
+                base_color: Color::RED,
+                ..default()
+            }),
+            transform: Transform::from_xyz(4.0, 0.0, 3.0),
             ..default()
         },
         Obstacle,

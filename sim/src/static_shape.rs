@@ -218,7 +218,7 @@ impl Default for CameraArea {
 pub struct Obstacle;
 
 impl Obstacle {
-    pub fn get_mesh() -> Mesh {
+    pub fn get_simple_mesh() -> Mesh {
         let vertices = vec![
             Vec3::new(0.0, 0.0, -1.0),
             Vec3::new(0.0, 0.0, 1.0),
@@ -232,6 +232,10 @@ impl Obstacle {
         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
         mesh
+    }
+
+    pub fn get_cube_mesh() -> Mesh {
+        Mesh::from(shape::Cube::new(1.0))
     }
 }
 
