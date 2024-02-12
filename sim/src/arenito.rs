@@ -379,46 +379,26 @@ impl Arenito {
                 Arenito3D::Frame,
             ))
             .with_children(|parent| {
-                let t = self.center + Vec3::new(0.5, -0.2, 0.85);
-                parent.spawn((
-                    PbrBundle {
-                        mesh: asset_server.load("models/rueda.obj"),
-                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                        transform: Transform::from_xyz(t.x, t.y, t.z),
-                        ..default()
-                    },
-                    Arenito3D::RightWheel,
-                ));
-                let t = self.center + Vec3::new(-0.5, -0.2, 0.85);
-                parent.spawn((
-                    PbrBundle {
-                        mesh: asset_server.load("models/rueda.obj"),
-                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                        transform: Transform::from_xyz(t.x, t.y, t.z),
-                        ..default()
-                    },
-                    Arenito3D::RightWheel,
-                ));
-                let t = self.center + Vec3::new(0.5, -0.2, -0.85);
-                parent.spawn((
-                    PbrBundle {
-                        mesh: asset_server.load("models/rueda.obj"),
-                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                        transform: Transform::from_xyz(t.x, t.y, t.z),
-                        ..default()
-                    },
-                    Arenito3D::LeftWheel,
-                ));
-                let t = self.center + Vec3::new(-0.5, -0.2, -0.85);
-                parent.spawn((
-                    PbrBundle {
-                        mesh: asset_server.load("models/rueda.obj"),
-                        material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
-                        transform: Transform::from_xyz(t.x, t.y, t.z),
-                        ..default()
-                    },
-                    Arenito3D::LeftWheel,
-                ));
+                let wheel_offsets = [
+                    Vec3::new(0.5, -0.2, 0.85),
+                    Vec3::new(-0.5, -0.2, 0.85),
+                    Vec3::new(0.5, -0.2, -0.85),
+                    Vec3::new(-0.5, -0.2, -0.85),
+                ];
+
+                for wheel_offset in wheel_offsets {
+                    let t = self.center + wheel_offset;
+
+                    parent.spawn((
+                        PbrBundle {
+                            mesh: asset_server.load("models/rueda.obj"),
+                            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                            transform: Transform::from_xyz(t.x, t.y, t.z),
+                            ..default()
+                        },
+                        Arenito3D::RightWheel,
+                    ));
+                }
 
                 let bt = Transform::from_xyz(
                     self.brush_offset.x,
