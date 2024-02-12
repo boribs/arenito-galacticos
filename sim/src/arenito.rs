@@ -322,7 +322,7 @@ pub struct Arenito {
     brush_offset: Vec3, // brush pos relative to Arenito's center
     instruction_handler: InstructionHandler,
     control_mode: ControlMode,
-    proximity_sensors: Vec<ProximitySensor>,
+    proximity_sensor_offsets: Vec<Transform>,
 }
 
 impl Arenito {
@@ -346,11 +346,9 @@ impl Arenito {
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
-            proximity_sensors: vec![ProximitySensor {
-                range: 6.0,
-                pos: Vec3::new(0.75, 0.1, 0.0),
-                rot: Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0),
-            }],
+            proximity_sensor_offsets: vec![
+                Transform::from_xyz(0.74, 0.1, 0.0),
+            ],
         }
     }
 
@@ -404,6 +402,16 @@ impl Arenito {
                             ..default()
                         },
                         Arenito3D::RightWheel,
+                    ));
+                }
+
+                for prox_offset in self.proximity_sensor_offsets.iter() {
+                    parent.spawn((
+                        PbrBundle {
+                            transform: *prox_offset,
+                            ..default()
+                        },
+                        ProximitySensor::default()
                     ));
                 }
 
