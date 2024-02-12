@@ -386,13 +386,16 @@ impl Arenito {
                     Vec3::new(-0.5, -0.2, -0.85),
                 ];
 
+                let wheel_mesh = asset_server.load("models/rueda.obj");
+                let wheel_material = materials.add(Color::rgb(0.8, 0.3, 0.6).into());
+
                 for wheel_offset in wheel_offsets {
                     let t = self.center + wheel_offset;
 
                     parent.spawn((
                         PbrBundle {
-                            mesh: asset_server.load("models/rueda.obj"),
-                            material: materials.add(Color::rgb(0.8, 0.3, 0.6).into()),
+                            mesh: wheel_mesh.clone(),
+                            material: wheel_material.clone(),
                             transform: Transform::from_xyz(t.x, t.y, t.z),
                             ..default()
                         },
