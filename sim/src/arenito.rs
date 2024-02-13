@@ -160,8 +160,8 @@ fn arenito_ai_mover(
     arenito.update(time.delta().as_millis(), arenito_body);
 }
 
-fn draw_camera_area(arenito: Query<(&Transform, &Arenito)>, mut gizmos: Gizmos) {
-    let (transform, arenito) = arenito.single();
+fn draw_camera_area(arenito: Query<(&Arenito, &Transform)>, mut gizmos: Gizmos) {
+    let (arenito, transform) = arenito.single();
     let mut points = arenito.cam_area.points.clone();
     let rot = transform.rotation;
     let pos = transform.translation;
@@ -176,7 +176,8 @@ fn draw_camera_area(arenito: Query<(&Transform, &Arenito)>, mut gizmos: Gizmos) 
     }
     gizmos.line(points[3], points[0], Color::WHITE);
 
-    // arenito.draw_sphere(Color::WHITE, &mut gizmos);
+    // This should not be here
+    arenito.draw_sphere(transform, Color::WHITE, &mut gizmos);
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
@@ -655,8 +656,8 @@ impl Arenito {
 }
 
 impl WithDistanceCollision for Arenito {
-    fn get_pos(&self) -> Vec3 {
-        self.rot.mul_vec3(self.brush_offset) + self.center
+    fn get_pos(&self, transform: &Transform) -> Vec3 {
+        transform.rotation.mul_vec3(self.brush_offset) + transform.translation
     }
 
     fn get_radius(&self) -> f32 {
@@ -665,9 +666,15 @@ impl WithDistanceCollision for Arenito {
 }
 
 /// Despawns cans when collided with Arenito
-pub fn eat_cans(mut commands: Commands, arenito: Res<Arenito>, cans: Query<(&CanData, Entity)>) {
-    for (can, ent) in cans.iter() {
-        if arenito.collides_with_dist(can) {
+pub fn eat_cans(
+    mut commands: Commands,
+    arenito: Query<(&Arenito, &Transform)>,
+    cans: Query<(&CanData, Entity, &Transform)>
+) {
+    let (arenito, arenito_transform) = arenito.single();
+
+    for (can, ent, can_transform) in cans.iter() {
+        if arenito.collides_with_dist(can, arenito_transform, can_transform) {
             commands.entity(ent).despawn();
         }
     }
