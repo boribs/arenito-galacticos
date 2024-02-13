@@ -214,11 +214,15 @@ fn spawn_basic_scene_with_cans(
         can_manager.spawn(
             &mut commands,
             CanData {
-                pos: Vec3::new(x, 0.2, z),
-                rot: Quat::from_euler(EulerRot::XYZ, 0.0, ry, 1.56),
                 size: CanSize::Big,
                 texture: CanTexture::Shiny,
             },
+            Transform::from_xyz(x, 0.2, z).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                0.0,
+                ry,
+                1.56,
+            )),
         );
     }
 }

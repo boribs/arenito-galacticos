@@ -13,8 +13,6 @@ pub enum CanTexture {
 
 #[derive(Component)]
 pub struct CanData {
-    pub pos: Vec3,
-    pub rot: Quat,
     pub size: CanSize,
     pub texture: CanTexture,
 }
@@ -22,8 +20,6 @@ pub struct CanData {
 impl Default for CanData {
     fn default() -> Self {
         CanData {
-            pos: Vec3::ZERO,
-            rot: Quat::default(),
             size: CanSize::Big,
             texture: CanTexture::Shiny,
         }
@@ -31,10 +27,6 @@ impl Default for CanData {
 }
 
 impl WithDistanceCollision for CanData {
-    fn get_pos(&self) -> Vec3 {
-        self.pos
-    }
-
     fn get_radius(&self) -> f32 {
         0.3
     }
@@ -101,7 +93,7 @@ impl CanManager {
         );
     }
 
-    pub fn spawn(&mut self, commands: &mut Commands, can_data: CanData) {
+    pub fn spawn(&mut self, commands: &mut Commands, can_data: CanData, can_transform: Transform) {
         let mesh = match can_data.size {
             CanSize::Big => self.big_mesh_handle.clone().unwrap(),
             CanSize::Small => self.small_mesh_handle.clone().unwrap(),
@@ -116,8 +108,7 @@ impl CanManager {
             PbrBundle {
                 mesh,
                 material,
-                transform: Transform::from_xyz(can_data.pos.x, can_data.pos.y, can_data.pos.z)
-                    .with_rotation(can_data.rot),
+                transform: can_transform,
                 ..default()
             },
             can_data,
@@ -135,8 +126,8 @@ pub fn init_can_manager(
     can_manager.load_textures(materials, asset_server);
 }
 
-pub fn draw_can_collision(mut gizmos: Gizmos, cans: Query<&CanData>) {
-    for can in cans.iter() {
-        can.draw_sphere(Color::WHITE, &mut gizmos);
+pub fn draw_can_collision(mut gizmos: Gizmos, cans: Query<(&CanData, &Transform)>) {
+    for (can, transform) in cans.iter() {
+        can.draw_sphere(transform, Color::WHITE, &mut gizmos);
     }
 }
