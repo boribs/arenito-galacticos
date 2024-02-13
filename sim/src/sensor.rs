@@ -87,8 +87,8 @@ impl MPU6050 {
     /// too lazy to simulate that.
     /// This implementation skips all the math needed to convert
     /// from rotational speed to "current rotation" altogether.
-    pub fn read_rot(arenito: &Arenito) -> Vec3 {
-        arenito.rot.mul_vec3(Vec3::X) + SensorError::default()
+    pub fn read_rot(transform: &Transform) -> Vec3 {
+        transform.rotation.mul_vec3(Vec3::X) + SensorError::default()
     }
 }
 
@@ -313,7 +313,7 @@ impl ProximitySensor {
         gizmos.ray(
             self_transform.translation,
             self_transform.rotation.mul_vec3(Vec3::X) * self.range,
-            color
+            color,
         );
     }
 
