@@ -66,8 +66,8 @@ fn arenito_spawner(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
-    mut arenito: ResMut<Arenito>,
 ) {
+    let mut arenito = Arenito::new();
     arenito.spawn(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     let style = TextStyle {
@@ -89,11 +89,13 @@ fn gizmo_config(mut config: ResMut<GizmoConfig>) {
 
 /// Reads user input and makes Arenito move.
 fn keyboard_control(
-    mut arenito: ResMut<Arenito>,
+    mut arenito: Query<&mut Arenito>,
     keyboard_input: Res<Input<KeyCode>>,
     mut text: Query<&mut Text, With<ControlText>>,
     mut arenito_frame: Query<&mut Transform, With<ArenitoCompFrame>>,
 ) {
+    let mut arenito = arenito.single_mut();
+
     if keyboard_input.just_pressed(KeyCode::Space) {
         arenito.control_mode = match arenito.control_mode {
             ControlMode::AI => ControlMode::Manual,
@@ -123,7 +125,7 @@ fn keyboard_control(
 fn arenito_ai_mover(
     time: Res<Time>,
     mut screenshot_manager: ResMut<ScreenshotManager>,
-    mut arenito: ResMut<Arenito>,
+    mut arenito: Query<&mut Arenito>,
     mut aisim: ResMut<AISimMem>,
     window: Query<Entity, With<ArenitoCamWindow>>,
     arenito_body: ParamSet<(
@@ -133,6 +135,8 @@ fn arenito_ai_mover(
         Query<&mut Transform, With<ArenitoCompRightWheel>>,
     )>,
 ) {
+    let mut arenito = arenito.single_mut();
+
     if arenito.control_mode == ControlMode::AI {
         match arenito.instruction_handler.state {
             HandlerState::Done => {
@@ -157,12 +161,15 @@ fn arenito_ai_mover(
     arenito.update(time.delta().as_millis(), arenito_body);
 }
 
-fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
+fn draw_camera_area(arenito: Query<(&Transform, &Arenito)>, mut gizmos: Gizmos) {
+    let (transform, arenito) = arenito.single();
     let mut points = arenito.cam_area.points.clone();
+    let rot = transform.rotation;
+    let pos = transform.translation;
 
     for i in 0..points.len() {
         points[i] =
-            arenito.rot.mul_vec3(points[i]) + Vec3::new(arenito.center.x, 0.0, arenito.center.z);
+            rot.mul_vec3(points[i]) + Vec3::new(pos.x, 0.0, pos.z);
     }
 
     for i in 0..points.len() - 1 {
@@ -170,7 +177,7 @@ fn draw_camera_area(arenito: Res<Arenito>, mut gizmos: Gizmos) {
     }
     gizmos.line(points[3], points[0], Color::WHITE);
 
-    arenito.draw_sphere(Color::WHITE, &mut gizmos);
+    // arenito.draw_sphere(Color::WHITE, &mut gizmos);
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
