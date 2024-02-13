@@ -1,6 +1,6 @@
 use crate::{
     cans::CanData,
-    collision::WithDistanceCollision,
+    collision::{GlobalTransform, WithDistanceCollision},
     sensor::{AISimMem, ProximitySensor, SimInstruction},
     static_shape::*,
 };
@@ -665,7 +665,7 @@ impl WithDistanceCollision for Arenito {
 pub fn eat_cans(
     mut commands: Commands,
     arenito: Query<(&Arenito, &Transform)>,
-    cans: Query<(&CanData, Entity, &Transform)>
+    cans: Query<(&CanData, Entity, &Transform)>,
 ) {
     let (arenito, arenito_transform) = arenito.single();
 
@@ -677,27 +677,24 @@ pub fn eat_cans(
 }
 
 pub fn scan_distance(
-    arenito: Res<Arenito>,
+    arenito: Query<(&Arenito, &Transform)>,
     obstacle: Query<(&Obstacle, &Handle<Mesh>, &Transform)>,
+    mut proxs: Query<(&mut ProximitySensor, &Transform)>,
     meshes: Res<Assets<Mesh>>,
     mut gizmos: Gizmos,
 ) {
-    let (obstacle, mesh_handle, transform) = obstacle.single();
-    let mesh = meshes.get(mesh_handle).unwrap();
+    let (_, arenito_transform) = arenito.single();
 
-    for prox in arenito.proximity_sensors.iter() {
-        let prox = prox.get_orientation(&arenito);
+    for (mut prox, prox_transform) in proxs.iter_mut() {
+        prox.reset();
+        let prox_transform = prox_transform.from_parent(&arenito_transform);
 
-        let range = match prox.collides_with_mesh(obstacle, &mesh, &transform) {
-            None => prox.range + 0.0001,
-            Some(val) => val,
-        };
+        for (obstacle, obstacle_mesh, obstacle_transform) in obstacle.iter() {
+            let obstacle_mesh = meshes.get(obstacle_mesh).unwrap();
 
-        let color = if range < prox.range {
-            Color::YELLOW
-        } else {
-            Color::GREEN
-        };
-        prox.draw_ray(range, color, &mut gizmos);
+            prox.collides_with_mesh(&prox_transform, obstacle, obstacle_mesh, obstacle_transform);
+        }
+
+        prox.draw_ray(&prox_transform, &mut gizmos);
     }
 }
