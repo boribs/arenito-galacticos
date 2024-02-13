@@ -111,7 +111,7 @@ impl From<CameraPrism> for Mesh {
 }
 
 /// Visualization of the area visible by Arneito's camera.
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct CameraArea {
     // Horizontal view angle, in degrees
     pub ha: f32,
