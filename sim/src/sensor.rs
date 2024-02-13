@@ -365,8 +365,8 @@ impl ProximitySensor {
         &mut self,
         self_transform: &Transform,
         object: &impl WithMeshCollision,
-        mesh: &Mesh,
-        transform: &Transform,
+        object_mesh: &Mesh,
+        object_transform: &Transform,
     ) -> bool {
         let line = Line {
             dir: self_transform.rotation.mul_vec3(Vec3::X),
@@ -379,7 +379,7 @@ impl ProximitySensor {
             self.range
         };
 
-        let hull = object.get_hull(mesh, transform);
+        let hull = object.get_hull(object_mesh, object_transform);
         let mut vertices = hull.iter();
 
         for _ in 0..(vertices.len() / 3) {

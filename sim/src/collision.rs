@@ -6,7 +6,6 @@ pub trait GlobalTransform {
 
 impl GlobalTransform for Transform {
     fn from_parent(&self, parent: &Transform) -> Self {
-
         // This isn't correct, but will let it be for now
 
         let translation = parent.rotation.mul_vec3(self.translation) + parent.translation;
@@ -14,7 +13,11 @@ impl GlobalTransform for Transform {
 
         // println!("parent {}, this {}", parent.rotation, rotation);
 
-        Transform { translation, rotation: parent.rotation, scale: self.scale }
+        Transform {
+            translation,
+            rotation: parent.rotation,
+            scale: self.scale,
+        }
     }
 }
 
@@ -60,7 +63,12 @@ pub trait WithDistanceCollision {
     }
 
     fn draw_sphere(&self, transform: &Transform, color: Color, gizmos: &mut Gizmos) {
-        gizmos.sphere(self.get_pos(transform), Quat::IDENTITY, self.get_radius(), color);
+        gizmos.sphere(
+            self.get_pos(transform),
+            Quat::IDENTITY,
+            self.get_radius(),
+            color,
+        );
     }
 
     fn get_pos(&self, transform: &Transform) -> Vec3 {
