@@ -525,7 +525,7 @@ impl Arenito {
     pub fn update(
         &mut self,
         delta_ms: u128,
-        arenito_body: ParamSet<(
+        mut arenito_body: ParamSet<(
             Query<&mut Transform, With<ArenitoCompFrame>>,
             Query<&mut Transform, With<ArenitoCompBrush>>,
             Query<&mut Transform, With<ArenitoCompLeftWheel>>,
@@ -533,20 +533,20 @@ impl Arenito {
         )>,
     ) {
         let delta = delta_ms as f32 / 1000.0;
-        let (pos, rot) = self.update_pos(delta);
+        let (pos, rot) = self.update_pos(delta, arenito_body.p0().single());
 
         self.update_model(pos, rot, delta, arenito_body);
     }
 
     /// Calculates position difference after executing `instruction`.
-    fn calculate_next_pos(&self, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
+    fn calculate_next_pos(&self, transform: &Transform, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
         match instruction {
             BaseInstruction::Back => (
-                self.rot.mul_vec3(Vec3::X) * Self::VELOCITY * -1.0 * time,
+                transform.rotation.mul_vec3(Vec3::X) * Self::VELOCITY * -1.0 * time,
                 Quat::IDENTITY,
             ),
             BaseInstruction::Forward => (
-                self.rot.mul_vec3(Vec3::X) * Self::VELOCITY * time,
+                transform.rotation.mul_vec3(Vec3::X) * Self::VELOCITY * time,
                 Quat::IDENTITY,
             ),
             BaseInstruction::Left => (
@@ -563,7 +563,7 @@ impl Arenito {
     /// Updates Arenito's position given some time in seconds (`delta`).
     /// This method is suposed to be called every frame, where delta
     /// is the time between this frame's render and the previous.
-    fn update_pos(&mut self, delta: f32) -> (Vec3, Quat) {
+    fn update_pos(&mut self, delta: f32, transform: &Transform) -> (Vec3, Quat) {
         let mut pos = Vec3::ZERO;
         let mut rot = Quat::IDENTITY;
         let mut delta = delta;
@@ -571,7 +571,7 @@ impl Arenito {
         if let Some((instr, rem_time)) = self.instruction_handler.current() {
             if delta > rem_time {
                 // println!("Less than remaining time.");
-                let (npos, nrot) = self.calculate_next_pos(instr, rem_time);
+                let (npos, nrot) = self.calculate_next_pos(transform, instr, rem_time);
                 pos += npos;
                 rot *= nrot;
                 delta -= rem_time;
@@ -583,16 +583,13 @@ impl Arenito {
                 Some((instr, rem_time)) => {
                     let time = delta.min(rem_time);
                     // println!("executing for {}s", time);
-                    let (npos, nrot) = self.calculate_next_pos(instr, time);
+                    let (npos, nrot) = self.calculate_next_pos(transform, instr, time);
                     pos += npos;
                     rot *= nrot;
                     self.instruction_handler.remaining_time -= time;
                 }
             };
         }
-
-        self.center += pos;
-        self.rot *= rot;
 
         (pos, rot)
     }
