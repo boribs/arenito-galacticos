@@ -182,7 +182,7 @@ enum BaseInstruction {
     Right,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 enum HandlerState {
     Waiting,
     Executing,
@@ -195,6 +195,7 @@ enum HandlerState {
 /// There are also combined instructions (move back, then right).
 /// This struct keeps track of how long has an instruction been executed
 /// and what the next ones are.
+#[derive(Clone)]
 struct InstructionHandler {
     instructions: Vec<(BaseInstruction, f32)>,
     remaining_time: f32,
@@ -288,7 +289,7 @@ impl Default for InstructionHandler {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum ControlMode {
     Manual,
     AI,
