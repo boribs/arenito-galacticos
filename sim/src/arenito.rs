@@ -39,8 +39,7 @@ impl Plugin for ArenitoPlugin {
             app.add_plugins(ObjPlugin);
         }
 
-        app.insert_resource(Arenito::new())
-            .add_systems(Startup, (arenito_spawner, gizmo_config))
+        app.add_systems(Startup, (arenito_spawner, gizmo_config))
             .add_systems(
                 Update,
                 (
