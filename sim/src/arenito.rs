@@ -167,8 +167,7 @@ fn draw_camera_area(arenito: Query<(&Arenito, &Transform)>, mut gizmos: Gizmos) 
     let pos = transform.translation;
 
     for i in 0..points.len() {
-        points[i] =
-            rot.mul_vec3(points[i]) + Vec3::new(pos.x, 0.0, pos.z);
+        points[i] = rot.mul_vec3(points[i]) + Vec3::new(pos.x, 0.0, pos.z);
     }
 
     for i in 0..points.len() - 1 {
@@ -385,7 +384,7 @@ impl Arenito {
                     ..default()
                 },
                 ArenitoCompFrame,
-                self.clone()
+                self.clone(),
             ))
             .with_children(|parent| {
                 const WOX: f32 = 0.5;
@@ -547,7 +546,12 @@ impl Arenito {
     }
 
     /// Calculates position difference after executing `instruction`.
-    fn calculate_next_pos(&self, transform: &Transform, instruction: BaseInstruction, time: f32) -> (Vec3, Quat) {
+    fn calculate_next_pos(
+        &self,
+        transform: &Transform,
+        instruction: BaseInstruction,
+        time: f32,
+    ) -> (Vec3, Quat) {
         match instruction {
             BaseInstruction::Back => (
                 transform.rotation.mul_vec3(Vec3::X) * Self::VELOCITY * -1.0 * time,
@@ -644,14 +648,6 @@ impl Arenito {
         for mut wheel in arenito_body.p3().iter_mut() {
             wheel.rotate_local_z(-t * r);
         }
-    }
-
-    /// Prints the current stats of Arenito.
-    pub fn log(&self) -> String {
-        format!(
-            "c: {} acc: {} vel: {} º: {}",
-            self.center, self.acc, self.vel, self.rot
-        )
     }
 }
 
