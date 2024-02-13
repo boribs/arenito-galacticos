@@ -1,5 +1,23 @@
 use bevy::prelude::*;
 
+pub trait GlobalTransform {
+    fn from_parent(&self, parent: &Transform) -> Self;
+}
+
+impl GlobalTransform for Transform {
+    fn from_parent(&self, parent: &Transform) -> Self {
+
+        // This isn't correct, but will let it be for now
+
+        let translation = parent.rotation.mul_vec3(self.translation) + parent.translation;
+        // let rotation = parent.rotation + parent.rotation;
+
+        // println!("parent {}, this {}", parent.rotation, rotation);
+
+        Transform { translation, rotation: parent.rotation, scale: self.scale }
+    }
+}
+
 #[derive(Copy, Clone)]
 pub struct Line {
     pub org: Vec3,
