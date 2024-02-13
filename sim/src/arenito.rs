@@ -317,12 +317,10 @@ pub struct ArenitoCamWindow;
 /// It's responsible of both visual and "logical" updates of position,
 /// velocity, acceleration and rotation.
 /// Those attributes will be important when simulating the sensors.
-#[derive(Resource)]
+#[derive(Component, Clone)]
 pub struct Arenito {
-    pub center: Vec3,
     pub vel: Vec3,
     pub acc: Vec3,
-    pub rot: Quat,
     // Maybe put cam data inside CameraArea -- rename it to CameraData
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
@@ -344,10 +342,8 @@ impl Arenito {
     /// Returns an empty, non-spawned Arenito.
     pub fn new() -> Self {
         Arenito {
-            center: Self::CENTER,
             vel: Vec3::ZERO,
             acc: Vec3::ZERO,
-            rot: Quat::IDENTITY,
             cam_offset: Vec3::new(0.75, 1.3, 0.0),
             cam_area: CameraArea::default(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
@@ -370,16 +366,18 @@ impl Arenito {
         materials: &mut ResMut<Assets<StandardMaterial>>,
         asset_server: &Res<AssetServer>,
     ) {
-        // This is 3D Arenito!
+        self.cam_area.compute_area(self.cam_offset, Self::CENTER.y);
+
         commands
             .spawn((
                 PbrBundle {
                     mesh: asset_server.load("models/arenito.obj"),
                     material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-                    transform: Transform::from_xyz(self.center.x, self.center.y, self.center.z),
+                    transform: Transform::from_xyz(Self::CENTER.x, Self::CENTER.y, Self::CENTER.z),
                     ..default()
                 },
                 ArenitoCompFrame,
+                self.clone()
             ))
             .with_children(|parent| {
                 const WOX: f32 = 0.5;
@@ -393,7 +391,7 @@ impl Arenito {
                 let wheel_material = materials.add(Color::rgb(0.8, 0.3, 0.6).into());
 
                 for wheel_offset in rwheel_offsets.iter() {
-                    let t = self.center + *wheel_offset;
+                    let t = Self::CENTER + *wheel_offset;
 
                     parent.spawn((
                         PbrBundle {
@@ -407,7 +405,7 @@ impl Arenito {
                 }
 
                 for wheel_offset in lwheel_offsets.iter() {
-                    let t = self.center + *wheel_offset;
+                    let t = Self::CENTER + *wheel_offset;
 
                     parent.spawn((
                         PbrBundle {
@@ -455,7 +453,6 @@ impl Arenito {
 
                 // Arenito mounted camera
                 let (x, y, z) = (self.cam_offset.x, self.cam_offset.y, self.cam_offset.z);
-                self.cam_area.compute_area(self.cam_offset, Self::CENTER.y);
 
                 // Camera model
                 parent.spawn(PbrBundle {
@@ -505,13 +502,11 @@ impl Arenito {
     /// This includes despawning and spawning the models. It was easier than
     /// resetting everything to it's original state.
     pub fn reset(&mut self, arenito_frame: &mut Transform) {
-        self.center = Self::CENTER;
         self.acc = Vec3::ZERO;
         self.vel = Vec3::ZERO;
-        self.rot = Quat::IDENTITY;
         self.instruction_handler.reset();
 
-        arenito_frame.translation = self.center;
+        arenito_frame.translation = Self::CENTER;
         arenito_frame.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0);
     }
 
