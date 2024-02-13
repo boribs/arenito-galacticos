@@ -303,6 +303,12 @@ pub struct ProximitySensor {
 }
 
 impl ProximitySensor {
+    /// Resets the sensor's current range.
+    pub fn reset(&mut self) {
+        self.range = self.max_range;
+    }
+
+    /// Draws the sensor's detection line.
     pub fn draw_ray(&self, self_transform: &Transform, gizmos: &mut Gizmos) {
         let color = if self.range == self.max_range {
             Color::GREEN
@@ -353,19 +359,25 @@ impl ProximitySensor {
         alpha >= 0.0 && beta >= 0.0 && alpha + beta <= 1.0
     }
 
+    /// Checks collision with an object's mesh.
+    /// Sets self.range to the minimum range for this mehs.
     pub fn collides_with_mesh(
-        &self,
+        &mut self,
         self_transform: &Transform,
         object: &impl WithMeshCollision,
         mesh: &Mesh,
         transform: &Transform,
-    ) -> Option<f32> {
+    ) -> bool {
         let line = Line {
             dir: self_transform.rotation.mul_vec3(Vec3::X),
             org: self_transform.translation,
         };
 
-        let mut dist = self.range + 10.0;
+        let mut dist = if self.range == 0.0 {
+            self.max_range
+        } else {
+            self.range
+        };
 
         let hull = object.get_hull(mesh, transform);
         let mut vertices = hull.iter();
@@ -389,21 +401,16 @@ impl ProximitySensor {
             };
         }
 
-        // println!("dist: {}", dist);
-
-        if dist > self.range {
-            None
-        } else {
-            Some(dist)
-        }
+        self.range = dist;
+        dist < self.max_range
     }
 }
 
 impl Default for ProximitySensor {
     fn default() -> Self {
         Self {
-            max_range: 2.0,
-            range: 2.0,
+            max_range: 3.0,
+            range: 3.0,
         }
     }
 }
