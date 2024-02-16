@@ -123,16 +123,16 @@ fn keyboard_control(
 /// Gets movement instruction from AI and executes.
 fn arenito_ai_mover(
     time: Res<Time>,
+    mut aisim: ResMut<AISimMem>,
     mut screenshot_manager: ResMut<ScreenshotManager>,
     mut arenito: Query<&mut Arenito>,
-    mut aisim: ResMut<AISimMem>,
-    window: Query<Entity, With<ArenitoCamWindow>>,
     arenito_body: ParamSet<(
         Query<&mut Transform, With<ArenitoCompFrame>>,
         Query<&mut Transform, With<ArenitoCompBrush>>,
         Query<&mut Transform, With<ArenitoCompLeftWheel>>,
         Query<&mut Transform, With<ArenitoCompRightWheel>>,
     )>,
+    window: Query<Entity, With<ArenitoCamWindow>>,
 ) {
     let mut arenito = arenito.single_mut();
 
@@ -280,10 +280,8 @@ impl InstructionHandler {
                 self.instructions = vec![(BaseInstruction::Right, 0.6)];
             }
             SimInstruction::Evade => {
-                self.instructions = vec![
-                    (BaseInstruction::Back, 0.4),
-                    (BaseInstruction::Right, 0.8),
-                ];
+                self.instructions =
+                    vec![(BaseInstruction::Back, 0.4), (BaseInstruction::Right, 0.8)];
             }
             other => panic!("Instruction {:?} not supported!", other),
         }
