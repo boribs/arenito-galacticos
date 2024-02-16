@@ -78,7 +78,6 @@ pub trait WithDistanceCollision {
     fn get_radius(&self) -> f32;
 }
 
-#[allow(unused)]
 /// Mesh collision (convex hull collision)
 pub trait WithMeshCollision {
     fn get_hull(&self, mesh: &Mesh, transform: &Transform) -> Vec<Vec3> {
