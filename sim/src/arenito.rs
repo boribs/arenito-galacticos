@@ -46,7 +46,7 @@ impl Plugin for ArenitoPlugin {
                     arenito_ai_mover,
                     draw_camera_area,
                     keyboard_control,
-                    scan_distance,
+                    proximity_sensor_reader,
                 ),
             );
 
@@ -158,6 +158,39 @@ fn arenito_ai_mover(
     }
 
     arenito.update(time.delta().as_millis(), arenito_body);
+}
+
+/// Currently, Arenito reacts immediately if the distance read by the single sensor
+/// is lower than the minimum activation range.
+fn proximity_sensor_reader(
+    mut arenito: Query<(&mut Arenito, &Transform)>,
+    obstacles: Query<(&Obstacle, &Handle<Mesh>, &Transform)>,
+    mut proxs: Query<(&mut ProximitySensor, &Transform)>,
+    meshes: Res<Assets<Mesh>>,
+    mut gizmos: Gizmos,
+) {
+    let (mut arenito, arenito_transform) = arenito.single_mut();
+    let (mut prox, prox_transform) = proxs.single_mut();
+
+    // for (mut prox, prox_transform) in proxs.iter_mut() {
+    prox.reset();
+    let prox_transform = prox_transform.from_parent(&arenito_transform);
+
+    for (obstacle, obstacle_mesh, obstacle_transform) in obstacles.iter() {
+        let obstacle_mesh = meshes.get(obstacle_mesh).unwrap();
+
+        prox.collides_with_mesh(&prox_transform, obstacle, obstacle_mesh, obstacle_transform);
+    }
+
+    const ACTIVATION_RANGE: f32 = 1.0;
+
+    if prox.range < ACTIVATION_RANGE && arenito.instruction_handler.available() {
+        arenito.instruction_handler.set(SimInstruction::Evade);
+        println!("Setting!");
+    }
+
+    prox.draw_ray(&prox_transform, &mut gizmos);
+    // }
 }
 
 fn draw_camera_area(arenito: Query<(&Arenito, &Transform)>, mut gizmos: Gizmos) {
@@ -673,28 +706,5 @@ pub fn eat_cans(
         if arenito.collides_with_dist(can, arenito_transform, can_transform) {
             commands.entity(ent).despawn();
         }
-    }
-}
-
-pub fn scan_distance(
-    arenito: Query<(&Arenito, &Transform)>,
-    obstacle: Query<(&Obstacle, &Handle<Mesh>, &Transform)>,
-    mut proxs: Query<(&mut ProximitySensor, &Transform)>,
-    meshes: Res<Assets<Mesh>>,
-    mut gizmos: Gizmos,
-) {
-    let (_, arenito_transform) = arenito.single();
-
-    for (mut prox, prox_transform) in proxs.iter_mut() {
-        prox.reset();
-        let prox_transform = prox_transform.from_parent(&arenito_transform);
-
-        for (obstacle, obstacle_mesh, obstacle_transform) in obstacle.iter() {
-            let obstacle_mesh = meshes.get(obstacle_mesh).unwrap();
-
-            prox.collides_with_mesh(&prox_transform, obstacle, obstacle_mesh, obstacle_transform);
-        }
-
-        prox.draw_ray(&prox_transform, &mut gizmos);
     }
 }
