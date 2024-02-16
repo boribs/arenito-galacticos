@@ -42,7 +42,7 @@ fn main() {
         .insert_resource(AISimMem::new(&mut mmap))
         .add_plugins((
             SceneLoaderPlugin {
-                name: SceneName::BasicCans,
+                name: SceneName::Obstacle,
                 display_can_collision_sphere: true,
             },
             ArenitoPlugin {
