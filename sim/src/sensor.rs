@@ -100,6 +100,7 @@ pub enum SimInstruction {
     MoveLeft,
     MoveRight,
     MoveLongRight,
+    Evade,
     ScreenShot,
 }
 

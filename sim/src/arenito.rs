@@ -279,6 +279,12 @@ impl InstructionHandler {
             SimInstruction::MoveLongRight => {
                 self.instructions = vec![(BaseInstruction::Right, 0.6)];
             }
+            SimInstruction::Evade => {
+                self.instructions = vec![
+                    (BaseInstruction::Back, 0.4),
+                    (BaseInstruction::Right, 0.8),
+                ];
+            }
             other => panic!("Instruction {:?} not supported!", other),
         }
 
