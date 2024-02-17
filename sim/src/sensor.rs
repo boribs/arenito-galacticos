@@ -365,7 +365,7 @@ impl ProximitySensor {
     pub fn collides_with_mesh(
         &mut self,
         self_transform: &Transform,
-        object: &impl WithMeshCollision,
+        object: &impl MeshCollision,
         object_mesh: &Mesh,
         object_transform: &Transform,
     ) -> bool {
