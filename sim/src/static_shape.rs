@@ -1,4 +1,4 @@
-use crate::collision::WithMeshCollision;
+use crate::collision::MeshCollision;
 use bevy::{prelude::*, render::render_resource::*};
 
 /// Visual representation of the viewport of a virtual 3d Camera
@@ -239,4 +239,4 @@ impl Obstacle {
     }
 }
 
-impl WithMeshCollision for Obstacle {}
+impl MeshCollision for Obstacle {}
