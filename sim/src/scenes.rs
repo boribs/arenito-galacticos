@@ -33,6 +33,39 @@ impl Plugin for SceneLoaderPlugin {
     }
 }
 
+fn spawn_plane(
+    plane_size: f32,
+    water_offset: f32,
+    asset_server: &Res<AssetServer>,
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+) {
+    let texture_handle = asset_server.load("textures/sand_01.png");
+    let material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(texture_handle.clone()),
+        reflectance: 0.01,
+        ..default()
+    });
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(shape::Plane::from_size(plane_size).into()),
+        material: material_handle,
+        transform: Transform::from_xyz(0.0, 0.01, 0.0),
+        ..default()
+    });
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(shape::Plane::from_size(plane_size + water_offset).into()),
+        material: materials.add(StandardMaterial {
+            base_color: Color::hex("0080FF").unwrap().into(),
+            reflectance: 0.05,
+            ..default()
+        }),
+        ..default()
+    });
+}
+
 fn spawn_test_scene(
     _asset_server: Res<AssetServer>,
     mut commands: Commands,
@@ -92,32 +125,14 @@ fn spawn_basic_plane_scene(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut _can_manager: ResMut<CanManager>,
 ) {
-    let texture_handle = asset_server.load("textures/sand_01.png");
-    let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(texture_handle.clone()),
-        reflectance: 0.01,
-        ..default()
-    });
-
-    let plane_size = 15.0;
-    let water_offset = 2.0;
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(plane_size).into()),
-        material: material_handle,
-        transform: Transform::from_xyz(0.0, 0.01, 0.0),
-        ..default()
-    });
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(plane_size + water_offset).into()),
-        material: materials.add(StandardMaterial {
-            base_color: Color::hex("0080FF").unwrap().into(),
-            reflectance: 0.05,
-            ..default()
-        }),
-        ..default()
-    });
+    spawn_plane(
+        15.0,
+        2.0,
+        &asset_server,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -146,32 +161,14 @@ fn spawn_basic_scene_with_cans(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut can_manager: ResMut<CanManager>,
 ) {
-    let texture_handle = asset_server.load("textures/sand_01.png");
-    let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(texture_handle.clone()),
-        reflectance: 0.01,
-        ..default()
-    });
-
-    let plane_size = 15.0;
-    let water_offset = 2.0;
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(plane_size).into()),
-        material: material_handle,
-        transform: Transform::from_xyz(0.0, 0.01, 0.0),
-        ..default()
-    });
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(plane_size + water_offset).into()),
-        material: materials.add(StandardMaterial {
-            base_color: Color::hex("0080FF").unwrap().into(),
-            reflectance: 0.05,
-            ..default()
-        }),
-        ..default()
-    });
+    spawn_plane(
+        15.0,
+        2.0,
+        &asset_server,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -234,32 +231,14 @@ fn spawn_obstacle_scene(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut _can_manager: ResMut<CanManager>,
 ) {
-    let texture_handle = asset_server.load("textures/sand_01.png");
-    let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(texture_handle.clone()),
-        reflectance: 0.01,
-        ..default()
-    });
-
-    let plane_size = 15.0;
-    let water_offset = 2.0;
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(plane_size).into()),
-        material: material_handle,
-        transform: Transform::from_xyz(0.0, 0.01, 0.0),
-        ..default()
-    });
-
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(plane_size + water_offset).into()),
-        material: materials.add(StandardMaterial {
-            base_color: Color::hex("0080FF").unwrap().into(),
-            reflectance: 0.05,
-            ..default()
-        }),
-        ..default()
-    });
+    spawn_plane(
+        15.0,
+        2.0,
+        &asset_server,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
