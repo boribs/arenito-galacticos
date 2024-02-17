@@ -1,6 +1,6 @@
 use crate::{
     cans::CanData,
-    collision::{GlobalTransform, WithDistanceCollision},
+    collision::*,
     sensor::{AISimMem, ProximitySensor, SimInstruction},
     static_shape::*,
 };
@@ -186,7 +186,6 @@ fn proximity_sensor_reader(
 
     if prox.range < ACTIVATION_RANGE && arenito.instruction_handler.available() {
         arenito.instruction_handler.set(SimInstruction::Evade);
-        println!("Setting!");
     }
 
     prox.draw_ray(&prox_transform, &mut gizmos);
@@ -688,13 +687,24 @@ impl Arenito {
     }
 }
 
-impl WithDistanceCollision for Arenito {
+impl DistanceCollision for Arenito {
     fn get_pos(&self, transform: &Transform) -> Vec3 {
         transform.rotation.mul_vec3(self.brush_offset) + transform.translation
     }
 
     fn get_radius(&self) -> f32 {
         0.4
+    }
+}
+
+impl DistanceCollider for Arenito {
+    fn collides_with_dist(
+        &self,
+        object: &impl DistanceCollision,
+        self_transform: &Transform,
+        object_transform: &Transform,
+    ) -> bool {
+        Self::dist_with_dist_collision(self, object, self_transform, object_transform)
     }
 }
 
