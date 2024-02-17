@@ -50,17 +50,33 @@ impl Plane {
 }
 
 /// Distance collision (spherical collision)
-pub trait WithDistanceCollision {
+pub trait DistanceCollider {
     fn collides_with_dist(
         &self,
-        object: &impl WithDistanceCollision,
+        object: &impl DistanceCollision,
         self_transform: &Transform,
         object_transform: &Transform,
+    ) -> bool;
+
+    /// Generic Distance-Distance collision method.
+    fn dist_with_dist_collision(
+        a: &impl DistanceCollision,
+        b: &impl DistanceCollision,
+        a_transform: &Transform,
+        b_transform: &Transform,
     ) -> bool {
-        let self_pos = self.get_pos(self_transform);
-        let object_pos = object.get_pos(object_transform);
-        self_pos.distance(object_pos) < (self.get_radius() + object.get_radius())
+        let a_pos = a.get_pos(a_transform);
+        let b_pos = b.get_pos(b_transform);
+        a_pos.distance(b_pos) < (a.get_radius() + b.get_radius())
     }
+}
+
+pub trait DistanceCollision {
+    fn get_pos(&self, transform: &Transform) -> Vec3 {
+        transform.translation
+    }
+
+    fn get_radius(&self) -> f32;
 
     fn draw_sphere(&self, transform: &Transform, color: Color, gizmos: &mut Gizmos) {
         gizmos.sphere(
@@ -70,12 +86,6 @@ pub trait WithDistanceCollision {
             color,
         );
     }
-
-    fn get_pos(&self, transform: &Transform) -> Vec3 {
-        transform.translation
-    }
-
-    fn get_radius(&self) -> f32;
 }
 
 /// Mesh collision (convex hull collision)
@@ -162,9 +172,20 @@ mod distance_collision_tests {
         }
     }
 
-    impl WithDistanceCollision for A {
+    impl DistanceCollision for A {
         fn get_radius(&self) -> f32 {
             self.radius
+        }
+    }
+
+    impl DistanceCollider for A {
+        fn collides_with_dist(
+                &self,
+                object: &impl DistanceCollision,
+                self_transform: &Transform,
+                object_transform: &Transform,
+            ) -> bool {
+                Self::dist_with_dist_collision(self, object, self_transform, object_transform)
         }
     }
 
