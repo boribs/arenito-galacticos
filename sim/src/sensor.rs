@@ -324,9 +324,20 @@ impl ProximitySensor {
         );
     }
 }
+
+impl Default for ProximitySensor {
+    fn default() -> Self {
+        Self {
+            max_range: 3.0,
+            range: 3.0,
+        }
+    }
+}
+
+impl RayCollider for ProximitySensor {
     /// Checks collision with an object's mesh.
     /// Sets self.range to the minimum range for this mehs.
-    pub fn collides_with_mesh(
+    fn collides_with_mesh(
         &mut self,
         self_transform: &Transform,
         object: &impl MeshCollision,
@@ -353,12 +364,12 @@ impl ProximitySensor {
             let c = *vertices.next().unwrap();
             let triangle = Triangle { a, b, c };
 
-            match Self::get_collision_point(line, triangle) {
+            match get_collision_point(line, triangle) {
                 None => {}
-                Some(point) => {
-                    if Self::point_inside_triangle(point, triangle) {
-                        let d = self_transform.translation.distance(point);
-                        if d <= self.range && d <= dist {
+                Some(p) => {
+                    if point_inside_triangle(p, triangle) {
+                        let d = self_transform.translation.distance(p);
+                        if d <= self.max_range && d <= dist {
                             dist = d;
                         }
                     }
@@ -367,16 +378,8 @@ impl ProximitySensor {
         }
 
         self.range = dist;
-        dist < self.max_range
-    }
-}
 
-impl Default for ProximitySensor {
-    fn default() -> Self {
-        Self {
-            max_range: 3.0,
-            range: 3.0,
-        }
+        dist < self.max_range
     }
 }
 
@@ -506,100 +509,5 @@ mod ai_sim_mem_tests {
 
         aisim.confirm_instruction();
         assert_eq!(buf[0], AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
-    }
-}
-
-#[cfg(test)]
-mod proximity_sensor_tests {
-    use super::*;
-
-    #[test]
-    fn test_get_collision_point_1() {
-        let line = Line {
-            org: Vec3::new(-1.0, 0.0, 0.0),
-            dir: Vec3::X,
-        };
-        let triangle = Triangle {
-            a: Vec3::new(0.0, -1.0, -1.0),
-            b: Vec3::new(0.0, -1.0, 1.0),
-            c: Vec3::new(0.0, 1.0, 0.0),
-        };
-
-        assert_eq!(
-            ProximitySensor::get_collision_point(line, triangle),
-            Some(Vec3::ZERO)
-        )
-    }
-
-    #[test]
-    fn test_get_collision_point_2() {
-        let line = Line {
-            org: Vec3::new(-1.0, 0.0, 0.0),
-            dir: Vec3::X,
-        };
-        let triangle = Triangle {
-            a: Vec3::new(0.0, -1.0, -1.0),
-            b: Vec3::new(0.0, -1.0, 1.0),
-            c: Vec3::new(0.0, 1.0, 0.0),
-        };
-
-        assert_eq!(
-            ProximitySensor::get_collision_point(line, triangle),
-            Some(Vec3::ZERO)
-        )
-    }
-
-    #[test]
-    fn test_get_collision_point_no_collision() {
-        let line = Line {
-            org: Vec3::new(-2.0, 0.0, 0.0),
-            dir: Vec3::new(0.0, 0.5, 0.0),
-        };
-        let triangle = Triangle {
-            a: Vec3::new(0.0, -1.0, -1.0),
-            b: Vec3::new(0.0, -1.0, 1.0),
-            c: Vec3::new(0.0, 1.0, 0.0),
-        };
-
-        assert_eq!(ProximitySensor::get_collision_point(line, triangle), None)
-    }
-
-    #[test]
-    fn test_point_inside_triangle_1() {
-        let triangle = Triangle {
-            a: Vec3::new(0.0, 0.0, 1.0),
-            b: Vec3::new(0.0, 0.0, -1.0),
-            c: Vec3::new(1.0, 0.0, 0.0),
-        };
-
-        assert!(ProximitySensor::point_inside_triangle(Vec3::ZERO, triangle))
-    }
-
-    #[test]
-    fn test_point_inside_triangle_2() {
-        let triangle = Triangle {
-            a: Vec3::new(0.0, 0.0, 1.0),
-            b: Vec3::new(0.0, 0.0, -1.0),
-            c: Vec3::new(1.0, 0.0, 0.0),
-        };
-
-        assert!(ProximitySensor::point_inside_triangle(
-            Vec3::new(0.1, 0.0, 0.24),
-            triangle
-        ))
-    }
-
-    #[test]
-    fn test_point_outside_triangle() {
-        let triangle = Triangle {
-            a: Vec3::new(0.0, 0.0, 1.0),
-            b: Vec3::new(0.0, 0.0, -1.0),
-            c: Vec3::new(1.0, 0.0, 0.0),
-        };
-
-        assert!(!ProximitySensor::point_inside_triangle(
-            Vec3::new(4.0, 0.0, 0.0),
-            triangle
-        ))
     }
 }
