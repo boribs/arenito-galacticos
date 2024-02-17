@@ -1,4 +1,4 @@
-use crate::collision::WithDistanceCollision;
+use crate::collision::DistanceCollision;
 use bevy::prelude::*;
 
 pub enum CanSize {
@@ -26,7 +26,7 @@ impl Default for CanData {
     }
 }
 
-impl WithDistanceCollision for CanData {
+impl DistanceCollision for CanData {
     fn get_radius(&self) -> f32 {
         0.3
     }
