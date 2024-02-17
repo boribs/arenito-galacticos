@@ -323,43 +323,7 @@ impl ProximitySensor {
             color,
         );
     }
-
-    /// Calculates the collision point with the plane formed by triangle abc,
-    /// considering current position and rotation.
-    fn get_collision_point(line: Line, triangle: Triangle) -> Option<Vec3> {
-        const EPSILON: f32 = 0.0000001;
-
-        let p = Plane::from_triangle(triangle);
-
-        // parallel or not touching
-        let norline = p.normal.dot(line.dir);
-        if norline.abs() < EPSILON {
-            return None;
-        }
-
-        let t = (p.normal.dot(p.p) - p.normal.dot(line.org)) / norline;
-        Some(line.org + (line.dir * t))
-    }
-
-    /// Checks whether a point is inside a triangle or not.
-    fn point_inside_triangle(p: Vec3, triangle: Triangle) -> bool {
-        let u = triangle.b - triangle.a;
-        let v = triangle.c - triangle.a;
-        let w = p - triangle.a;
-
-        let uu = u.dot(u);
-        let uv = u.dot(v);
-        let vv = v.dot(v);
-        let wu = w.dot(u);
-        let wv = w.dot(v);
-        let uv2uuvv = (uv * uv) - (uu * vv);
-
-        let alpha = ((uv * wv) - (vv * wu)) / uv2uuvv;
-        let beta = ((uv * wu) - (uu * wv)) / uv2uuvv;
-
-        alpha >= 0.0 && beta >= 0.0 && alpha + beta <= 1.0
-    }
-
+}
     /// Checks collision with an object's mesh.
     /// Sets self.range to the minimum range for this mehs.
     pub fn collides_with_mesh(

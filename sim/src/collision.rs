@@ -49,6 +49,42 @@ impl Plane {
     }
 }
 
+/// Calculates the collision point with the plane formed by triangle abc,
+/// considering current position and rotation.
+pub fn get_collision_point(line: Line, triangle: Triangle) -> Option<Vec3> {
+    const EPSILON: f32 = 0.0000001;
+
+    let p = Plane::from_triangle(triangle);
+
+    // parallel or not touching
+    let norline = p.normal.dot(line.dir);
+    if norline.abs() < EPSILON {
+        return None;
+    }
+
+    let t = (p.normal.dot(p.p) - p.normal.dot(line.org)) / norline;
+    Some(line.org + (line.dir * t))
+}
+
+/// Checks whether a point is inside a triangle or not.
+pub fn point_inside_triangle(p: Vec3, triangle: Triangle) -> bool {
+    let u = triangle.b - triangle.a;
+    let v = triangle.c - triangle.a;
+    let w = p - triangle.a;
+
+    let uu = u.dot(u);
+    let uv = u.dot(v);
+    let vv = v.dot(v);
+    let wu = w.dot(u);
+    let wv = w.dot(v);
+    let uv2uuvv = (uv * uv) - (uu * vv);
+
+    let alpha = ((uv * wv) - (vv * wu)) / uv2uuvv;
+    let beta = ((uv * wu) - (uu * wv)) / uv2uuvv;
+
+    alpha >= 0.0 && beta >= 0.0 && alpha + beta <= 1.0
+}
+
 /// Distance collision (spherical collision)
 pub trait DistanceCollider {
     fn collides_with_dist(
@@ -203,5 +239,88 @@ mod distance_collision_tests {
         let b = A::new(Vec3::new(3.0, 0.0, 0.0), 1.0);
 
         assert!(!a.collides_with_dist(&b, &a.t(), &b.t()))
+    }
+}
+
+#[cfg(test)]
+mod geometry_functions_tests {
+    use super::*;
+
+    #[test]
+    fn test_get_collision_point_1() {
+        let line = Line {
+            org: Vec3::new(-1.0, 0.0, 0.0),
+            dir: Vec3::X,
+        };
+        let triangle = Triangle {
+            a: Vec3::new(0.0, -1.0, -1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(0.0, 1.0, 0.0),
+        };
+
+        assert_eq!(get_collision_point(line, triangle), Some(Vec3::ZERO))
+    }
+
+    #[test]
+    fn test_get_collision_point_2() {
+        let line = Line {
+            org: Vec3::new(-1.0, 0.0, 0.0),
+            dir: Vec3::X,
+        };
+        let triangle = Triangle {
+            a: Vec3::new(0.0, -1.0, -1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(0.0, 1.0, 0.0),
+        };
+
+        assert_eq!(get_collision_point(line, triangle), Some(Vec3::ZERO))
+    }
+
+    #[test]
+    fn test_get_collision_point_no_collision() {
+        let line = Line {
+            org: Vec3::new(-2.0, 0.0, 0.0),
+            dir: Vec3::new(0.0, 0.5, 0.0),
+        };
+        let triangle = Triangle {
+            a: Vec3::new(0.0, -1.0, -1.0),
+            b: Vec3::new(0.0, -1.0, 1.0),
+            c: Vec3::new(0.0, 1.0, 0.0),
+        };
+
+        assert_eq!(get_collision_point(line, triangle), None)
+    }
+
+    #[test]
+    fn test_point_inside_triangle_1() {
+        let triangle = Triangle {
+            a: Vec3::new(0.0, 0.0, 1.0),
+            b: Vec3::new(0.0, 0.0, -1.0),
+            c: Vec3::new(1.0, 0.0, 0.0),
+        };
+
+        assert!(point_inside_triangle(Vec3::ZERO, triangle))
+    }
+
+    #[test]
+    fn test_point_inside_triangle_2() {
+        let triangle = Triangle {
+            a: Vec3::new(0.0, 0.0, 1.0),
+            b: Vec3::new(0.0, 0.0, -1.0),
+            c: Vec3::new(1.0, 0.0, 0.0),
+        };
+
+        assert!(point_inside_triangle(Vec3::new(0.1, 0.0, 0.24), triangle))
+    }
+
+    #[test]
+    fn test_point_outside_triangle() {
+        let triangle = Triangle {
+            a: Vec3::new(0.0, 0.0, 1.0),
+            b: Vec3::new(0.0, 0.0, -1.0),
+            c: Vec3::new(1.0, 0.0, 0.0),
+        };
+
+        assert!(!point_inside_triangle(Vec3::new(4.0, 0.0, 0.0), triangle))
     }
 }
