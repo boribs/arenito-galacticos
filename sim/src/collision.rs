@@ -142,6 +142,16 @@ pub trait MeshCollision {
     }
 }
 
+pub trait RayCollider {
+    fn collides_with_mesh(
+        &mut self,
+        self_transform: &Transform,
+        object: &impl MeshCollision,
+        object_mesh: &Mesh,
+        object_transform: &Transform,
+    ) -> bool;
+}
+
 #[cfg(test)]
 mod geometric_primitive_tests {
     use super::*;
@@ -216,12 +226,12 @@ mod distance_collision_tests {
 
     impl DistanceCollider for A {
         fn collides_with_dist(
-                &self,
-                object: &impl DistanceCollision,
-                self_transform: &Transform,
-                object_transform: &Transform,
-            ) -> bool {
-                Self::dist_with_dist_collision(self, object, self_transform, object_transform)
+            &self,
+            object: &impl DistanceCollision,
+            self_transform: &Transform,
+            object_transform: &Transform,
+        ) -> bool {
+            Self::dist_with_dist_collision(self, object, self_transform, object_transform)
         }
     }
 
