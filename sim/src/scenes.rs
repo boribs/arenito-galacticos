@@ -6,6 +6,7 @@ pub enum SceneName {
     Basic,
     BasicCans,
     Obstacle,
+    Deposit,
 }
 
 pub struct SceneLoaderPlugin {
@@ -22,6 +23,7 @@ impl Plugin for SceneLoaderPlugin {
             SceneName::Basic => spawn_basic_plane_scene,
             SceneName::BasicCans => spawn_basic_scene_with_cans,
             SceneName::Obstacle => spawn_obstacle_scene,
+            SceneName::Deposit => spawn_cans_with_deposit_scene,
         };
 
         app.add_systems(PreStartup, init_can_manager);
@@ -274,4 +276,81 @@ fn spawn_obstacle_scene(
         },
         Obstacle,
     ));
+}
+
+fn spawn_cans_with_deposit_scene(
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut can_manager: ResMut<CanManager>,
+) {
+    spawn_plane(
+        15.0,
+        2.0,
+        &asset_server,
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+    );
+
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 15000.0,
+            ..default()
+        },
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-0.4),
+            ..default()
+        },
+        ..default()
+    });
+
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.01, 20.0, 0.0)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            ..default()
+        },
+        RenderLayers::from_layers(&[0, 1]),
+    ));
+
+    let data = [
+        //   x,   z,   ry
+        (3.0, 3.0, 0.6),
+        (5.0, 4.0, 0.9),
+        (4.7, 0.4, 3.2),
+        (3.5, -3.0, 2.1),
+        (1.0, -5.0, 4.3),
+        (-2.0, -1.3, 5.7),
+        (-5.0, 4.3, 0.7),
+        (-1.2, 2.0, 1.7),
+        (-5.2, -4.0, 4.4),
+    ];
+
+    for d in data {
+        let (x, z, ry) = d;
+
+        can_manager.spawn(
+            &mut commands,
+            CanData {
+                size: CanSize::Big,
+                texture: CanTexture::Shiny,
+            },
+            Transform::from_xyz(x, 0.2, z).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                0.0,
+                ry,
+                1.56,
+            )),
+        );
+    }
+
+    commands.spawn(PbrBundle {
+        mesh: asset_server.load("models/deposit.obj"),
+        material: materials.add(Color::RED.into()),
+        transform: Transform::from_xyz(-3.0, 0.0, 4.1),
+        ..default()
+    });
 }
