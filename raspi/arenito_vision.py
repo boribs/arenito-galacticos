@@ -60,6 +60,10 @@ class ColorFilter:
         # np.array([57, 76, 77]),   # lower
         # np.array([118, 255, 210]), # upper
     )
+    RED = (
+        np.array([0, 176, 0]),
+        np.array([78, 255, 255]),
+    )
     BLACK = (
         np.array([0, 0, 69]),      # lower
         np.array([175, 255, 255]), # upper
