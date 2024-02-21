@@ -243,12 +243,20 @@ class ArenitoVision:
         lower, upper = ColorFilter.BLUE
         mask_azul = cv2.inRange(img_hsv, lower, upper)
 
-        line = np.zeros(shape=mask_azul.shape, dtype=np.uint8)
+        # Filter out can deposit!
+        lower, upper = ColorFilter.RED
+        mask_red = cv2.inRange(img_hsv, lower, upper)
+
+        mask = cv2.bitwise_or(mask_azul, mask_red)
+
+        line = np.zeros(shape=mask.shape, dtype=np.uint8)
         cv2.line(line, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
         cv2.rectangle(line, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
 
-        cross = cv2.bitwise_and(mask_azul, line)
+        cross = cv2.bitwise_and(mask, line)
         white_px = np.count_nonzero(cross)
+
+        # cv2.imshow("mask", mask)
 
         return white_px < self.min_px_water
 
