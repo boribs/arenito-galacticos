@@ -296,14 +296,19 @@ fn spawn_cans_with_deposit_scene(
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 15000.0,
+            illuminance: 7500.0,
             ..default()
         },
-        transform: Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(-0.4),
+        transform: Transform::from_xyz(3.0, 2.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
+        ..default()
+    });
+
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 7500.0,
             ..default()
         },
+        transform: Transform::from_xyz(-3.0, 2.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 
