@@ -68,6 +68,37 @@ fn spawn_plane(
     });
 }
 
+fn spawn_chair(
+    frame_color: Color,
+    cloth_color: Color,
+    transform: Transform,
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+) {
+    commands.spawn((
+        PbrBundle {
+            mesh: asset_server.load("models/silla-marco.obj"),
+            material: materials.add(StandardMaterial {
+                base_color: frame_color,
+                ..default()
+            }),
+            transform,
+            ..default()
+        },
+        Obstacle,
+    )).with_children(|parent| {
+        parent.spawn(PbrBundle {
+            mesh: asset_server.load("models/silla-tela.obj"),
+            material: materials.add(StandardMaterial {
+                base_color: cloth_color,
+                ..default()
+            }),
+            ..default()
+        });
+    });
+}
+
 fn spawn_test_scene(
     _asset_server: Res<AssetServer>,
     mut commands: Commands,
@@ -257,25 +288,22 @@ fn spawn_obstacle_scene(
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(0.01, 20.0, 0.0)
-                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            transform: Transform::from_xyz(4.01, 2.0, 4.0)
+                .looking_at(Vec3::new(0.0, 0.0, 5.0), Vec3::Y),
             ..default()
         },
         RenderLayers::from_layers(&[0, 1]),
     ));
 
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(Obstacle::get_cube_mesh()),
-            material: materials.add(StandardMaterial {
-                base_color: Color::RED,
-                ..default()
-            }),
-            transform: Transform::from_xyz(5.0, 0.0, 0.0),
-            ..default()
-        },
-        Obstacle,
-    ));
+    spawn_chair(
+        Color::DARK_GRAY,
+        Color::GREEN,
+        Transform::from_xyz(0.0, 0.0, 5.0)
+        .with_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, 0.5, 0.0)),
+        &mut commands,
+        &asset_server,
+        &mut materials
+    );
 }
 
 fn spawn_cans_with_deposit_scene(
