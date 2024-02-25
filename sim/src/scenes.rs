@@ -76,27 +76,29 @@ fn spawn_chair(
     asset_server: &Res<AssetServer>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn((
-        PbrBundle {
-            mesh: asset_server.load("models/silla-marco.obj"),
-            material: materials.add(StandardMaterial {
-                base_color: frame_color,
+    commands
+        .spawn((
+            PbrBundle {
+                mesh: asset_server.load("models/silla-marco.obj"),
+                material: materials.add(StandardMaterial {
+                    base_color: frame_color,
+                    ..default()
+                }),
+                transform,
                 ..default()
-            }),
-            transform,
-            ..default()
-        },
-        Obstacle,
-    )).with_children(|parent| {
-        parent.spawn(PbrBundle {
-            mesh: asset_server.load("models/silla-tela.obj"),
-            material: materials.add(StandardMaterial {
-                base_color: cloth_color,
+            },
+            Obstacle,
+        ))
+        .with_children(|parent| {
+            parent.spawn(PbrBundle {
+                mesh: asset_server.load("models/silla-tela.obj"),
+                material: materials.add(StandardMaterial {
+                    base_color: cloth_color,
+                    ..default()
+                }),
                 ..default()
-            }),
-            ..default()
+            });
         });
-    });
 }
 
 fn spawn_test_scene(
@@ -298,11 +300,15 @@ fn spawn_obstacle_scene(
     spawn_chair(
         Color::DARK_GRAY,
         Color::GREEN,
-        Transform::from_xyz(0.0, 0.0, 5.0)
-        .with_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, 0.5, 0.0)),
+        Transform::from_xyz(0.0, 0.0, 5.0).with_rotation(Quat::from_euler(
+            EulerRot::XYZ,
+            0.0,
+            0.5,
+            0.0,
+        )),
         &mut commands,
         &asset_server,
-        &mut materials
+        &mut materials,
     );
 }
 

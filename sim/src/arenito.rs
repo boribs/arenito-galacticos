@@ -178,7 +178,6 @@ fn proximity_sensor_reader(
 
     for (obstacle, obstacle_mesh, obstacle_transform) in obstacles.iter() {
         let obstacle_mesh = meshes.get(obstacle_mesh).unwrap();
-
         prox.collides_with_mesh(&prox_transform, obstacle, obstacle_mesh, obstacle_transform);
     }
 
