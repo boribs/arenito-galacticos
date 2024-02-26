@@ -426,8 +426,8 @@ impl Arenito {
                 const WOY: f32 = -0.2;
                 const WOZ: f32 = 0.85;
 
-                let rwheel_offsets = [Vec3::new(WOX, -WOY, WOZ), Vec3::new(-WOX, -WOY, WOZ)];
-                let lwheel_offsets = [Vec3::new(WOX, -WOY, -WOZ), Vec3::new(-WOX, -WOY, -WOZ)];
+                let rwheel_offsets = [Vec3::new(WOX, WOY, WOZ), Vec3::new(-WOX, WOY, WOZ)];
+                let lwheel_offsets = [Vec3::new(WOX, WOY, -WOZ), Vec3::new(-WOX, WOY, -WOZ)];
 
                 let wheel_mesh = asset_server.load("models/rueda.obj");
                 let wheel_material = materials.add(Color::rgb(0.8, 0.3, 0.6).into());
