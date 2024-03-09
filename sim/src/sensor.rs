@@ -355,19 +355,13 @@ impl RayCollider for ProximitySensor {
             self.range
         };
 
-        let hull = object.get_hull(object_mesh, object_transform);
-        let mut vertices = hull.iter();
+        let faces = object.get_hull(object_mesh, object_transform);
 
-        for _ in 0..(vertices.len() / 3) {
-            let a = *vertices.next().unwrap();
-            let b = *vertices.next().unwrap();
-            let c = *vertices.next().unwrap();
-            let triangle = Triangle { a, b, c };
-
-            match get_collision_point(line, triangle) {
+        for face in faces {
+            match get_collision_point(line, face) {
                 None => {}
                 Some(p) => {
-                    if point_inside_triangle(p, triangle) {
+                    if point_inside_triangle(p, face) {
                         let d = self_transform.translation.distance(p);
                         if d <= dist {
                             dist = d;

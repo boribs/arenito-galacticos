@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use itertools::Itertools;
 
 pub trait GlobalTransform {
     fn from_parent(&self, parent: &Transform) -> Self;
@@ -126,19 +127,28 @@ pub trait DistanceCollision {
 
 /// Mesh collision (convex hull collision)
 pub trait MeshCollision {
-    fn get_hull(&self, mesh: &Mesh, transform: &Transform) -> Vec<Vec3> {
+    fn get_hull(&self, mesh: &Mesh, transform: &Transform) -> Vec<Triangle> {
         // println!("{:?}", mesh.primitive_topology());
 
-        mesh.attribute(Mesh::ATTRIBUTE_POSITION)
-            .unwrap()
-            .as_float3()
-            .unwrap()
-            .iter()
-            .map(|s| {
-                let v = transform.rotation.mul_vec3(Vec3::from_array(*s));
-                v + transform.translation
-            })
-            .collect()
+        let vertices: Vec<Vec3> = mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+        .unwrap()
+        .as_float3()
+        .unwrap()
+        .iter()
+        .map(|s| {
+            let v = transform.rotation.mul_vec3(Vec3::from_array(*s));
+            v + transform.translation
+        })
+        .collect();
+
+        mesh.indices().unwrap().iter().chunks(3).into_iter().map(
+            |mut chunk| {
+                Triangle {
+                    a: vertices[chunk.next().unwrap()],
+                    b: vertices[chunk.next().unwrap()],
+                    c: vertices[chunk.next().unwrap()],
+                }
+        }).collect()
     }
 }
 
