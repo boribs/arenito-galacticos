@@ -1,6 +1,8 @@
 use crate::cans::*;
 use crate::static_shape::Obstacle;
 use bevy::{prelude::*, render::view::RenderLayers};
+use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+
 pub enum SceneName {
     Test,
     Basic,
@@ -16,7 +18,8 @@ pub struct SceneLoaderPlugin {
 
 impl Plugin for SceneLoaderPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(CanManager::new());
+        app.insert_resource(CanManager::new())
+            .add_plugins(PanOrbitCameraPlugin);
 
         let f = match self.name {
             SceneName::Test => spawn_test_scene,
@@ -295,6 +298,7 @@ fn spawn_obstacle_scene(
             ..default()
         },
         RenderLayers::from_layers(&[0, 1]),
+        PanOrbitCamera::default(),
     ));
 
     spawn_chair(

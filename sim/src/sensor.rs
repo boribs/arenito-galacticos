@@ -369,7 +369,7 @@ impl RayCollider for ProximitySensor {
                 Some(p) => {
                     if point_inside_triangle(p, triangle) {
                         let d = self_transform.translation.distance(p);
-                        if d <= self.max_range && d <= dist {
+                        if d <= dist {
                             dist = d;
                         }
                     }
