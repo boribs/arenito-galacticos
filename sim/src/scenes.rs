@@ -79,29 +79,30 @@ fn spawn_chair(
     asset_server: &Res<AssetServer>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
-    commands
-        .spawn((
-            PbrBundle {
-                mesh: asset_server.load("models/silla-marco.obj"),
-                material: materials.add(StandardMaterial {
-                    base_color: frame_color,
-                    ..default()
-                }),
-                transform,
+    commands.spawn((
+        PbrBundle {
+            mesh: asset_server.load("models/silla-marco.obj"),
+            material: materials.add(StandardMaterial {
+                base_color: frame_color,
                 ..default()
-            },
-            Obstacle,
-        ))
-        .with_children(|parent| {
-            parent.spawn(PbrBundle {
-                mesh: asset_server.load("models/silla-tela.obj"),
-                material: materials.add(StandardMaterial {
-                    base_color: cloth_color,
-                    ..default()
-                }),
+            }),
+            transform,
+            ..default()
+        },
+        Obstacle,
+    ));
+    commands.spawn((
+        PbrBundle {
+            mesh: asset_server.load("models/silla-tela.obj"),
+            material: materials.add(StandardMaterial {
+                base_color: cloth_color,
                 ..default()
-            });
-        });
+            }),
+            transform,
+            ..default()
+        },
+        Obstacle,
+    ));
 }
 
 fn spawn_test_scene(
