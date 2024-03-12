@@ -469,7 +469,16 @@ impl Arenito {
                     ));
                 }
 
+                let sensor_mesh = meshes.add(shape::Cube::new(0.08).into());
+                let sensor_material = materials.add(Color::rgb(0.3, 0.3, 0.6).into());
+
                 for prox_offset in self.proximity_sensor_offsets.iter() {
+                    parent.spawn(PbrBundle {
+                        transform: *prox_offset,
+                        mesh: sensor_mesh.clone(),
+                        material: sensor_material.clone(),
+                        ..default()
+                    });
                     parent.spawn((
                         PbrBundle {
                             transform: *prox_offset,
