@@ -30,7 +30,7 @@ impl Plugin for SceneLoaderPlugin {
         };
 
         app.add_systems(PreStartup, init_can_manager);
-        app.add_systems(Startup, f);
+        app.add_systems(PreStartup, f);
 
         if self.display_can_collision_sphere {
             app.add_systems(Update, draw_can_collision);

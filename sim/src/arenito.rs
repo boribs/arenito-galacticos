@@ -176,7 +176,6 @@ fn proximity_sensor_reader(
         .iter()
         .map(|(obstacle, mesh_handle, transform)| {
             let mesh = meshes.get(mesh_handle).unwrap();
-            // fix this unwrap!
             obstacle.get_hull(mesh, transform)
         })
         .collect();
