@@ -340,9 +340,7 @@ impl RayCollider for ProximitySensor {
     fn collides_with_mesh(
         &mut self,
         self_transform: &Transform,
-        object: &impl MeshCollision,
-        object_mesh: &Mesh,
-        object_transform: &Transform,
+        object_hull: &Vec<Triangle>,
     ) -> bool {
         let line = Line {
             dir: self_transform.rotation.mul_vec3(Vec3::X),
@@ -355,13 +353,11 @@ impl RayCollider for ProximitySensor {
             self.range
         };
 
-        let faces = object.get_hull(object_mesh, object_transform);
-
-        for face in faces {
-            match get_collision_point(line, face) {
+        for face in object_hull {
+            match get_collision_point(line, *face) {
                 None => {}
                 Some(p) => {
-                    if point_inside_triangle(p, face) {
+                    if point_inside_triangle(p, *face) {
                         let d = self_transform.translation.distance(p);
                         if d <= dist {
                             dist = d;

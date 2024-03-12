@@ -170,25 +170,37 @@ fn proximity_sensor_reader(
     mut gizmos: Gizmos,
 ) {
     let (mut arenito, arenito_transform) = arenito.single_mut();
-    let (mut prox, prox_transform) = proxs.single_mut();
+    // let (mut prox, prox_transform) = proxs.single_mut();
 
-    // for (mut prox, prox_transform) in proxs.iter_mut() {
-    prox.reset();
-    let prox_transform = prox_transform.from_parent(&arenito_transform);
+    let obstacle_hulls: Vec<Vec<Triangle>> = obstacles
+        .iter()
+        .map(|(obstacle, mesh_handle, transform)| {
+            let mesh = meshes.get(mesh_handle).unwrap();
+            // fix this unwrap!
+            obstacle.get_hull(mesh, transform)
+        })
+        .collect();
 
-    for (obstacle, obstacle_mesh, obstacle_transform) in obstacles.iter() {
-        let obstacle_mesh = meshes.get(obstacle_mesh).unwrap();
-        prox.collides_with_mesh(&prox_transform, obstacle, obstacle_mesh, obstacle_transform);
+    for (mut prox, prox_transform) in proxs.iter_mut() {
+        prox.reset();
+        let prox_transform = prox_transform.from_parent(&arenito_transform);
+
+        // for (obstacle, obstacle_mesh, obstacle_transform) in obstacles.iter() {
+        //     let obstacle_mesh = meshes.get(obstacle_mesh).unwrap();
+        //     prox.collides_with_mesh(&prox_transform, obstacle, obstacle_mesh, obstacle_transform);
+        // }
+        for hull in obstacle_hulls.iter() {
+            prox.collides_with_mesh(&prox_transform, hull);
+        }
+
+        const ACTIVATION_RANGE: f32 = 1.0;
+
+        if prox.range < ACTIVATION_RANGE && arenito.instruction_handler.available() {
+            arenito.instruction_handler.set(SimInstruction::Evade);
+        }
+
+        prox.draw_ray(&prox_transform, &mut gizmos);
     }
-
-    const ACTIVATION_RANGE: f32 = 1.0;
-
-    if prox.range < ACTIVATION_RANGE && arenito.instruction_handler.available() {
-        arenito.instruction_handler.set(SimInstruction::Evade);
-    }
-
-    prox.draw_ray(&prox_transform, &mut gizmos);
-    // }
 }
 
 fn draw_camera_area(arenito: Query<(&Arenito, &Transform)>, mut gizmos: Gizmos) {
@@ -391,7 +403,10 @@ impl Arenito {
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
-            proximity_sensor_offsets: vec![Transform::from_xyz(0.74, 0.1, 0.0)],
+            proximity_sensor_offsets: vec![
+                Transform::from_xyz(0.74, 0.9, 0.5),
+                Transform::from_xyz(0.74, 0.9, -0.5),
+            ],
         }
     }
 

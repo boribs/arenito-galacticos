@@ -160,9 +160,7 @@ pub trait RayCollider {
     fn collides_with_mesh(
         &mut self,
         self_transform: &Transform,
-        object: &impl MeshCollision,
-        object_mesh: &Mesh,
-        object_transform: &Transform,
+        object_hull: &Vec<Triangle>,
     ) -> bool;
 }
 
