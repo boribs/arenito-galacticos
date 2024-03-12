@@ -357,6 +357,7 @@ fn spawn_cans_with_deposit_scene(
             ..default()
         },
         RenderLayers::from_layers(&[0, 1]),
+        PanOrbitCamera::default(),
     ));
 
     let data = [
