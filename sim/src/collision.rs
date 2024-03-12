@@ -10,13 +10,11 @@ impl GlobalTransform for Transform {
         // This isn't correct, but will let it be for now
 
         let translation = parent.rotation.mul_vec3(self.translation) + parent.translation;
-        // let rotation = parent.rotation + parent.rotation;
-
-        // println!("parent {}, this {}", parent.rotation, rotation);
+        let rotation = parent.rotation * self.rotation;
 
         Transform {
             translation,
-            rotation: parent.rotation,
+            rotation,
             scale: self.scale,
         }
     }
