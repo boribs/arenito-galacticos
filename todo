@@ -22,3 +22,9 @@
 
 ☐ Detección de atascamiento
     Poder detectar cuando el robot se quede atorado.
+
+☐ Depositar latas
+    Se aplica un filtro de color para encontrar el depósito,
+    cuando se cumplen los requerimientos, acomodarse para tirar las latas.
+    El acomodo se puede lograr promediando las posiciones, relativas al
+    centro de la imagen. Con esto se obtiene la posición deseada del robot.
