@@ -41,6 +41,7 @@ impl Plugin for SceneLoaderPlugin {
 fn spawn_plane(
     plane_size: f32,
     water_offset: f32,
+    scale: Vec3,
     asset_server: &Res<AssetServer>,
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
@@ -56,7 +57,7 @@ fn spawn_plane(
     commands.spawn(PbrBundle {
         mesh: meshes.add(shape::Plane::from_size(plane_size).into()),
         material: material_handle,
-        transform: Transform::from_xyz(0.0, 0.01, 0.0),
+        transform: Transform::from_xyz(0.0, 0.01, 0.0).with_scale(scale),
         ..default()
     });
 
@@ -67,6 +68,7 @@ fn spawn_plane(
             reflectance: 0.05,
             ..default()
         }),
+        transform: Transform::from_scale(scale),
         ..default()
     });
 }
@@ -167,6 +169,7 @@ fn spawn_basic_plane_scene(
     spawn_plane(
         15.0,
         2.0,
+        Vec3::ONE,
         &asset_server,
         &mut commands,
         &mut meshes,
@@ -203,6 +206,7 @@ fn spawn_basic_scene_with_cans(
     spawn_plane(
         15.0,
         2.0,
+        Vec3::ONE,
         &asset_server,
         &mut commands,
         &mut meshes,
@@ -273,6 +277,7 @@ fn spawn_obstacle_scene(
     spawn_plane(
         15.0,
         2.0,
+        Vec3::ONE,
         &asset_server,
         &mut commands,
         &mut meshes,
