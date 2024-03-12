@@ -102,11 +102,10 @@ impl From<CameraPrism> for Mesh {
         let normals = vec![[1.0, 1.0, 1.0]; vertices.len()];
         let uvs = vec![[1.0, 1.0]; vertices.len()];
 
-        let mut mesh = Mesh::new(PrimitiveTopology::LineList);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-        mesh
+        Mesh::new(PrimitiveTopology::LineList)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertices)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
     }
 }
 
@@ -227,11 +226,10 @@ impl Obstacle {
         let normals = vec![[1.0, 1.0, 1.0]; vertices.len()];
         let uvs = vec![[1.0, 1.0]; vertices.len()];
 
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-        mesh
+        Mesh::new(PrimitiveTopology::TriangleList)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertices)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+            .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
     }
 
     pub fn get_cube_mesh() -> Mesh {
