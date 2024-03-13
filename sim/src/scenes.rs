@@ -334,6 +334,7 @@ fn spawn_cans_with_deposit_scene(
     spawn_plane(
         15.0,
         2.0,
+        Vec3::ONE,
         &asset_server,
         &mut commands,
         &mut meshes,
@@ -376,7 +377,7 @@ fn spawn_cans_with_deposit_scene(
         (3.5, -3.0, 2.1),
         (1.0, -5.0, 4.3),
         (-2.0, -1.3, 5.7),
-        (-5.0, 4.3, 0.7),
+        (-7.0, 4.3, 0.7),
         (-1.2, 2.0, 1.7),
         (-5.2, -4.0, 4.4),
     ];
