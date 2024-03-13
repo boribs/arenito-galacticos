@@ -18,10 +18,10 @@ Ambiente gráfico:
 Ambiente virtual:
     ✔ Arena @done(24-01-05 23:36)
     ✔ Agua @done(24-01-05 23:36)
-    ☐ Obstáculos
-    ☐ Latas
+    ✔ Obstáculos @done(24-03-12 19:32)
+    ✔ Latas @done(24-03-12 19:32)
         ✔ Comer latas @done(24-01-23 08:09)
-        ☐ Escupir latas
+        ✘ Escupir latas @cancelled(24-03-12 19:32)
     ☐ Depósito de latas
 
 Simluación de movimiento:
@@ -33,7 +33,7 @@ Simluación de movimiento:
 Simulación de sensores:
     ✔ Determinar movimiento según lectura de sensores (terreno plano) @done(23-07-09 16:26)
     ✘ Determinar movimiento según lectura de sensores (terreno no uniforme) @cancelled(24-01-05 01:59)
-    ☐ Sensor de proximidad
+    ✔ Sensor de proximidad @done(24-03-12 19:32)
     ✔ Detector de colores (cámara) @done(24-01-05 01:59)
 
 IA:
