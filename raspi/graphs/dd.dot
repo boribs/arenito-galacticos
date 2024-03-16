@@ -1,0 +1,74 @@
+digraph G {
+    subgraph cluster_obstáculo_en_frente {
+        graph [style = invis]
+
+        starto [style = filled; shape = box; label = "obstáculo en frente"]
+        endo [shape = plain; label = "..."]
+        i1o [label = "retrocede"]
+        i2o [label = "gira derecha"]
+
+        starto -> i1o -> i2o -> endo
+    }
+
+    subgraph cluster_no_encuentra_lata {
+        graph [style = invis]
+        starta [style = filled; shape = box; label = "no encuentra lata"]
+        q1a [shape = diamond; label = "¿Puede avanzar?"]
+        d1a [label = "Gira a la derecha"]
+        a1a [label = "Avanza"]
+        q2a [shape = diamond; label = "¿N segundos\nbuscando?"]
+        a2a [label = "Gira mucho\na la derecha"]
+        enda [shape = plain; label = "..."]
+
+        starta -> q1a
+        q1a -> d1a [label = "No"]
+        d1a -> q1a [tailport = w; headport = w]
+        q1a -> q2a [label = "Si"]
+        q2a -> a2a [label = "Si"]
+        q2a -> a1a [label = "No"]
+        a1a, a2a -> enda
+    }
+
+    subgraph cluster_encuentra_lata {
+        graph [style = invis]
+        startb [style = filled; shape = box; label = "encuentra lata"]
+        centrab [style = filled; shape = septagon; label = "Centra"]
+        endb [shape = plain; label = "..."]
+
+        startb -> centrab -> Avanza -> endb
+    }
+
+    subgraph cluster_encontro_deposito {
+        graph [style = invis]
+        startc [style = filled; shape = box; label = "encuentra depósito"]
+        q1c [shape = diamond; label = "¿Tiene latas?"]
+        i1c [label = "Tira latas"]
+        i2c [label = "Gira ~180º"]
+        centrac [style = filled; shape = septagon; label = "Centra"]
+        endc [shape = plain; label = "..."]
+
+        startc -> q1c
+        q1c -> endc [label = "No"]
+        q1c -> centrac [label = "Si"]
+        centrac -> i1c -> i2c -> endc
+    }
+
+    subgraph cluster_centra {
+        graph [style = dashed]
+        centra [style = filled; shape = septagon; label = "Centra"]
+        q1ce [shape = diamond; label = "¿Está centrado?"]
+        q2ce [shape = diamond; label = "¿Está a la izquierda?"]
+        i1ce [label = "Gira izquierda"]
+        i2ce [label = "Gira derecha"]
+        endce [shape = plain; label = "..."]
+        d1 [shape = point, width = 0.01, height = 0.01]
+
+        centra -> q1ce
+        q1ce -> endce [label = "Si"; tailport = e]
+        q1ce -> q2ce [label = "No"]
+        q2ce -> i1ce [label = "Si"]
+        q2ce -> i2ce [label = "No"]
+        i1ce, i2ce -> d1 [dir = none]
+        d1 -> q1ce
+    }
+}
