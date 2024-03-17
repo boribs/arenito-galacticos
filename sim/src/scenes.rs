@@ -38,6 +38,7 @@ pub struct SceneData {
     sand: PlaneData,
     water: PlaneData,
     can_positions: Vec<(f32, f32, f32)>,
+    deposit_position: Vec3,
 }
 
 impl SceneData {
@@ -78,7 +79,8 @@ impl Default for SceneData {
                 (9.1, -4.7, 0.0),
                 (11.1, 1.2, 0.0),
                 (10.4, 4.7, 0.0),
-            ]
+            ],
+            deposit_position: Vec3::new(-3.0, 0.0, 4.1),
         }
     }
 }
@@ -208,6 +210,14 @@ fn generate_scene(
             )),
         );
     }
+
+    // spawn deposit
+    commands.spawn(PbrBundle {
+        mesh: asset_server.load("models/deposit.obj"),
+        material: materials.add(Color::RED.into()),
+        transform: Transform::from_translation(scene_data.deposit_position),
+        ..default()
+    });
 
 }
 

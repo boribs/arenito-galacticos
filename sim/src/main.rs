@@ -8,7 +8,7 @@ pub mod static_shape;
 use arenito::ArenitoPlugin;
 use bevy::{prelude::*, window::ExitCondition, winit::WinitSettings};
 use memmap;
-use scenes::{SceneLoaderPlugin, SceneName};
+use scenes::{SceneData, SceneLoaderPlugin};
 use sensor::AISimMem;
 use std::{fs::OpenOptions, io::Write};
 
@@ -42,7 +42,7 @@ fn main() {
         .insert_resource(AISimMem::new(&mut mmap))
         .add_plugins((
             SceneLoaderPlugin {
-                name: SceneName::Obstacle,
+                scene_data: SceneData::default(),
                 display_can_collision_sphere: true,
             },
             ArenitoPlugin {
