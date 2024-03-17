@@ -1,6 +1,6 @@
 use crate::cans::*;
 use crate::static_shape::Obstacle;
-use bevy::{prelude::*, render::view::RenderLayers, scene};
+use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 pub struct SceneLoaderPlugin {
