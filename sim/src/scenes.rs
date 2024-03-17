@@ -11,9 +11,9 @@ pub struct SceneLoaderPlugin {
 
 impl Plugin for SceneLoaderPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(CanManager::new())
+        app.add_plugins(PanOrbitCameraPlugin)
+            .insert_resource(CanManager::new())
             .insert_resource(self.scene_data.clone())
-            .add_plugins(PanOrbitCameraPlugin)
             .add_systems(
                 PreStartup,
                 (init_can_manager, generate_scene.after(init_can_manager)),
