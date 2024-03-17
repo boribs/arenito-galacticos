@@ -1,6 +1,5 @@
 use crate::cans::*;
-use crate::collision::{DistanceCollision, MeshCollision};
-use crate::static_shape::Obstacle;
+use crate::collision::*;
 use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 

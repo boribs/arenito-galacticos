@@ -154,6 +154,21 @@ pub trait MeshCollision {
     }
 }
 
+/// The component that allows mesh collision to occur.
+#[derive(Component)]
+pub struct Obstacle {
+    hull: Vec<Triangle>,
+}
+
+impl Obstacle {
+    pub fn empty() -> Self {
+        Obstacle { hull: Vec::new() }
+    }
+}
+
+impl MeshCollision for Obstacle {}
+
+
 pub trait RayCollider {
     fn collides_with_mesh(
         &mut self,
