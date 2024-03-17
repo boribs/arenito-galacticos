@@ -157,7 +157,7 @@ pub trait MeshCollision {
 /// The component that allows mesh collision to occur.
 #[derive(Component)]
 pub struct Obstacle {
-    hull: Vec<Triangle>,
+    pub hull: Vec<Triangle>,
 }
 
 impl Obstacle {
@@ -168,6 +168,15 @@ impl Obstacle {
 
 impl MeshCollision for Obstacle {}
 
+pub fn compute_hulls(
+    mut obstacles: Query<(&mut Obstacle, &Handle<Mesh>, &Transform)>,
+    meshes: Res<Assets<Mesh>>,
+) {
+    for (mut obstacle, mesh_handle, transform) in obstacles.iter_mut() {
+        let mesh = meshes.get(mesh_handle).unwrap();
+        obstacle.hull = obstacle.compute_hull(mesh, transform);
+    }
+}
 
 pub trait RayCollider {
     fn collides_with_mesh(

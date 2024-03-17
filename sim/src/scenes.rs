@@ -22,6 +22,7 @@ impl Plugin for SceneLoaderPlugin {
             app.add_systems(Update, draw_can_collision_sphere);
         }
         if self.draw_obstacle_collision_mesh {
+            app.add_systems(PreUpdate, compute_hulls);
             app.add_systems(Update, draw_obstacle_collision_mesh);
         }
     }
