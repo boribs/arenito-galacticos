@@ -29,11 +29,12 @@ pub enum TextureOrColor {
     Color(Color),
 }
 
-#[derive(Resource, Copy, Clone)]
+#[derive(Resource, Clone)]
 pub struct SceneData {
     cam_transform: Transform,
     sand: PlaneData,
     water: PlaneData,
+    can_positions: Vec<(f32, f32, f32)>,
 }
 
 impl SceneData {
@@ -42,7 +43,11 @@ impl SceneData {
         self.sand.width = width;
         self.water.length = length + water_offset;
         self.water.width = width + water_offset;
+        self
+    }
 
+    pub fn cans(mut self, can_positions: Vec<(f32, f32, f32)>) -> Self {
+        self.can_positions = can_positions;
         self
     }
 }
@@ -51,8 +56,24 @@ impl Default for SceneData {
     fn default() -> Self {
         SceneData {
             cam_transform: Transform::from_xyz(0.0, 20.0, 0.01).looking_at(Vec3::ZERO, Vec3::Y),
-            sand: PlaneData::sand(15.0, 15.0, 0.01),
-            water: PlaneData::water(17.0, 17.0, 0.01),
+            sand: PlaneData::sand(15.0, 25.0, 0.01),
+            water: PlaneData::water(17.0, 27.0, 0.01),
+            can_positions: vec![
+                (3.0, 3.0, 0.6),
+                (5.0, 4.0, 0.9),
+                (4.7, 0.4, 3.2),
+                (3.5, -3.0, 2.1),
+                (1.0, -5.0, 4.3),
+                (-2.0, -1.3, 5.7),
+                (-7.0, 4.3, 0.7),
+                (-1.2, 2.0, 1.7),
+                (-5.2, -4.0, 4.4),
+                (-11.4, 5.7, 0.4),
+                (-8.1, 0.7, 5.1),
+                (9.1, -4.7, 0.0),
+                (11.1, 1.2, 0.0),
+                (10.4, 4.7, 0.0),
+            ]
         }
     }
 }
@@ -109,6 +130,7 @@ fn generate_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut can_manager: ResMut<CanManager>,
 ) {
     // spawn base
     let water_material = scene_data.water.get_material(&asset_server);
@@ -158,6 +180,26 @@ fn generate_scene(
         RenderLayers::from_layers(&[0, 1]),
         PanOrbitCamera::default(),
     ));
+
+    // spawn cans
+    for d in scene_data.can_positions.iter() {
+        let (x, z, ry) = d;
+
+        can_manager.spawn(
+            &mut commands,
+            CanData {
+                size: CanSize::Big,
+                texture: CanTexture::Shiny,
+            },
+            Transform::from_xyz(*x, 0.2, *z).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                0.0,
+                *ry,
+                1.56,
+            )),
+        );
+    }
+
 }
 
 // fn spawn_plane(
