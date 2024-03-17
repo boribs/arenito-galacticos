@@ -286,7 +286,7 @@ pub fn draw_obstacle_collision_mesh(
 ) {
     for obstacle in obstacles.iter() {
         let mesh = meshes.get(obstacle.1).unwrap();
-        let hull = obstacle.0.get_hull(mesh, obstacle.2);
+        let hull = obstacle.0.compute_hull(mesh, obstacle.2);
 
         for triangle in hull {
             gizmos.line(triangle.a, triangle.b, Color::WHITE);

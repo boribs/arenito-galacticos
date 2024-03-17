@@ -125,7 +125,7 @@ pub trait DistanceCollision {
 
 /// Mesh collision (convex hull collision)
 pub trait MeshCollision {
-    fn get_hull(&self, mesh: &Mesh, transform: &Transform) -> Vec<Triangle> {
+    fn compute_hull(&self, mesh: &Mesh, transform: &Transform) -> Vec<Triangle> {
         // println!("{:?}", mesh.primitive_topology());
 
         let vertices: Vec<Vec3> = mesh
