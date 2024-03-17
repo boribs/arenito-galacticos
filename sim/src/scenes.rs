@@ -267,7 +267,7 @@ fn generate_scene(
                     transform: obstacle.transform.clone(),
                     ..default()
                 },
-                Obstacle,
+                Obstacle::empty(),
             ));
         }
     }
@@ -279,16 +279,9 @@ pub fn draw_can_collision_sphere(mut gizmos: Gizmos, cans: Query<(&CanData, &Tra
     }
 }
 
-pub fn draw_obstacle_collision_mesh(
-    mut gizmos: Gizmos,
-    meshes: Res<Assets<Mesh>>,
-    obstacles: Query<(&Obstacle, &Handle<Mesh>, &Transform)>,
-) {
+pub fn draw_obstacle_collision_mesh(mut gizmos: Gizmos, obstacles: Query<&Obstacle>) {
     for obstacle in obstacles.iter() {
-        let mesh = meshes.get(obstacle.1).unwrap();
-        let hull = obstacle.0.compute_hull(mesh, obstacle.2);
-
-        for triangle in hull {
+        for triangle in obstacle.hull.iter() {
             gizmos.line(triangle.a, triangle.b, Color::WHITE);
             gizmos.line(triangle.b, triangle.c, Color::WHITE);
             gizmos.line(triangle.a, triangle.c, Color::WHITE);
