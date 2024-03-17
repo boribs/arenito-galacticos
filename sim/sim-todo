@@ -22,8 +22,8 @@ Ambiente virtual:
     ✔ Latas @done(24-03-12 19:32)
         ✔ Comer latas @done(24-01-23 08:09)
         ✘ Escupir latas @cancelled(24-03-12 19:32)
-    ☐ Depósito de latas
-    ☐ SceneConstructor
+    ✔ Depósito de latas @done(24-03-17 15:06)
+    ✔ SceneConstructor @done(24-03-17 15:06)
         para no tener mil funciones constructoras de escenarios
     ☐ Runtime SceneEditor
         para poder modificar aspectos del entorno durante el runtime
