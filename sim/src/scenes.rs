@@ -5,7 +5,7 @@ use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 pub struct SceneLoaderPlugin {
     pub scene_data: SceneData,
-    pub display_can_collision_sphere: bool,
+    pub draw_can_collision_sphere: bool,
     pub draw_obstacle_collision_mesh: bool,
 }
 
@@ -19,7 +19,7 @@ impl Plugin for SceneLoaderPlugin {
                 (init_can_manager, generate_scene.after(init_can_manager)),
             );
 
-        if self.display_can_collision_sphere {
+        if self.draw_can_collision_sphere {
             app.add_systems(Update, draw_can_collision_sphere);
         }
         if self.draw_obstacle_collision_mesh {
