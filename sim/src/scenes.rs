@@ -259,11 +259,17 @@ fn generate_scene(
                 PbrBundle {
                     mesh: asset_server.load(model.0),
                     material: materials.add(model.1.get_material(0.3, &asset_server)),
-                    transform: obstacle.transform,
+                    transform: obstacle.transform.clone(),
                     ..default()
                 },
                 Obstacle,
             ));
         }
+    }
+}
+
+pub fn draw_can_collision_sphere(mut gizmos: Gizmos, cans: Query<(&CanData, &Transform)>) {
+    for (can, transform) in cans.iter() {
+        can.draw_sphere(transform, Color::WHITE, &mut gizmos);
     }
 }
