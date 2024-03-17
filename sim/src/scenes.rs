@@ -15,7 +15,7 @@ impl Plugin for SceneLoaderPlugin {
             .add_plugins(PanOrbitCameraPlugin);
 
         app.add_systems(PreStartup, init_can_manager);
-        app.add_systems(Startup, generate_scene);
+        app.add_systems(PreStartup, generate_scene);
 
         if self.display_can_collision_sphere {
             app.add_systems(Update, draw_can_collision);
@@ -60,6 +60,7 @@ pub struct SceneData {
     water: PlaneData,
     can_positions: Vec<(f32, f32, f32)>,
     deposit_position: Vec3,
+    obstacles: Vec<ObstacleData>,
 }
 
 impl SceneData {
@@ -102,6 +103,20 @@ impl Default for SceneData {
                 (10.4, 4.7, 0.0),
             ],
             deposit_position: Vec3::new(-3.0, 0.0, 4.1),
+            obstacles: vec![
+                ObstacleData {
+                    models: vec![
+                        ("models/silla-marco.obj", TextureOrColor::Color(Color::DARK_GRAY)),
+                        ("models/silla-tela.obj", TextureOrColor::Color(Color::GREEN)),
+                    ],
+                    transform: Transform::from_xyz(-8.0, 0.0, -5.0).with_rotation(Quat::from_euler(
+                        EulerRot::XYZ,
+                        0.0,
+                        0.5,
+                        0.0,
+                    )),
+                }
+            ],
         }
     }
 }
@@ -140,6 +155,12 @@ impl PlaneData {
     pub fn get_material(&self, asset_server: &Res<AssetServer>) -> StandardMaterial {
         self.base.get_material(self.reflectance, &asset_server)
     }
+}
+
+#[derive(Clone)]
+pub struct ObstacleData {
+    models: Vec<(&'static str, TextureOrColor)>,
+    transform: Transform,
 }
 
 fn generate_scene(
@@ -226,6 +247,20 @@ fn generate_scene(
         ..default()
     });
 
+    // spawn obstacles
+    for obstacle in scene_data.obstacles.iter() {
+        for model in obstacle.models.iter() {
+            commands.spawn((
+                PbrBundle {
+                    mesh: asset_server.load(model.0),
+                    material: materials.add(model.1.get_material(0.3, &asset_server)),
+                    transform: obstacle.transform,
+                    ..default()
+                },
+                Obstacle,
+            ));
+        }
+    }
 }
 
 // fn spawn_plane(
