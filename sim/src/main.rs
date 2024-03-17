@@ -44,6 +44,7 @@ fn main() {
             SceneLoaderPlugin {
                 scene_data: SceneData::default(),
                 display_can_collision_sphere: true,
+                draw_obstacle_collision_mesh: true,
             },
             ArenitoPlugin {
                 enable_can_eating: true,
