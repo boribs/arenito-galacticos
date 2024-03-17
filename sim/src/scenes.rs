@@ -1,4 +1,5 @@
 use crate::cans::*;
+use crate::collision::{DistanceCollision, MeshCollision};
 use crate::static_shape::Obstacle;
 use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
@@ -6,6 +7,7 @@ use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 pub struct SceneLoaderPlugin {
     pub scene_data: SceneData,
     pub display_can_collision_sphere: bool,
+    pub draw_obstacle_collision_mesh: bool,
 }
 
 impl Plugin for SceneLoaderPlugin {
@@ -18,7 +20,10 @@ impl Plugin for SceneLoaderPlugin {
         app.add_systems(PreStartup, generate_scene);
 
         if self.display_can_collision_sphere {
-            app.add_systems(Update, draw_can_collision);
+            app.add_systems(Update, draw_can_collision_sphere);
+        }
+        if self.draw_obstacle_collision_mesh {
+            app.add_systems(Update, draw_obstacle_collision_mesh);
         }
     }
 }
@@ -271,5 +276,22 @@ fn generate_scene(
 pub fn draw_can_collision_sphere(mut gizmos: Gizmos, cans: Query<(&CanData, &Transform)>) {
     for (can, transform) in cans.iter() {
         can.draw_sphere(transform, Color::WHITE, &mut gizmos);
+    }
+}
+
+pub fn draw_obstacle_collision_mesh(
+    mut gizmos: Gizmos,
+    meshes: Res<Assets<Mesh>>,
+    obstacles: Query<(&Obstacle, &Handle<Mesh>, &Transform)>,
+) {
+    for obstacle in obstacles.iter() {
+        let mesh = meshes.get(obstacle.1).unwrap();
+        let hull = obstacle.0.get_hull(mesh, obstacle.2);
+
+        for triangle in hull {
+            gizmos.line(triangle.a, triangle.b, Color::WHITE);
+            gizmos.line(triangle.b, triangle.c, Color::WHITE);
+            gizmos.line(triangle.a, triangle.c, Color::WHITE);
+        }
     }
 }
