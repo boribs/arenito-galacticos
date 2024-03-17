@@ -13,10 +13,11 @@ impl Plugin for SceneLoaderPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CanManager::new())
             .insert_resource(self.scene_data.clone())
-            .add_plugins(PanOrbitCameraPlugin);
-
-        app.add_systems(PreStartup, init_can_manager);
-        app.add_systems(PreStartup, generate_scene);
+            .add_plugins(PanOrbitCameraPlugin)
+            .add_systems(
+                PreStartup,
+                (init_can_manager, generate_scene.after(init_can_manager)),
+            );
 
         if self.display_can_collision_sphere {
             app.add_systems(Update, draw_can_collision_sphere);
