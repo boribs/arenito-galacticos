@@ -251,12 +251,15 @@ fn generate_scene(
     }
 
     // spawn deposit
-    commands.spawn(PbrBundle {
-        mesh: asset_server.load("models/deposit.obj"),
-        material: materials.add(Color::RED.into()),
-        transform: Transform::from_translation(scene_data.deposit_position),
-        ..default()
-    });
+    commands.spawn((
+        PbrBundle {
+            mesh: asset_server.load("models/deposit.obj"),
+            material: materials.add(Color::RED.into()),
+            transform: Transform::from_translation(scene_data.deposit_position),
+            ..default()
+        },
+        Obstacle::empty(),
+    ));
 
     // spawn obstacles
     for obstacle in scene_data.obstacles.iter() {
