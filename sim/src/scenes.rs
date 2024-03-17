@@ -31,6 +31,27 @@ pub enum TextureOrColor {
     Color(Color),
 }
 
+impl TextureOrColor {
+    /// Returns rendering material from self.
+    pub fn get_material(&self, reflectance: f32, asset_server: &Res<AssetServer>) -> StandardMaterial {
+        match self {
+            TextureOrColor::Color(c) => StandardMaterial {
+                base_color: *c,
+                reflectance,
+                ..Default::default()
+            },
+            TextureOrColor::Texture(t) => {
+                let texture_handle = asset_server.load(*t);
+                StandardMaterial {
+                    base_color_texture: Some(texture_handle),
+                    reflectance,
+                    ..default()
+                }
+            }
+        }
+    }
+}
+
 /// Stores everything contained initially on the scene.
 #[derive(Resource, Clone)]
 pub struct SceneData {
@@ -117,21 +138,7 @@ impl PlaneData {
 
     /// Returns rendering material from self.
     pub fn get_material(&self, asset_server: &Res<AssetServer>) -> StandardMaterial {
-        match self.base {
-            TextureOrColor::Color(c) => StandardMaterial {
-                base_color: c,
-                reflectance: self.reflectance,
-                ..Default::default()
-            },
-            TextureOrColor::Texture(t) => {
-                let texture_handle = asset_server.load(t);
-                StandardMaterial {
-                    base_color_texture: Some(texture_handle),
-                    reflectance: self.reflectance,
-                    ..default()
-                }
-            }
-        }
+        self.base.get_material(self.reflectance, &asset_server)
     }
 }
 
