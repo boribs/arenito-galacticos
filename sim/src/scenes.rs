@@ -23,12 +23,15 @@ impl Plugin for SceneLoaderPlugin {
     }
 }
 
+/// A material abstraction, this is used to simplify specifying whether
+/// a material shoud be color or texture based.
 #[derive(Copy, Clone)]
 pub enum TextureOrColor {
     Texture(&'static str),
     Color(Color),
 }
 
+/// Stores everything contained initially on the scene.
 #[derive(Resource, Clone)]
 pub struct SceneData {
     cam_transform: Transform,
@@ -38,6 +41,7 @@ pub struct SceneData {
 }
 
 impl SceneData {
+    /// Sets the size of the sand and water planes.
     pub fn base_size(mut self, width: f32, length: f32, water_offset: f32) -> Self {
         self.sand.length = length;
         self.sand.width = width;
@@ -46,6 +50,7 @@ impl SceneData {
         self
     }
 
+    /// Sets can positions.
     pub fn cans(mut self, can_positions: Vec<(f32, f32, f32)>) -> Self {
         self.can_positions = can_positions;
         self
@@ -78,6 +83,7 @@ impl Default for SceneData {
     }
 }
 
+/// Stores plane data. Used for base planes (sand and water).
 #[derive(Copy, Clone)]
 pub struct PlaneData {
     base: TextureOrColor,
@@ -87,6 +93,7 @@ pub struct PlaneData {
 }
 
 impl PlaneData {
+    /// Plane data for sand.
     pub fn sand(width: f32, length: f32, reflectance: f32) -> Self {
         PlaneData {
             base: TextureOrColor::Texture("textures/sand_01.png"),
@@ -96,6 +103,7 @@ impl PlaneData {
         }
     }
 
+    /// Plane data for sand.
     pub fn water(width: f32, length: f32, reflectance: f32) -> Self {
         PlaneData {
             base: TextureOrColor::Color(Color::hex("0080FF").unwrap()),
@@ -105,6 +113,7 @@ impl PlaneData {
         }
     }
 
+    /// Returns rendering material from self.
     pub fn get_material(&self, asset_server: &Res<AssetServer>) -> StandardMaterial {
         match self.base {
             TextureOrColor::Color(c) => StandardMaterial {
