@@ -36,6 +36,17 @@ pub struct SceneData {
     water: PlaneData,
 }
 
+impl SceneData {
+    pub fn base_size(mut self, width: f32, length: f32, water_offset: f32) -> Self {
+        self.sand.length = length;
+        self.sand.width = width;
+        self.water.length = length + water_offset;
+        self.water.width = width + water_offset;
+
+        self
+    }
+}
+
 impl Default for SceneData {
     fn default() -> Self {
         SceneData {
@@ -103,7 +114,7 @@ fn generate_scene(
     let water_material = scene_data.water.get_material(&asset_server);
     let water_scale = Vec3::new(scene_data.water.length, 1.0, scene_data.water.width);
     let sand_material = scene_data.sand.get_material(&asset_server);
-    let sand_scale = Vec3::new(scene_data.sand.width, 1.0, scene_data.sand.length);
+    let sand_scale = Vec3::new(scene_data.sand.length, 1.0, scene_data.sand.width);
 
     commands.spawn(PbrBundle {
         mesh: meshes.add(shape::Plane::from_size(1.0).into()),
@@ -119,6 +130,7 @@ fn generate_scene(
         ..default()
     });
 
+    // spawn lights
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 7500.0,
