@@ -1,9 +1,7 @@
 # pyright: strict
 
 import argparse
-from arenito_com import AIMode, ArenitoComms
-from arenito_vision import ArenitoVision
-from arenito_ai import main
+from arenito_ai import ArenitoAI
 
 # Cuenta cuantas instrucciones lleva buscando latas
 
@@ -19,14 +17,8 @@ if __name__ == '__main__':
     parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
 
     args = parser.parse_args()
-    mode = AIMode.Simulation if args.sim else AIMode.Real
-    com = ArenitoComms(mode, args)
-    vis = ArenitoVision(mode, args)
 
     try:
-        main(com, vis, args.no_move)
+        ArenitoAI(args).main()
     except Exception as e:
         print(e)
-
-    if com.sim_interface:
-        com.sim_interface.close()
