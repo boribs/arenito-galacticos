@@ -5,7 +5,7 @@ pub mod scenes;
 pub mod sensor;
 pub mod static_shape;
 
-use arenito::ArenitoPlugin;
+use arenito::{ArenitoConfig, ArenitoPlugin};
 use bevy::{prelude::*, window::ExitCondition, winit::WinitSettings};
 use memmap;
 use scenes::{SceneData, SceneLoaderPlugin};
@@ -48,6 +48,7 @@ fn main() {
             },
             ArenitoPlugin {
                 enable_can_eating: true,
+                arenito_config: ArenitoConfig::default(),
             },
         ))
         .run();

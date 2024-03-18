@@ -31,6 +31,7 @@ const IMG_HEIGHT: f32 = 512.0;
 /// *It also requires that `ObjPlugin` is added.
 pub struct ArenitoPlugin {
     pub enable_can_eating: bool,
+    pub arenito_config: ArenitoConfig,
 }
 
 impl Plugin for ArenitoPlugin {
@@ -39,7 +40,8 @@ impl Plugin for ArenitoPlugin {
             app.add_plugins(ObjPlugin);
         }
 
-        app.add_systems(Startup, (arenito_spawner, gizmo_config))
+        app.insert_resource(self.arenito_config)
+            .add_systems(Startup, (arenito_spawner, gizmo_config))
             .add_systems(
                 Update,
                 (
@@ -65,8 +67,9 @@ fn arenito_spawner(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
+    arenito_config: Res<ArenitoConfig>,
 ) {
-    let mut arenito = Arenito::new();
+    let mut arenito = Arenito::new(&arenito_config);
     arenito.spawn(&mut commands, &mut meshes, &mut materials, &asset_server);
 
     let style = TextStyle {
@@ -359,6 +362,28 @@ pub struct ArenitoCamera;
 #[derive(Component)]
 pub struct ArenitoCamWindow;
 
+#[derive(Resource, Copy, Clone)]
+pub struct ArenitoConfig {
+    pub initial_pos: Transform,
+    pub brush_speed: f32,
+    pub velocity_k: f32,
+}
+
+impl Default for ArenitoConfig {
+    fn default() -> Self {
+        ArenitoConfig {
+            initial_pos: Transform::from_xyz(5.0, 0.2, -5.0).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                0.0,
+                -1.3,
+                0.0,
+            )),
+            brush_speed: 10.0,
+            velocity_k: 1.5,
+        }
+    }
+}
+
 /// Arenito is the main component of this simulation.
 ///
 /// It's responsible of both visual and "logical" updates of position,
@@ -371,6 +396,9 @@ pub struct Arenito {
     // Maybe put cam data inside CameraArea -- rename it to CameraData
     pub cam_offset: Vec3, // cam pos relative to Arenito's center
     pub cam_area: CameraArea,
+    initial_pos: Transform,
+    brush_speed: f32,
+    velocity_k: f32,
     brush_offset: Vec3, // brush pos relative to Arenito's center
     instruction_handler: InstructionHandler,
     control_mode: ControlMode,
@@ -378,16 +406,8 @@ pub struct Arenito {
 }
 
 impl Arenito {
-    pub const VELOCITY: f32 = 1.5;
-    const BRUSH_SPEED: f32 = 10.0;
-    pub const CENTER: Vec3 = Vec3 {
-        x: 0.0,
-        y: 0.2,
-        z: 0.0,
-    };
-
     /// Returns an empty, non-spawned Arenito.
-    pub fn new() -> Self {
+    pub fn new(config: &ArenitoConfig) -> Self {
         let sensor_rot = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, -15.0_f32.to_radians());
         Arenito {
             vel: Vec3::ZERO,
@@ -401,6 +421,9 @@ impl Arenito {
                 Transform::from_xyz(0.74, 1.3, 0.5).with_rotation(sensor_rot),
                 Transform::from_xyz(0.74, 1.3, -0.5).with_rotation(sensor_rot),
             ],
+            brush_speed: config.brush_speed,
+            initial_pos: config.initial_pos,
+            velocity_k: config.velocity_k,
         }
     }
 
@@ -417,14 +440,15 @@ impl Arenito {
         materials: &mut ResMut<Assets<StandardMaterial>>,
         asset_server: &Res<AssetServer>,
     ) {
-        self.cam_area.compute_area(self.cam_offset, Self::CENTER.y);
+        const CENTER: Vec3 = Vec3::new(0.0, 0.2, 0.0);
+        self.cam_area.compute_area(self.cam_offset, CENTER.y);
 
         commands
             .spawn((
                 PbrBundle {
                     mesh: asset_server.load("models/arenito.obj"),
                     material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-                    transform: Transform::from_xyz(Self::CENTER.x, Self::CENTER.y, Self::CENTER.z),
+                    transform: self.initial_pos,
                     ..default()
                 },
                 ArenitoCompFrame,
@@ -442,7 +466,7 @@ impl Arenito {
                 let wheel_material = materials.add(Color::rgb(0.8, 0.3, 0.6).into());
 
                 for wheel_offset in rwheel_offsets.iter() {
-                    let t = Self::CENTER + *wheel_offset;
+                    let t = CENTER + *wheel_offset;
 
                     parent.spawn((
                         PbrBundle {
@@ -456,7 +480,7 @@ impl Arenito {
                 }
 
                 for wheel_offset in lwheel_offsets.iter() {
-                    let t = Self::CENTER + *wheel_offset;
+                    let t = CENTER + *wheel_offset;
 
                     parent.spawn((
                         PbrBundle {
@@ -566,8 +590,8 @@ impl Arenito {
         self.vel = Vec3::ZERO;
         self.instruction_handler.reset();
 
-        arenito_frame.translation = Self::CENTER;
-        arenito_frame.rotation = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0);
+        arenito_frame.translation = self.initial_pos.translation;
+        arenito_frame.rotation = self.initial_pos.rotation;
     }
 
     /// Applies the movement given some delta time.
@@ -607,20 +631,20 @@ impl Arenito {
     ) -> (Vec3, Quat) {
         match instruction {
             BaseInstruction::Back => (
-                transform.rotation.mul_vec3(Vec3::X) * Self::VELOCITY * -1.0 * time,
+                transform.rotation.mul_vec3(Vec3::X) * self.velocity_k * -1.0 * time,
                 Quat::IDENTITY,
             ),
             BaseInstruction::Forward => (
-                transform.rotation.mul_vec3(Vec3::X) * Self::VELOCITY * time,
+                transform.rotation.mul_vec3(Vec3::X) * self.velocity_k * time,
                 Quat::IDENTITY,
             ),
             BaseInstruction::Left => (
                 Vec3::ZERO,
-                Quat::from_euler(EulerRot::XYZ, 0.0, Self::VELOCITY * time, 0.0),
+                Quat::from_euler(EulerRot::XYZ, 0.0, self.velocity_k * time, 0.0),
             ),
             BaseInstruction::Right => (
                 Vec3::ZERO,
-                Quat::from_euler(EulerRot::XYZ, 0.0, -Self::VELOCITY * time, 0.0),
+                Quat::from_euler(EulerRot::XYZ, 0.0, -self.velocity_k * time, 0.0),
             ),
         }
     }
@@ -679,20 +703,20 @@ impl Arenito {
 
         let mut arenito_brush = arenito_body.p1();
         let mut arenito_brush = arenito_brush.single_mut();
-        arenito_brush.rotate_local_z(-Self::BRUSH_SPEED * delta);
+        arenito_brush.rotate_local_z(-self.brush_speed * delta);
 
         // wheel rotation
         let mut l = 1.0;
         let mut r = 1.0;
 
         let t = if rot_diff == Quat::IDENTITY {
-            pos_diff.length() * Self::VELOCITY
+            pos_diff.length() * self.velocity_k
         } else {
             let (_, y, _) = rot_diff.to_euler(EulerRot::XYZ);
             l = if y > 0.0 { 1.0 } else { -1.0 };
             r = if y > 0.0 { -1.0 } else { 1.0 };
 
-            rot_diff.mul_vec3(Vec3::X).length() * Self::VELOCITY
+            rot_diff.mul_vec3(Vec3::X).length() * self.velocity_k
         };
 
         for mut wheel in arenito_body.p2().iter_mut() {
