@@ -3,8 +3,23 @@
 import cv2
 from argparse import Namespace
 from cv2.typing import MatLike
+from dataclasses import dataclass
+from enum import Enum, auto
 from arenito_com import *
 from arenito_vision import *
+
+@dataclass
+class ScanResult:
+    original: MatLike
+    blurred: MatLike
+    detections: list[Detection]
+    # proximity sensors results
+
+class ArenitoState(Enum):
+    LookingForCans = auto()
+    GrabbingCan = auto()
+    # AligningWithDeposit = auto()
+    # ThrowingCans = auto()
 
 class ArenitoAI:
     def __init__(self, args: Namespace):
@@ -12,6 +27,21 @@ class ArenitoAI:
         self.args = args
         self.com = ArenitoComms(mode, args)
         self.vis = ArenitoVision(mode, args)
+        self.state = ArenitoState.LookingForCans
+
+    def scan(self) -> ScanResult:
+        original = self.com.get_image()
+        blurred = self.vis.blur(original)
+        detections = self.vis.find_cans(blurred)
+
+        return ScanResult(
+            original=original,
+            blurred=blurred,
+            detections=detections
+        )
+
+    def set_state(self, scan_results: ScanResult):
+        pass
 
     def main(self):
         """
@@ -19,29 +49,39 @@ class ArenitoAI:
         """
 
         while True:
-            frame = self.com.get_image()
-
             if cv2.waitKey(1) == 27:
                 break
 
-            original = frame.copy()
-            blurred = self.vis.blur(frame)
+            scan_results = self.scan()
 
-            detections = self.vis.find_cans(blurred)
-            self.vis.add_markings(original, detections)
+            self.vis.add_markings(scan_results.original, scan_results.detections)
 
-            cv2.imshow('arenito pov', original)
-            cv2.imshow('arenito pov - blurred', blurred)
+            cv2.imshow('arenito pov', scan_results.original)
+            #   cv2.imshow('arenito pov - blurred', blurred)
 
             if self.args.no_move:
                 continue
 
-            if detections:
-                det = detections[0]
-                send_move_instruction(self.com, self.vis, det.center)
-            else:
-                hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-                send_roam_instruction(self.com, self.vis, hsv_frame)
+            # determine state:
+
+            # if detections:
+            #     det = detections[0]
+            #     self.align(det.center)
+            #     self.com.send_instruction(Instruction.MoveForward)
+            # else:
+            #     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            #     send_roam_instruction(self.com, self.vis, hsv_frame)
+
+    def align(self):
+        # TODO: make this a loop
+        # get image
+        # get detections
+        # align
+
+        if self.vis.center_x_max <= x:
+            self.com.send_instruction(Instruction.MoveRight)
+        elif self.vis.center_x_min >= x:
+            self.com.send_instruction(Instruction.MoveLeft)
 
 def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: Point):
     """
