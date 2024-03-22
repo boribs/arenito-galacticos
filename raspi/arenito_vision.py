@@ -179,10 +179,12 @@ class ArenitoVision:
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
-    def add_markings(self, det_img: MatLike, detections: list[Detection]):
+    def add_markings(self, det_img: MatLike, detections: list[Detection], state: str):
         """
         Adds visual markings to image to help visualize decisions.
         """
+
+        cv2.putText(det_img, state, (10, 40), cv2.QT_FONT_NORMAL, 0.5, WHITE, 1, cv2.LINE_AA)
 
         t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)

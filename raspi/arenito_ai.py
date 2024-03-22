@@ -54,8 +54,12 @@ class ArenitoAI:
 
             scan_results = self.scan()
 
-            self.vis.add_markings(scan_results.original, scan_results.detections)
-
+            self.get_state(scan_results)
+            self.vis.add_markings(
+                scan_results.original,
+                scan_results.detections,
+                self.state.name
+            )
             cv2.imshow('arenito pov', scan_results.original)
             #   cv2.imshow('arenito pov - blurred', blurred)
 
