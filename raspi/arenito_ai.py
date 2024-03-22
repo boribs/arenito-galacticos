@@ -40,8 +40,11 @@ class ArenitoAI:
             detections=detections
         )
 
-    def set_state(self, scan_results: ScanResult):
-        pass
+    def get_state(self, scan_results: ScanResult):
+        if scan_results.detections:
+            self.state = ArenitoState.GrabbingCan
+        else:
+            self.state = ArenitoState.LookingForCans
 
     def main(self):
         """
@@ -66,8 +69,6 @@ class ArenitoAI:
             if self.args.no_move:
                 continue
 
-            # determine state:
-
             # if detections:
             #     det = detections[0]
             #     self.align(det.center)
@@ -76,16 +77,30 @@ class ArenitoAI:
             #     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             #     send_roam_instruction(self.com, self.vis, hsv_frame)
 
-    def align(self):
-        # TODO: make this a loop
-        # get image
-        # get detections
-        # align
+            if self.state == ArenitoState.GrabbingCan:
+                self.get_can(scan_results)
+            elif self.state == ArenitoState.LookingForCans:
+                self.search_cans(scan_results)
 
-        if self.vis.center_x_max <= x:
-            self.com.send_instruction(Instruction.MoveRight)
-        elif self.vis.center_x_min >= x:
-            self.com.send_instruction(Instruction.MoveLeft)
+    def align(self, scan_results: ScanResult):
+        while scan_results.detections:
+            x = scan_results.detections[0].center.x
+
+            if self.vis.center_x_max <= x:
+                self.com.send_instruction(Instruction.MoveRight)
+            elif self.vis.center_x_min >= x:
+                self.com.send_instruction(Instruction.MoveLeft)
+            else:
+                break
+
+            scan_results = self.scan()
+
+    def get_can(self, scan_results: ScanResult):
+        self.align(scan_results)
+        self.com.send_instruction(Instruction.MoveForward)
+
+    def search_cans(self, scan_results: ScanResult):
+        pass
 
 def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: Point):
     """
