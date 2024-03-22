@@ -18,10 +18,13 @@ class ScanResult:
 class ArenitoState(Enum):
     LookingForCans = auto()
     GrabbingCan = auto()
-    # AligningWithDeposit = auto()
-    # ThrowingCans = auto()
+    # DumpingCans = auto()
 
 class ArenitoAI:
+    """
+    AI class, the brains of it all.
+    """
+
     def __init__(self, args: Namespace):
         mode = AIMode.Simulation if args.sim else AIMode.Real
         self.args = args
@@ -30,6 +33,10 @@ class ArenitoAI:
         self.state = ArenitoState.LookingForCans
 
     def scan(self) -> ScanResult:
+        """
+        Gets data from every sensor.
+        """
+
         original = self.com.get_image()
         blurred = self.vis.blur(original)
         detections = self.vis.find_cans(blurred)
@@ -41,6 +48,10 @@ class ArenitoAI:
         )
 
     def get_state(self, scan_results: ScanResult):
+        """
+        Determines Arenito's current state based on sensor scan results.
+        """
+
         if scan_results.detections:
             self.state = ArenitoState.GrabbingCan
         else:
@@ -69,20 +80,16 @@ class ArenitoAI:
             if self.args.no_move:
                 continue
 
-            # if detections:
-            #     det = detections[0]
-            #     self.align(det.center)
-            #     self.com.send_instruction(Instruction.MoveForward)
-            # else:
-            #     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            #     send_roam_instruction(self.com, self.vis, hsv_frame)
-
             if self.state == ArenitoState.GrabbingCan:
                 self.get_can(scan_results)
             elif self.state == ArenitoState.LookingForCans:
                 self.search_cans(scan_results)
 
     def align(self, scan_results: ScanResult):
+        """
+        Aligns with closest (first) detection.
+        """
+
         while scan_results.detections:
             x = scan_results.detections[0].center.x
 
@@ -96,41 +103,21 @@ class ArenitoAI:
             scan_results = self.scan()
 
     def get_can(self, scan_results: ScanResult):
+        """
+        Can-getter routine.
+        """
+
         self.align(scan_results)
         self.com.send_instruction(Instruction.MoveForward)
 
     def search_cans(self, scan_results: ScanResult):
-        pass
+        """
+        Can-search routine.
+        """
 
-def send_move_instruction(com: ArenitoComms, vis: ArenitoVision, det: Point):
-    """
-    Sends a move to left, right or forward instruction
-    to the Arduino board, depending on the detection's position.
-    """
+        hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
-    x, _ = det
-
-    if vis.center_x_max <= x:
-        com.send_instruction(Instruction.MoveRight)
-    elif vis.center_x_min >= x:
-        com.send_instruction(Instruction.MoveLeft)
-    else: # está centrado, avanza
-        com.send_instruction(Instruction.MoveForward)
-
-def send_roam_instruction(com: ArenitoComms, vis: ArenitoVision, hsv_frame: MatLike):
-    """
-    Function strictly responsible for determining movement
-    when no can detections are made.
-    """
-
-    if vis.reachable(hsv_frame, vis.r_dot):           # si puede, avanza
-        com.send_instruction(Instruction.MoveForward)
-    else:                                             # si no, gira
-        com.send_instruction(Instruction.MoveRight)
-
-    # lr_count += 1
-
-    # if lr_count == LR_COUNT_MAX:
-    #     com.send_instruction(Instruction.MoveLongRight)
-    #     lr_count = 0
-
+        if self.vis.reachable(hsv, self.vis.r_dot):
+            self.com.send_instruction(Instruction.MoveForward)
+        else:
+            self.com.send_instruction(Instruction.MoveRight)
