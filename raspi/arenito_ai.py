@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from arenito_com import *
 from arenito_vision import *
+from time import time
 
 @dataclass
 class ScanResult:
@@ -31,6 +32,7 @@ class ArenitoAI:
         self.com = ArenitoComms(mode, args)
         self.vis = ArenitoVision(mode, args)
         self.state = ArenitoState.LookingForCans
+        self.timer: float | None = None
 
     def scan(self) -> ScanResult:
         """
@@ -56,6 +58,23 @@ class ArenitoAI:
             self.state = ArenitoState.GrabbingCan
         else:
             self.state = ArenitoState.LookingForCans
+
+    def start_timer(self):
+        """
+        Starts the timer.
+        """
+
+        self.timer = time()
+
+    def get_timer_elapsed(self) -> float:
+        """
+        Returns elapsed time since the timer was started.
+        """
+
+        if self.timer:
+            return time() - self.timer
+        else:
+            raise Exception('Timer not started!')
 
     def main(self):
         """
@@ -115,9 +134,13 @@ class ArenitoAI:
         Can-search routine.
         """
 
+        MAX_SEARCH_SECONDS = 30
+
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
         if self.vis.reachable(hsv, self.vis.r_dot):
             self.com.send_instruction(Instruction.MoveForward)
+        elif self.get_timer_elapsed() > MAX_SEARCH_SECONDS:
+            self.com.send_instruction(Instruction.MoveLongRight)
         else:
             self.com.send_instruction(Instruction.MoveRight)
