@@ -94,10 +94,15 @@ class ArenitoAI:
             scan_results = self.scan()
 
             self.get_state(scan_results)
+
+            state_str = self.state.name
+            if self.timer and self.state == ArenitoState.LookingForCans:
+                state_str += ': {0:.2f}'.format(time() - self.timer)
+
             self.vis.add_markings(
                 scan_results.original,
                 scan_results.detections,
-                self.state.name
+                state_str
             )
             cv2.imshow('arenito pov', scan_results.original)
             #   cv2.imshow('arenito pov - blurred', blurred)
