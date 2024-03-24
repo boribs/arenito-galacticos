@@ -206,6 +206,7 @@ class SimInterface:
         """
 
         self.send_instruction(Instruction.RequestFrame)
+        self.wait_confirmation()
 
         raw_img = self.mem[1 : IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]

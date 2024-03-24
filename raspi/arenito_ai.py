@@ -64,17 +64,23 @@ class ArenitoAI:
         Starts the timer.
         """
 
-        self.timer = time()
+        if not self.timer:
+            self.timer = time()
 
     def get_timer_elapsed(self) -> float:
         """
         Returns elapsed time since the timer was started.
         """
 
-        if self.timer:
-            return time() - self.timer
-        else:
-            raise Exception('Timer not started!')
+        current_time = time() - self.timer if self.timer else 0
+        return current_time
+
+    def clear_timer(self):
+        """
+        Clears timer.
+        """
+
+        self.timer = None
 
     def main(self):
         """
@@ -101,7 +107,9 @@ class ArenitoAI:
 
             if self.state == ArenitoState.GrabbingCan:
                 self.get_can(scan_results)
+                self.clear_timer()
             elif self.state == ArenitoState.LookingForCans:
+                self.start_timer()
                 self.search_cans(scan_results)
 
     def align(self, scan_results: ScanResult):
@@ -142,5 +150,6 @@ class ArenitoAI:
             self.com.send_instruction(Instruction.MoveForward)
         elif self.get_timer_elapsed() > MAX_SEARCH_SECONDS:
             self.com.send_instruction(Instruction.MoveLongRight)
+            self.clear_timer()
         else:
             self.com.send_instruction(Instruction.MoveRight)
