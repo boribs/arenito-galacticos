@@ -22,7 +22,7 @@ digraph G {
 
         starta -> q1a
         q1a -> d1a [label = "No"]
-        d1a -> q1a [tailport = w; headport = w]
+        d1a -> enda [headport = w]
         q1a -> q2a [label = "Si"]
         q2a -> a2a [label = "Si"]
         q2a -> a1a [label = "No"]
