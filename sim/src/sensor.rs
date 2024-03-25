@@ -167,8 +167,8 @@ pub struct AISimMem {
 
 impl AISimMem {
     // sync constants
-    const AI_FRAME_REQUEST: u8 = 1;
-    const SIM_FRAME_WAIT: u8 = 2;
+    const AI_SCAN_REQUEST: u8 = 1;
+    const SIM_SCAN_WAIT: u8 = 2;
     const AI_MOVE_INSTRUCTION: u8 = 3;
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
 
@@ -223,7 +223,7 @@ impl AISimMem {
         window: &Entity,
     ) {
         // prevent multiple screenshot requests
-        self.set_sync_flag(AISimMem::SIM_FRAME_WAIT);
+        self.set_sync_flag(AISimMem::SIM_SCAN_WAIT);
 
         // can't use directly `self.sync_byte`, thank you borrow checker.
         let mut sync_byte = self.sync_byte.clone();
@@ -263,10 +263,10 @@ impl AISimMem {
     /// - MOV_RIGHT
     /// Any other memspace value will result in a None
     ///
-    /// If sync byte is `AI_FRAME_REQUEST` no more bytes are checked.
+    /// If sync byte is `AI_SCAN_REQUEST` no more bytes are checked.
     pub fn get_instruction(&self) -> Option<SimInstruction> {
         match self.sync_byte.get() {
-            AISimMem::AI_FRAME_REQUEST => Some(SimInstruction::ScreenShot),
+            AISimMem::AI_SCAN_REQUEST => Some(SimInstruction::ScreenShot),
             AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
                 AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
                 AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
@@ -438,7 +438,7 @@ mod ai_sim_mem_tests {
     #[test]
     fn test_get_instruction_frame_request() {
         // mock buffer, to avoid actual shared memory
-        let mut buf: Vec<u8> = vec![AISimMem::AI_FRAME_REQUEST, 0];
+        let mut buf: Vec<u8> = vec![AISimMem::AI_SCAN_REQUEST, 0];
         let aisim = AISimMem::from_buf(&mut buf);
 
         assert_eq!(Some(SimInstruction::ScreenShot), aisim.get_instruction());
@@ -446,7 +446,7 @@ mod ai_sim_mem_tests {
 
     #[test]
     fn test_get_instruction_frame_wait() {
-        let mut buf: Vec<u8> = vec![AISimMem::SIM_FRAME_WAIT, 0];
+        let mut buf: Vec<u8> = vec![AISimMem::SIM_SCAN_WAIT, 0];
         let aisim = AISimMem::from_buf(&mut buf);
 
         assert_eq!(None, aisim.get_instruction());
