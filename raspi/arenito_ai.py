@@ -37,7 +37,7 @@ class ArenitoAI:
         # Can tracking stuff
         self.timer: float | None = None
         self.can_counter = 0
-        self.used_to_be_can_in_critical_region = False
+        self.can_in_critical_region = False
 
     def scan(self) -> ScanResult:
         """
@@ -109,12 +109,19 @@ class ArenitoAI:
                 scan_results.detections,
                 state_str,
                 self.can_counter,
+                self.can_in_critical_region,
             )
             cv2.imshow('arenito pov', scan_results.original)
             #   cv2.imshow('arenito pov - blurred', blurred)
 
             if self.args.no_move:
                 continue
+
+            if self.vis.can_in_critical_region(scan_results.detections):
+                self.can_in_critical_region = True
+            elif self.can_in_critical_region:
+                self.can_in_critical_region = False
+                self.can_counter += 1
 
             if self.state == ArenitoState.GrabbingCan:
                 self.get_can(scan_results)
@@ -159,13 +166,9 @@ class ArenitoAI:
 
         if self.vis.reachable(hsv, self.vis.r_dot):
             self.com.send_instruction(Instruction.MoveForward)
-        elif self.get_timer_elapsed() > MAX_SEARCH_SECONDS:
+
+        if self.get_timer_elapsed() > MAX_SEARCH_SECONDS:
             self.com.send_instruction(Instruction.MoveLongRight)
             self.clear_timer()
         else:
             self.com.send_instruction(Instruction.MoveRight)
-
-        # can counter
-        if self.used_to_be_can_in_critical_region:
-            self.can_counter += 1
-            self.used_to_be_can_in_critical_region = False

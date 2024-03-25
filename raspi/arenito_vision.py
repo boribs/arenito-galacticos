@@ -10,6 +10,7 @@ from cv2.typing import MatLike, RotatedRect
 from arenito_com import AIMode
 
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 BLUE = (255, 0, 0)
 GREEN = (0, 255, 0)
 RED = (0, 0, 255)
@@ -93,7 +94,10 @@ class ArenitoVision:
     }
 
     CAN_CRITICAL_REGIONS = {
-        AIMode.Simulation : Rect(Point(0, 0), Point(0, 0)),
+        AIMode.Simulation : Rect(
+            Point(102, 430),
+            Point(410, 512)
+        ),
         AIMode.Real : Rect(Point(0, 0), Point(0, 0)),
     }
 
@@ -206,7 +210,7 @@ class ArenitoVision:
         # +-------##########-------+
         # Arenito will remember if a can is visible within this area, the moment it stopps
         # being visible, that can most probably was grabbed.
-        self.can_critial_region = ArenitoVision.CAN_CRITICAL_REGIONS[mode]
+        self.can_critical_region = ArenitoVision.CAN_CRITICAL_REGIONS[mode]
 
     def add_text(self, img: MatLike, text: str, pos: Point):
         """
@@ -221,6 +225,7 @@ class ArenitoVision:
         detections: list[Detection],
         state: str,
         can_counter: int,
+        cicr: bool,
     ):
         """
         Adds visual markings to image to help visualize decisions.
@@ -228,6 +233,8 @@ class ArenitoVision:
 
         self.add_text(det_img, f'Cans: {can_counter}', Point(10, 35))
         self.add_text(det_img, state, Point(10, 55))
+        if cicr:
+            self.add_text(det_img, 'In critical_region', Point(10, 35))
 
         t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
@@ -238,6 +245,14 @@ class ArenitoVision:
         cv2.line(det_img, a1, b1, WHITE)
         cv2.line(det_img, a2, b2, WHITE)
         cv2.ellipse(det_img, self.r_dot, (t, t), 0.0, 180.0, 360.0, WHITE, thickness=1)
+
+        cv2.rectangle(
+            det_img,
+            self.can_critical_region.a,
+            self.can_critical_region.b,
+            BLACK,
+            1
+        )
 
         cv2.line(
             det_img,
@@ -388,5 +403,8 @@ class ArenitoVision:
         # this seems to be the best compromise between performance and results
         return cv2.GaussianBlur(img, (51, 51), 0)
 
-    def can_in_critical_region(self, point: Point) -> bool:
-        return self.can_critial_region.point_inside(point)
+    def can_in_critical_region(self, detections: list[Detection]) -> bool:
+        if not detections:
+            return False
+
+        return self.can_critical_region.point_inside(detections[0].center)
