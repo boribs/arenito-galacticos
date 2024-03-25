@@ -208,11 +208,18 @@ class ArenitoVision:
         # being visible, that can most probably was grabbed.
         self.can_critial_region = ArenitoVision.CAN_CRITICAL_REGIONS[mode]
 
+    def add_text(self, img: MatLike, text: str, pos: Point):
+        """
+        Draws a text with the default configuration in the specified position.
+        """
+
+        cv2.putText(img, text, pos, cv2.QT_FONT_NORMAL, 0.55, WHITE, 1, cv2.LINE_AA)
+
         """
         Adds visual markings to image to help visualize decisions.
         """
 
-        cv2.putText(det_img, state, (10, 40), cv2.QT_FONT_NORMAL, 0.5, WHITE, 1, cv2.LINE_AA)
+        self.add_text(det_img, state, Point(10, 55))
 
         t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
