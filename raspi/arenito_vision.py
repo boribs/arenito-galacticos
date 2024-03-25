@@ -22,6 +22,19 @@ class Point(NamedTuple):
     x: int
     y: int
 
+class Rect(NamedTuple):
+    """
+    A basic rect implementation.
+    """
+
+    a: Point # bottom left
+    b: Point # top right
+
+    def point_inside(self, point: Point) -> bool:
+        x = self.a.x <= point.x <= self.b.x
+        y = self.a.y <= point.y <= self.b.y
+        return x and y
+
 class Detection:
     """
     Stores detection data.
@@ -77,6 +90,11 @@ class ArenitoVision:
     RESOLUTIONS = {
         AIMode.Simulation : (512, 512),
         AIMode.Real : (640, 380),
+    }
+
+    CAN_CRITICAL_REGIONS = {
+        AIMode.Simulation : Rect(Point(0, 0), Point(0, 0)),
+        AIMode.Real : Rect(Point(0, 0), Point(0, 0)),
     }
 
     def __init__(self, mode: AIMode, args: Namespace):
@@ -179,7 +197,17 @@ class ArenitoVision:
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
-    def add_markings(self, det_img: MatLike, detections: list[Detection], state: str):
+        # Can critical region: The area with which will decide if a can was or not grabbed
+        # +------------------------+
+        # |                        |
+        # |                        |
+        # |                        |
+        # |       ##########       |
+        # +-------##########-------+
+        # Arenito will remember if a can is visible within this area, the moment it stopps
+        # being visible, that can most probably was grabbed.
+        self.can_critial_region = ArenitoVision.CAN_CRITICAL_REGIONS[mode]
+
         """
         Adds visual markings to image to help visualize decisions.
         """
