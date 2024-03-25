@@ -17,8 +17,4 @@ if __name__ == '__main__':
     parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
 
     args = parser.parse_args()
-
-    try:
-        ArenitoAI(args).main()
-    except Exception as e:
-        print(e)
+    ArenitoAI(args).main()
