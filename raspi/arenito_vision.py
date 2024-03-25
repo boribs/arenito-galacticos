@@ -387,3 +387,6 @@ class ArenitoVision:
         # img = cv2.medianBlur(img, 9)
         # this seems to be the best compromise between performance and results
         return cv2.GaussianBlur(img, (51, 51), 0)
+
+    def can_in_critical_region(self, point: Point) -> bool:
+        return self.can_critial_region.point_inside(point)
