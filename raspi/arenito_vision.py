@@ -215,10 +215,18 @@ class ArenitoVision:
 
         cv2.putText(img, text, pos, cv2.QT_FONT_NORMAL, 0.55, WHITE, 1, cv2.LINE_AA)
 
+    def add_markings(
+        self,
+        det_img: MatLike,
+        detections: list[Detection],
+        state: str,
+        can_counter: int,
+    ):
         """
         Adds visual markings to image to help visualize decisions.
         """
 
+        self.add_text(det_img, f'Cans: {can_counter}', Point(10, 35))
         self.add_text(det_img, state, Point(10, 55))
 
         t = self.vertical_line_thickness // 2
