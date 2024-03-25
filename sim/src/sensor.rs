@@ -101,7 +101,7 @@ pub enum SimInstruction {
     MoveRight,
     MoveLongRight,
     Evade,
-    ScreenShot,
+    Scan,
 }
 
 /// Wrapper struct to store raw pointers to shared memory.
@@ -266,7 +266,7 @@ impl AISimMem {
     /// If sync byte is `AI_SCAN_REQUEST` no more bytes are checked.
     pub fn get_instruction(&self) -> Option<SimInstruction> {
         match self.sync_byte.get() {
-            AISimMem::AI_SCAN_REQUEST => Some(SimInstruction::ScreenShot),
+            AISimMem::AI_SCAN_REQUEST => Some(SimInstruction::Scan),
             AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
                 AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
                 AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
@@ -441,7 +441,7 @@ mod ai_sim_mem_tests {
         let mut buf: Vec<u8> = vec![AISimMem::AI_SCAN_REQUEST, 0];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(Some(SimInstruction::ScreenShot), aisim.get_instruction());
+        assert_eq!(Some(SimInstruction::Scan), aisim.get_instruction());
     }
 
     #[test]

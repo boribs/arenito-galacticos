@@ -147,7 +147,7 @@ fn arenito_ai_mover(
             }
             HandlerState::Waiting => {
                 if let Some(instr) = aisim.get_instruction() {
-                    if instr == SimInstruction::ScreenShot {
+                    if instr == SimInstruction::Scan {
                         aisim.export_frame(&mut screenshot_manager, &window.single());
                         aisim.confirm_instruction();
                     } else {
