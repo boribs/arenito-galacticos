@@ -22,6 +22,19 @@ class Point(NamedTuple):
     x: int
     y: int
 
+class Rect(NamedTuple):
+    """
+    A basic rect implementation.
+    """
+
+    a: Point # bottom left
+    b: Point # top right
+
+    def point_inside(self, point: Point) -> bool:
+        x = self.a.x <= point.x <= self.b.x
+        y = self.a.y <= point.y <= self.b.y
+        return x and y
+
 class Detection:
     """
     Stores detection data.
@@ -77,6 +90,11 @@ class ArenitoVision:
     RESOLUTIONS = {
         AIMode.Simulation : (512, 512),
         AIMode.Real : (640, 380),
+    }
+
+    CAN_CRITICAL_REGIONS = {
+        AIMode.Simulation : Rect(Point(0, 0), Point(0, 0)),
+        AIMode.Real : Rect(Point(0, 0), Point(0, 0)),
     }
 
     def __init__(self, mode: AIMode, args: Namespace):
@@ -179,12 +197,37 @@ class ArenitoVision:
 
         self.blob_detector = cv2.SimpleBlobDetector.create(params)
 
-    def add_markings(self, det_img: MatLike, detections: list[Detection], state: str):
+        # Can critical region: The area with which will decide if a can was or not grabbed
+        # +------------------------+
+        # |                        |
+        # |                        |
+        # |                        |
+        # |       ##########       |
+        # +-------##########-------+
+        # Arenito will remember if a can is visible within this area, the moment it stopps
+        # being visible, that can most probably was grabbed.
+        self.can_critial_region = ArenitoVision.CAN_CRITICAL_REGIONS[mode]
+
+    def add_text(self, img: MatLike, text: str, pos: Point):
+        """
+        Draws a text with the default configuration in the specified position.
+        """
+
+        cv2.putText(img, text, pos, cv2.QT_FONT_NORMAL, 0.55, WHITE, 1, cv2.LINE_AA)
+
+    def add_markings(
+        self,
+        det_img: MatLike,
+        detections: list[Detection],
+        state: str,
+        can_counter: int,
+    ):
         """
         Adds visual markings to image to help visualize decisions.
         """
 
-        cv2.putText(det_img, state, (10, 40), cv2.QT_FONT_NORMAL, 0.5, WHITE, 1, cv2.LINE_AA)
+        self.add_text(det_img, f'Cans: {can_counter}', Point(10, 35))
+        self.add_text(det_img, state, Point(10, 55))
 
         t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
@@ -344,3 +387,6 @@ class ArenitoVision:
         # img = cv2.medianBlur(img, 9)
         # this seems to be the best compromise between performance and results
         return cv2.GaussianBlur(img, (51, 51), 0)
+
+    def can_in_critical_region(self, point: Point) -> bool:
+        return self.can_critial_region.point_inside(point)

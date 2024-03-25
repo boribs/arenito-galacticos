@@ -31,8 +31,13 @@ class ArenitoAI:
         self.args = args
         self.com = ArenitoComms(mode, args)
         self.vis = ArenitoVision(mode, args)
+
         self.state = ArenitoState.LookingForCans
+
+        # Can tracking stuff
         self.timer: float | None = None
+        self.can_counter = 0
+        self.used_to_be_can_in_critical_region = False
 
     def scan(self) -> ScanResult:
         """
@@ -102,7 +107,8 @@ class ArenitoAI:
             self.vis.add_markings(
                 scan_results.original,
                 scan_results.detections,
-                state_str
+                state_str,
+                self.can_counter,
             )
             cv2.imshow('arenito pov', scan_results.original)
             #   cv2.imshow('arenito pov - blurred', blurred)
@@ -158,3 +164,8 @@ class ArenitoAI:
             self.clear_timer()
         else:
             self.com.send_instruction(Instruction.MoveRight)
+
+        # can counter
+        if self.used_to_be_can_in_critical_region:
+            self.can_counter += 1
+            self.used_to_be_can_in_critical_region = False
