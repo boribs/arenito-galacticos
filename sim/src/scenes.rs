@@ -20,7 +20,7 @@ impl Plugin for SceneLoaderPlugin {
             );
 
         if self.draw_can_collision_sphere {
-            app.add_systems(Update, draw_can_collision_sphere);
+            app.add_systems(Update, (draw_can_collision_sphere, respawn_cans));
         }
         if self.draw_obstacle_collision_mesh {
             app.add_systems(PreUpdate, compute_hulls);
@@ -289,6 +289,33 @@ pub fn draw_obstacle_collision_mesh(mut gizmos: Gizmos, obstacles: Query<&Obstac
             gizmos.line(triangle.a, triangle.b, Color::WHITE);
             gizmos.line(triangle.b, triangle.c, Color::WHITE);
             gizmos.line(triangle.a, triangle.c, Color::WHITE);
+        }
+    }
+}
+
+fn respawn_cans(
+    mut can_manager: ResMut<CanManager>,
+    mut commands: Commands,
+    scene_data: Res<SceneData>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::C) {
+        for d in scene_data.can_positions.iter() {
+            let (x, z, ry) = d;
+
+            can_manager.spawn(
+                &mut commands,
+                CanData {
+                    size: CanSize::Big,
+                    texture: CanTexture::Shiny,
+                },
+                Transform::from_xyz(*x, 0.2, *z).with_rotation(Quat::from_euler(
+                    EulerRot::XYZ,
+                    0.0,
+                    *ry,
+                    1.56,
+                )),
+            );
         }
     }
 }
