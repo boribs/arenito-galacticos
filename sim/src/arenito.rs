@@ -142,24 +142,28 @@ fn arenito_ai_mover(
             }
             HandlerState::Waiting => {
                 if let Some(instr) = aisim.get_instruction() {
-                    if instr == SimInstruction::Scan {
-                        let mut sensor_reads = vec![0_u8; AISimMem::MAX_PROXIMITY_SENSOR_COUNT];
-                        for sensor in proximity_sensors.iter() {
-                            sensor_reads[sensor.index] = (sensor.range * 10.0) as u8;
-                            if sensor_reads[sensor.index] == 30 {
-                                sensor_reads[sensor.index] = 255;
+                    match instr {
+                        SimInstruction::Scan => {
+                            let mut sensor_reads = vec![0_u8; AISimMem::MAX_PROXIMITY_SENSOR_COUNT];
+                            for sensor in proximity_sensors.iter() {
+                                sensor_reads[sensor.index] = (sensor.range * 10.0) as u8;
+                                if sensor_reads[sensor.index] == 30 {
+                                    sensor_reads[sensor.index] = 255;
+                                }
                             }
-                        }
 
-                        aisim.export_data(
-                            &mut screenshot_manager,
-                            &front_window.single(),
-                            sensor_reads,
-                        );
-                        aisim.confirm_instruction();
-                    } else {
-                        arenito.instruction_handler.set(instr);
-                        arenito.instruction_handler.execute();
+                            aisim.export_data(
+                                &mut screenshot_manager,
+                                &front_window.single(),
+                                sensor_reads,
+                            );
+                            aisim.confirm_instruction();
+                        }
+                        SimInstruction::SensorReads => {}
+                        other => {
+                            arenito.instruction_handler.set(other);
+                            arenito.instruction_handler.execute();
+                        }
                     }
                 }
             }
