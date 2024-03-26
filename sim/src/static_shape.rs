@@ -164,7 +164,7 @@ impl CameraData {
         let cam_pos = self.offset.translation + Vec3::Y * (arenito_y - 0.01);
         let euler = self.offset.rotation.to_euler(EulerRot::XYZ);
 
-        let q = Quat::from_euler(EulerRot::XYZ, euler.1, euler.2, euler.0);
+        let q = Quat::from_euler(EulerRot::XYZ, euler.1, 0.0, euler.0);
         let mut points = CameraPrism::from_cam(&self).get_points();
 
         for i in 0..points.len() {
@@ -230,7 +230,12 @@ impl CameraData {
         Self::new(
             45.0,
             45.0,
-            Transform::from_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, -25.0)),
+            Transform::from_xyz(-0.75, 0.7, 0.0).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                (40.0_f32).to_radians(),
+                std::f32::consts::PI,
+                0.0,
+            )),
         )
     }
 
@@ -265,7 +270,7 @@ impl CameraData {
     ) {
         let euler = self.offset.rotation.to_euler(EulerRot::XYZ);
         let model_transform = Transform::from_translation(self.offset.translation)
-            .with_rotation(Quat::from_euler(EulerRot::XYZ, euler.1, euler.2, euler.0));
+            .with_rotation(Quat::from_euler(EulerRot::XYZ, euler.1, 0.0, euler.0));
 
         parent.spawn(PbrBundle {
             mesh: asset_server.load("models/camara.obj"),
@@ -274,8 +279,8 @@ impl CameraData {
             ..default()
         });
 
-        let mut cam_transform = Transform::from_translation(self.offset.translation)
-            .looking_to(Vec3::X, Vec3::Y);
+        let mut cam_transform =
+            Transform::from_translation(self.offset.translation).looking_to(Vec3::X, Vec3::Y);
         cam_transform.rotation *= self.offset.rotation;
         let window = parent.spawn((Self::get_window(title), *component)).id();
 

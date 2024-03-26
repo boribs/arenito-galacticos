@@ -228,7 +228,7 @@ fn draw_camera_area(arenito: Query<(&Arenito, &Transform)>, mut gizmos: Gizmos) 
         transform,
         &mut gizmos,
     );
-    //draw_area(arenito.rear_cam_data.points.clone(), transform, &mut gizmos);
+    draw_area(arenito.rear_cam_data.points.clone(), transform, &mut gizmos);
 
     // This should not be here
     arenito.draw_sphere(transform, Color::WHITE, &mut gizmos);
@@ -456,14 +456,8 @@ impl Arenito {
         asset_server: &Res<AssetServer>,
     ) {
         const CENTER: Vec3 = Vec3::new(0.0, 0.2, 0.0);
-        // self.front_cam_data
-        //     .area
-        //     .compute_area(self.front_cam_data.offset, CENTER.y);
-        // self.rear_cam_data
-        //     .area
-        //     .compute_area(self.rear_cam_data.offset, CENTER.y);
-
         self.front_cam_data.compute_area(CENTER.y);
+        self.rear_cam_data.compute_area(CENTER.y);
 
         commands
             .spawn((
@@ -565,13 +559,13 @@ impl Arenito {
                     "Front view".to_owned(),
                 );
 
-                // self.rear_cam_data.spawn(
-                //     parent,
-                //     materials,
-                //     asset_server,
-                //     &ArenitoFrontCamWindow,
-                //     "Front view".to_owned(),
-                // );
+                self.rear_cam_data.spawn(
+                    parent,
+                    materials,
+                    asset_server,
+                    &ArenitoRearCamWindow,
+                    "Rear view".to_owned(),
+                );
             });
     }
 
