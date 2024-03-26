@@ -242,7 +242,7 @@ impl CameraData {
     fn get_window(title: String) -> Window {
         Window {
             title,
-            visible: true,
+            visible: false,
             resolution: WindowResolution::new(IMG_WIDTH, IMG_HEIGHT),
             resizable: false,
             ..default()
