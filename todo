@@ -36,5 +36,5 @@ IA:
         ArenitoComms.send_instruction_set(instrs: List[Instruction]) o algo así
     ☐ ArenitoComms para Jetson
     ☐ Eliminar ArenitoComms para Arduino
-    ☐ Decisión de evadir obstáculos
+    ✔ Decisión de evadir obstáculos @done(24-03-26 17:21)
     ☐ Rutina de deposito de latas

@@ -26,6 +26,8 @@ class ArenitoAI:
     AI class, the brains of it all.
     """
 
+    MIN_PROX_REACT_RANGE = 14
+
     def __init__(self, args: Namespace):
         mode = AIMode.Simulation if args.sim else AIMode.Real
         self.args = args
@@ -48,8 +50,6 @@ class ArenitoAI:
         blurred = self.vis.blur(original)
         detections = self.vis.find_cans(blurred)
         proximities = self.com.get_prox_sensors()
-
-        print(proximities)
 
         return ScanResult(
             original=original,
@@ -119,6 +119,12 @@ class ArenitoAI:
             #   cv2.imshow('arenito pov - blurred', blurred)
 
             if self.args.no_move:
+                continue
+
+            if min(scan_results.proximities[:2]) < ArenitoAI.MIN_PROX_REACT_RANGE:
+                for _ in range(10):
+                    self.com.send_instruction(Instruction.MoveBack)
+                self.com.send_instruction(Instruction.MoveLongRight)
                 continue
 
             if self.vis.can_in_critical_region(scan_results.detections):
