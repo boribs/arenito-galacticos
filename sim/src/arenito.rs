@@ -414,22 +414,20 @@ impl ArenitoCamData {
     fn get_window(title: String) -> Window {
         Window {
             title,
-            visible: false,
+            visible: true,
             resolution: WindowResolution::new(IMG_WIDTH, IMG_HEIGHT),
             resizable: false,
             ..default()
         }
     }
 
-    fn get_camera_bundle(&self, window: Entity) -> Camera3dBundle {
-        let mut t = Transform::from_translation(self.offset).looking_to(Vec3::X, Vec3::Y);
-        t.rotate_z(self.area.alpha + 0.001);
+    fn get_camera_bundle(&self, window: Entity, transform: Transform) -> Camera3dBundle {
         Camera3dBundle {
             camera: Camera {
                 target: RenderTarget::Window(WindowRef::Entity(window)),
                 ..default()
             },
-            transform: t,
+            transform,
             ..default()
         }
     }
@@ -441,22 +439,26 @@ impl ArenitoCamData {
         asset_server: &Res<AssetServer>,
         component: &(impl Component + Copy),
         title: String,
+        transform: Transform,
     ) {
+        let q = Quat::from_euler(
+            EulerRot::XYZ,
+            0.0,
+            std::f32::consts::FRAC_PI_2,
+            0.0,
+        );
+        let mut model_transform = transform.clone();
+        model_transform.rotation = model_transform.rotation * q;
         parent.spawn(PbrBundle {
             mesh: asset_server.load("models/camara.obj"),
             material: materials.add(Color::BLACK.into()),
-            transform: Transform::from_translation(self.offset).with_rotation(Quat::from_euler(
-                EulerRot::ZYX,
-                self.area.alpha,
-                0.0,
-                0.0,
-            )),
+            transform: model_transform,
             ..default()
         });
 
         let window = parent.spawn((Self::get_window(title), *component)).id();
 
-        parent.spawn(self.get_camera_bundle(window));
+        parent.spawn(self.get_camera_bundle(window, transform));
     }
 }
 
@@ -637,19 +639,30 @@ impl Arenito {
                     ..default()
                 });
 
+                let (fo, fa) = (self.front_cam_data.offset, self.front_cam_data.area.clone());
+                let mut front_cam_transform =
+                    Transform::from_translation(fo).looking_to(Vec3::X, Vec3::Y);
+                front_cam_transform.rotate_z(fa.alpha + 0.001);
                 self.front_cam_data.spawn(
                     parent,
                     materials,
                     asset_server,
                     &ArenitoFrontCamWindow,
                     "Front view".to_owned(),
+                    front_cam_transform,
                 );
+
+                let (ro, ra) = (self.rear_cam_data.offset, self.rear_cam_data.area.clone());
+                let mut rear_cam_transform =
+                    Transform::from_translation(ro).looking_to(-Vec3::X, Vec3::Y);
+                rear_cam_transform.rotate_z(-ra.alpha - 0.001);
                 self.rear_cam_data.spawn(
                     parent,
                     materials,
                     asset_server,
                     &ArenitoRearCamWindow,
                     "Rear view".to_owned(),
+                    rear_cam_transform,
                 );
             });
     }
