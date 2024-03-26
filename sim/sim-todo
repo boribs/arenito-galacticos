@@ -22,7 +22,8 @@ Ambiente virtual:
     ✔ Latas @done(24-03-12 19:32)
         ✔ Comer latas @done(24-01-23 08:09)
         ✘ Escupir latas @cancelled(24-03-12 19:32)
-    ✔ Depósito de latas @done(24-03-17 15:06)
+    ☐ Depósito de latas
+        ☐ Poner latas en depósito
     ✔ SceneConstructor @done(24-03-17 15:06)
         para no tener mil funciones constructoras de escenarios
     ☐ Runtime SceneEditor
@@ -42,6 +43,10 @@ Simulación de sensores:
     ✘ Determinar movimiento según lectura de sensores (terreno no uniforme) @cancelled(24-01-05 01:59)
     ✔ Sensor de proximidad @done(24-03-12 19:32)
     ✔ Detector de colores (cámara) @done(24-01-05 01:59)
+    ☐ Múltiples cámaras
+        Arreglar que las cámaras no apuntan hacia donde indica su transformación.
+        ☐ CameraArea::rear()
+        ☐ CameraArea::compute_area() debe considerar transformación de cámara
 
 IA:
     ✔ Capturar frames (requiere cambiar a bevy 0.12) @done(23-12-14 14:28)

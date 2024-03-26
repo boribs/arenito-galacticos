@@ -31,7 +31,10 @@ Físico:
         centro de la imagen. Con esto se obtiene la posición deseada del robot.
 
 IA:
-    ☐ Clase ArenitoAI
+    ✔ Clase ArenitoAI @done(24-03-25 21:16)
     ☐ Mandar una serie de instrucciones en orden (ArenitoComms)
         ArenitoComms.send_instruction_set(instrs: List[Instruction]) o algo así
     ☐ ArenitoComms para Jetson
+    ☐ Eliminar ArenitoComms para Arduino
+    ☐ Decisión de evadir obstáculos
+    ☐ Rutina de deposito de latas
