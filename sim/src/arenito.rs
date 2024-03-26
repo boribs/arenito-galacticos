@@ -175,7 +175,7 @@ fn arenito_ai_mover(
 /// Currently, Arenito reacts immediately if the distance read by the single sensor
 /// is lower than the minimum activation range.
 fn proximity_sensor_reader(
-    arenito_transform: Query<&Transform>,
+    arenito_transform: Query<&Transform, With<Arenito>>,
     obstacles: Query<(&Obstacle, &Handle<Mesh>, &Transform)>,
     mut proxs: Query<(&mut ProximitySensor, &Transform)>,
     meshes: Res<Assets<Mesh>>,
