@@ -452,7 +452,7 @@ impl Arenito {
             .spawn((
                 PbrBundle {
                     mesh: asset_server.load("models/arenito.obj"),
-                    material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+                    material: materials.add(Color::rgb_u8(235, 64, 52).into()),
                     transform: self.initial_pos,
                     ..default()
                 },
