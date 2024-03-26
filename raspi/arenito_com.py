@@ -19,7 +19,7 @@ class Instruction(Enum):
     MoveRight = auto()
     MoveBack = auto()
     MoveLongRight = auto()
-    RequestFrame = auto()
+    RequestScan = auto()
 
 INSTRUCTION_MAP = {
     Instruction.MoveForward: 'a',
@@ -235,7 +235,7 @@ class SimInterface:
         Sends an instruction to the simulation.
         """
 
-        if instr == Instruction.RequestFrame:
+        if instr == Instruction.RequestScan:
             self.set_sync_byte(SimInterface.AI_FRAME_REQUEST)
         elif instr == Instruction.MoveBack:
             raise Exception(f'unsoported instruction {instr}')
