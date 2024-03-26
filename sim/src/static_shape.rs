@@ -1,4 +1,11 @@
-use bevy::{prelude::*, render::render_resource::*};
+use bevy::{
+    prelude::*,
+    render::{camera::RenderTarget, render_resource::*},
+    window::{Window, WindowRef, WindowResolution},
+};
+
+const IMG_WIDTH: f32 = 512.0;
+const IMG_HEIGHT: f32 = 512.0;
 
 /// Visual representation of the viewport of a virtual 3d Camera
 #[derive(Component)]
@@ -62,8 +69,8 @@ impl CameraPrism {
         ]
     }
 
-    /// Returns a prism with angles from a CameraArea.
-    pub fn from_cam(camera_area: &CameraArea) -> Self {
+    /// Returns a prism with angles from a CameraData.
+    pub fn from_cam(camera_area: &CameraData) -> Self {
         Self {
             ha: camera_area.ha,
             va: camera_area.va,
@@ -110,13 +117,13 @@ impl From<CameraPrism> for Mesh {
 
 /// Visualization of the area visible by Arneito's camera.
 #[derive(Component, Clone)]
-pub struct CameraArea {
+pub struct CameraData {
     // Horizontal view angle, in degrees
     pub ha: f32,
     // Vertical view angle, in degrees
     pub va: f32,
-    // Camera's vertical rotation
-    pub alpha: f32,
+    // Camera's z rotation
+    pub offset: Transform,
     // Computed:
     // Edges of visible area
     pub points: Vec<Vec3>,
@@ -127,13 +134,13 @@ pub struct CameraArea {
     pub center: Vec3,
 }
 
-impl CameraArea {
-    pub fn new(ha: f32, va: f32, alpha: f32) -> Self {
+impl CameraData {
+    pub fn new(ha: f32, va: f32, offset: Transform) -> Self {
         Self {
             ha: ha.to_radians(),
             va: va.to_radians(),
-            alpha: alpha.to_radians(),
             points: Vec::new(),
+            offset,
             long_side: 0.0,
             short_side: 0.0,
             height: 0.0,
@@ -143,7 +150,7 @@ impl CameraArea {
 
     /// Calculates the points (edges) that limit the camera's visible area,
     /// as well as the size of the trapeze.
-    pub fn compute_area(&mut self, cam_pos: Vec3, arenito_y: f32) {
+    pub fn compute_area(&mut self, arenito_y: f32) {
         // A and B are the closest points to the camera
         // in right-to-left order.
         // C and D are in left-to-right order, further away.
@@ -154,8 +161,10 @@ impl CameraArea {
         //
         //        cam
 
-        let cam_pos = cam_pos + Vec3::Y * (arenito_y - 0.01);
-        let q = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, self.alpha);
+        let cam_pos = self.offset.translation + Vec3::Y * (arenito_y - 0.01);
+        let euler = self.offset.rotation.to_euler(EulerRot::XYZ);
+
+        let q = Quat::from_euler(EulerRot::XYZ, euler.1, euler.2, euler.0);
         let mut points = CameraPrism::from_cam(&self).get_points();
 
         for i in 0..points.len() {
@@ -203,10 +212,73 @@ impl CameraArea {
             (self.points[2].z + self.points[3].z) / 2.0,
         );
     }
-}
 
-impl Default for CameraArea {
-    fn default() -> Self {
-        Self::new(45.0, 45.0, -40.0)
+    pub fn front() -> Self {
+        Self::new(
+            45.0,
+            45.0,
+            Transform::from_xyz(0.75, 1.3, 0.0).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                (-40.0_f32).to_radians(),
+                0.0,
+                0.0,
+            )),
+        )
+    }
+
+    pub fn rear() -> Self {
+        Self::new(
+            45.0,
+            45.0,
+            Transform::from_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, -25.0)),
+        )
+    }
+
+    fn get_window(title: String) -> Window {
+        Window {
+            title,
+            visible: true,
+            resolution: WindowResolution::new(IMG_WIDTH, IMG_HEIGHT),
+            resizable: false,
+            ..default()
+        }
+    }
+
+    fn get_camera_bundle(&self, window: Entity, transform: Transform) -> Camera3dBundle {
+        Camera3dBundle {
+            camera: Camera {
+                target: RenderTarget::Window(WindowRef::Entity(window)),
+                ..default()
+            },
+            transform,
+            ..default()
+        }
+    }
+
+    pub fn spawn(
+        &self,
+        parent: &mut ChildBuilder<'_, '_, '_>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+        asset_server: &Res<AssetServer>,
+        component: &(impl Component + Copy),
+        title: String,
+    ) {
+        let euler = self.offset.rotation.to_euler(EulerRot::XYZ);
+        let model_transform = Transform::from_translation(self.offset.translation)
+            .with_rotation(Quat::from_euler(EulerRot::XYZ, euler.1, euler.2, euler.0));
+
+        parent.spawn(PbrBundle {
+            mesh: asset_server.load("models/camara.obj"),
+            material: materials.add(Color::BLACK.into()),
+            transform: model_transform,
+            ..default()
+        });
+
+        let mut cam_transform = Transform::from_translation(self.offset.translation)
+            .looking_to(Vec3::X, Vec3::Y);
+        cam_transform.rotation *= self.offset.rotation;
+        let window = parent.spawn((Self::get_window(title), *component)).id();
+
+        parent.spawn(self.get_camera_bundle(window, cam_transform));
     }
 }
