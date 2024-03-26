@@ -43,10 +43,10 @@ Simulación de sensores:
     ✘ Determinar movimiento según lectura de sensores (terreno no uniforme) @cancelled(24-01-05 01:59)
     ✔ Sensor de proximidad @done(24-03-12 19:32)
     ✔ Detector de colores (cámara) @done(24-01-05 01:59)
-    ☐ Múltiples cámaras
+    ✔ Múltiples cámaras @done(24-03-26 13:38)
         Arreglar que las cámaras no apuntan hacia donde indica su transformación.
-        ☐ CameraArea::rear()
-        ☐ CameraArea::compute_area() debe considerar transformación de cámara
+        ✔ CameraArea::rear() @done(24-03-26 13:38)
+        ✔ CameraArea::compute_area() debe considerar transformación de cámara @done(24-03-26 13:38)
 
 IA:
     ✔ Capturar frames (requiere cambiar a bevy 0.12) @done(23-12-14 14:28)
