@@ -182,6 +182,7 @@ impl AISimMem {
     const MOV_FORWARD: u8 = b'a';
     const MOV_LEFT: u8 = b'i';
     const MOV_RIGHT: u8 = b'd';
+    const MOV_BACK: u8 = b'b';
     const MOV_LONG_RIGHT: u8 = b'D';
 
     // memory footprint
@@ -292,6 +293,7 @@ impl AISimMem {
                 AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
                 AISimMem::MOV_RIGHT => Some(SimInstruction::MoveRight),
                 AISimMem::MOV_LONG_RIGHT => Some(SimInstruction::MoveLongRight),
+                AISimMem::MOV_BACK => Some(SimInstruction::MoveBack),
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None

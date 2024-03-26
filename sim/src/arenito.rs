@@ -155,7 +155,7 @@ fn arenito_ai_mover(
                             for sensor in proximity_sensors.iter() {
                                 sensor_reads[sensor.index] = (sensor.range * 10.0) as u8;
                                 if sensor_reads[sensor.index] == 30 {
-                                    sensor_reads[sensor.index] = 255;
+                                    sensor_reads[sensor.index] = 255; // not sure about this
                                 }
                             }
                             aisim.export_sensor_reads(sensor_reads);

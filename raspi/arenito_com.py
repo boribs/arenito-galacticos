@@ -28,6 +28,7 @@ INSTRUCTION_MAP = {
     Instruction.MoveRight: 'd',
     Instruction.MoveBack: 'r',
     Instruction.MoveLongRight: 'D',
+    Instruction.MoveBack: 'b',
 }
 
 class ArenitoComms:
@@ -262,8 +263,6 @@ class SimInterface:
             self.set_sync_byte(SimInterface.AI_FRONT_CAM_REQUEST)
         elif instr == Instruction.RequestProxSensor:
             self.set_sync_byte(SimInterface.AI_PROX_SENSOR_READ_REQUEST)
-        elif instr == Instruction.MoveBack:
-            raise Exception(f'unsoported instruction {instr}')
         else:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
