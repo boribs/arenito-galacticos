@@ -198,11 +198,11 @@ fn proximity_sensor_reader(
             prox.collides_with_mesh(&prox_transform, hull);
         }
 
-        const ACTIVATION_RANGE: f32 = 1.5;
+        // const ACTIVATION_RANGE: f32 = 1.5;
 
-        if prox.range < ACTIVATION_RANGE && arenito.instruction_handler.available() {
-            //arenito.instruction_handler.set(SimInstruction::Evade);
-        }
+        // if prox.range < ACTIVATION_RANGE && arenito.instruction_handler.available() {
+        //     arenito.instruction_handler.set(SimInstruction::Evade);
+        // }
 
         prox.draw_ray(&prox_transform, &mut gizmos);
     }
