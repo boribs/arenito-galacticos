@@ -144,6 +144,13 @@ fn arenito_ai_mover(
                 if let Some(instr) = aisim.get_instruction() {
                     match instr {
                         SimInstruction::Scan => {
+                            aisim.export_frame(
+                                &mut screenshot_manager,
+                                &front_window.single()
+                            );
+                            aisim.confirm_instruction();
+                        }
+                        SimInstruction::SensorReads => {
                             let mut sensor_reads = vec![0_u8; AISimMem::MAX_PROXIMITY_SENSOR_COUNT];
                             for sensor in proximity_sensors.iter() {
                                 sensor_reads[sensor.index] = (sensor.range * 10.0) as u8;

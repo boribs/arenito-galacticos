@@ -229,11 +229,10 @@ impl AISimMem {
     }
 
     /// Takes a screenshot of Arenito's Camera and writes it to the shared memory block.
-    pub fn export_data(
+    pub fn export_frame(
         &mut self,
         screenshot_manager: &mut ResMut<ScreenshotManager>,
         window: &Entity,
-        sensor_reads: Vec<u8>,
     ) {
         // prevent multiple screenshot requests
         self.set_sync_flag(AISimMem::SIM_SCAN_WAIT);
@@ -250,23 +249,7 @@ impl AISimMem {
                         .to_rgb8()
                         .into_raw();
 
-                    // sensor data
-                    // memspace: sensor count, sensor data 1, ..., img
-
-                    if sensor_reads.len() > Self::MAX_PROXIMITY_SENSOR_COUNT {
-                        panic!("Not enough space for {} sensor reads.", sensor_reads.len());
-                    }
-
-                    memspace.set(sensor_reads.len() as u8);
-                    memspace = memspace.next(1);
-
-                    for (i, read) in sensor_reads.iter().enumerate() {
-                        memspace.next(i).set(*read);
-                    }
-
-                    memspace
-                        .next(Self::PROXIMITY_SENSOR_COUNT + Self::MAX_PROXIMITY_SENSOR_COUNT)
-                        .write(&img_raw);
+                    memspace.write(&img_raw);
                     sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
                 }
                 Err(_) => {
