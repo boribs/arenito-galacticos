@@ -231,10 +231,12 @@ class ArenitoVision:
         Adds visual markings to image to help visualize decisions.
         """
 
-        self.add_text(det_img, f'Cans: {can_counter}', Point(10, 35))
-        self.add_text(det_img, state, Point(10, 55))
+        can_counter_str = f'Cans: {can_counter}'
         if cicr:
-            self.add_text(det_img, 'In critical_region', Point(10, 35))
+            can_counter_str += ' (In critical region)'
+
+        self.add_text(det_img, can_counter_str, Point(10, 35))
+        self.add_text(det_img, state, Point(10, 55))
 
         t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
