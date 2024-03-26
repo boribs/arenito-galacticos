@@ -440,6 +440,7 @@ impl ArenitoCamData {
         materials: &mut ResMut<Assets<StandardMaterial>>,
         asset_server: &Res<AssetServer>,
         component: &(impl Component + Copy),
+        title: String,
     ) {
         parent.spawn(PbrBundle {
             mesh: asset_server.load("models/camara.obj"),
@@ -453,9 +454,7 @@ impl ArenitoCamData {
             ..default()
         });
 
-        let window = parent
-            .spawn((Self::get_window("Arenito view".to_owned()), *component))
-            .id();
+        let window = parent.spawn((Self::get_window(title), *component)).id();
 
         parent.spawn(self.get_camera_bundle(window));
     }
@@ -638,10 +637,20 @@ impl Arenito {
                     ..default()
                 });
 
-                self.front_cam_data
-                    .spawn(parent, materials, asset_server, &ArenitoFrontCamWindow);
-                self.rear_cam_data
-                    .spawn(parent, materials, asset_server, &ArenitoRearCamWindow);
+                self.front_cam_data.spawn(
+                    parent,
+                    materials,
+                    asset_server,
+                    &ArenitoFrontCamWindow,
+                    "Front view".to_owned(),
+                );
+                self.rear_cam_data.spawn(
+                    parent,
+                    materials,
+                    asset_server,
+                    &ArenitoRearCamWindow,
+                    "Rear view".to_owned(),
+                );
             });
     }
 
