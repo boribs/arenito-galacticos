@@ -20,6 +20,7 @@ class Instruction(Enum):
     MoveBack = auto()
     MoveLongRight = auto()
     RequestFrontCam = auto()
+    RequestProxSensor = auto()
 
 INSTRUCTION_MAP = {
     Instruction.MoveForward: 'a',
@@ -84,6 +85,16 @@ class ArenitoComms:
             return frame
         else:
             return self.sim_interface.get_frame() # pyright: ignore[reportOptionalMemberAccess]
+
+    def get_prox_sensors(self) -> list[int]:
+        """
+        Returns proximity sensor reads. Only for Sim.
+        """
+
+        if self.serial:
+            raise Exception('Proximity sensors not implemented for serial interface')
+
+        return self.sim_interface.get_proximity_sensor_reads() # pyright: ignore[reportOptionalMemberAccess]
 
     def send_instruction(self, instr: Instruction):
         """
@@ -152,6 +163,7 @@ class SimInterface:
     SIM_FRAME_WAIT = 2
     AI_MOVE_INSTRUCTION = 3
     SIM_AKNOWLEDGE_INSTRUCTION = 4
+    AI_PROX_SENSOR_READ_REQUEST = 5
 
     # memory layout
     SYNC_SIZE = 1
@@ -209,7 +221,6 @@ class SimInterface:
         """
 
         self.send_instruction(Instruction.RequestFrontCam)
-        self.wait_confirmation()
 
         raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
@@ -219,6 +230,20 @@ class SimInterface:
         # return np.array(Image.merge('RGB', (b, g, r)))
 
         return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+
+    def get_proximity_sensor_reads(self) -> list[int]:
+        """
+        Returns proximity sensor reads.
+        """
+
+        self.send_instruction(Instruction.RequestProxSensor)
+        sensor_count = self.mem[1]
+
+        if sensor_count > SimInterface.MAX_PROXIMITY_SENSOR_COUNT:
+            print('Corrup data when reading sensors.')
+            return [255] * SimInterface.MAX_PROXIMITY_SENSOR_COUNT
+
+        return list(self.mem[2 : sensor_count + 2])
 
     def wait_confirmation(self):
         """
@@ -235,9 +260,11 @@ class SimInterface:
 
         if instr == Instruction.RequestFrontCam:
             self.set_sync_byte(SimInterface.AI_FRONT_CAM_REQUEST)
+        elif instr == Instruction.RequestProxSensor:
+            self.set_sync_byte(SimInterface.AI_PROX_SENSOR_READ_REQUEST)
         elif instr == Instruction.MoveBack:
             raise Exception(f'unsoported instruction {instr}')
         else:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
-            self.wait_confirmation()
+        self.wait_confirmation()

@@ -102,6 +102,7 @@ pub enum SimInstruction {
     MoveLongRight,
     Evade,
     FrontCamFrame,
+    ProxSensorReads,
 }
 
 /// Wrapper struct to store raw pointers to shared memory.
@@ -171,10 +172,11 @@ pub struct AISimMem {
 
 impl AISimMem {
     // sync constants
-    const AI_SCAN_REQUEST: u8 = 1;
+    const AI_FRONT_CAM_REQUEST: u8 = 1;
     const SIM_SCAN_WAIT: u8 = 2;
     const AI_MOVE_INSTRUCTION: u8 = 3;
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
+    const AI_PROX_SENSOR_READ_REQUEST: u8 = 5;
 
     // movement instruction constants
     const MOV_FORWARD: u8 = b'a';
@@ -258,6 +260,18 @@ impl AISimMem {
             });
     }
 
+    /// Reads Arenito's proximity sensors and returns the value.
+    pub fn export_sensor_reads(
+        &mut self,
+        sensor_reads: Vec<u8>,
+    ) {
+        self.memspace.set(sensor_reads.len() as u8);
+        for (i, read) in sensor_reads.iter().enumerate() {
+            self.memspace.next(i + 1).set(*read);
+        }
+        self.confirm_instruction();
+    }
+
     /// Returns the instruction for the simulation to execute.
     /// Returns None if there's none.
     ///
@@ -271,7 +285,8 @@ impl AISimMem {
     /// If sync byte is `AI_SCAN_REQUEST` no more bytes are checked.
     pub fn get_instruction(&self) -> Option<SimInstruction> {
         match self.sync_byte.get() {
-            AISimMem::AI_SCAN_REQUEST => Some(SimInstruction::Scan),
+            AISimMem::AI_FRONT_CAM_REQUEST => Some(SimInstruction::FrontCamFrame),
+            AISimMem::AI_PROX_SENSOR_READ_REQUEST => Some(SimInstruction::ProxSensorReads),
             AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
                 AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
                 AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
@@ -450,10 +465,10 @@ mod ai_sim_mem_tests {
     #[test]
     fn test_get_instruction_frame_request() {
         // mock buffer, to avoid actual shared memory
-        let mut buf: Vec<u8> = vec![AISimMem::AI_SCAN_REQUEST, 0];
+        let mut buf: Vec<u8> = vec![AISimMem::AI_FRONT_CAM_REQUEST, 0];
         let aisim = AISimMem::from_buf(&mut buf);
 
-        assert_eq!(Some(SimInstruction::Scan), aisim.get_instruction());
+        assert_eq!(Some(SimInstruction::FrontCamFrame), aisim.get_instruction());
     }
 
     #[test]

@@ -47,12 +47,15 @@ class ArenitoAI:
         original = self.com.get_frame()
         blurred = self.vis.blur(original)
         detections = self.vis.find_cans(blurred)
+        proximities = self.com.get_prox_sensors()
+
+        print(proximities)
 
         return ScanResult(
             original=original,
             blurred=blurred,
             detections=detections,
-            proximities=[]
+            proximities=proximities
         )
 
     def get_state(self, scan_results: ScanResult):
