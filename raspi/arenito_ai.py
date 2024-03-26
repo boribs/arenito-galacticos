@@ -165,11 +165,10 @@ class ArenitoAI:
 
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
-        if self.vis.reachable(hsv, self.vis.r_dot):
-            self.com.send_instruction(Instruction.MoveForward)
-
         if self.get_timer_elapsed() > MAX_SEARCH_SECONDS:
             self.com.send_instruction(Instruction.MoveLongRight)
             self.clear_timer()
+        elif self.vis.reachable(hsv, self.vis.r_dot):
+            self.com.send_instruction(Instruction.MoveForward)
         else:
             self.com.send_instruction(Instruction.MoveRight)
