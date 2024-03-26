@@ -216,8 +216,6 @@ class SimInterface:
         raw_img = self.mem[img_offset : SimInterface.IMAGE_SIZE + 1 + img_offset]
         im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
 
-        print('Sensor reads', ', '.join(map(lambda n: str(int(n)), self.mem[2:4])))
-
         # for some reason blue and red channels are swapped?
         # r, g, b = im.split()
         # return np.array(Image.merge('RGB', (b, g, r)))
