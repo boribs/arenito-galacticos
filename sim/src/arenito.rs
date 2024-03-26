@@ -13,6 +13,7 @@ use bevy::{
     window::{Window, WindowRef, WindowResolution},
 };
 use bevy_obj::*;
+use itertools::Itertools;
 
 const IMG_WIDTH: f32 = 512.0;
 const IMG_HEIGHT: f32 = 512.0;
@@ -148,7 +149,11 @@ fn arenito_ai_mover(
             HandlerState::Waiting => {
                 if let Some(instr) = aisim.get_instruction() {
                     if instr == SimInstruction::Scan {
-                        aisim.export_frame(&mut screenshot_manager, &window.single());
+                        aisim.export_frame(
+                            &mut screenshot_manager,
+                            &window.single(),
+                            (40..42).collect_vec(), // tmp
+                        );
                         aisim.confirm_instruction();
                     } else {
                         arenito.instruction_handler.set(instr);

@@ -131,6 +131,10 @@ impl AISimAddr {
     pub fn get(&self) -> u8 {
         unsafe { *self.0 }
     }
+
+    pub fn next(&self, count: usize) -> Self {
+        unsafe { AISimAddr(self.0.add(count)) }
+    }
 }
 
 /// Responsible for interacting with Arenito's AI process.
@@ -183,8 +187,16 @@ impl AISimMem {
     const SYNC_SIZE: usize = 1;
     // min size required to store image, found experimentally
     const IMG_SIZE: usize = 786_432;
-    // sync byte + img size
-    pub const MIN_REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
+    // one byte indicating how many sensors there are
+    const PROXIMITY_SENSOR_COUNT: usize = 1;
+    // how many bytes to allocate each sensor distance
+    // distances are a single byte: distance until collision, in cm
+    const MAX_PROXIMITY_SENSOR_COUNT: usize = 5;
+    // total required memory
+    pub const REQUIRED_MEMORY: usize = Self::SYNC_SIZE
+        + Self::IMG_SIZE
+        + Self::PROXIMITY_SENSOR_COUNT
+        + Self::MAX_PROXIMITY_SENSOR_COUNT;
     pub const MMAP_FILENAME: &'static str = "file.mmap";
 
     pub fn new(mmap: &mut MmapMut) -> Self {
@@ -205,7 +217,7 @@ impl AISimMem {
             .create(true)
             .open(Self::MMAP_FILENAME)
             .unwrap();
-        file.seek(SeekFrom::Start(Self::MIN_REQUIRED_MEMORY as u64))
+        file.seek(SeekFrom::Start(Self::REQUIRED_MEMORY as u64))
             .unwrap();
         file.write_all(&[0]).unwrap();
         file
@@ -221,6 +233,7 @@ impl AISimMem {
         &mut self,
         screenshot_manager: &mut ResMut<ScreenshotManager>,
         window: &Entity,
+        sensor_reads: Vec<u8>,
     ) {
         // prevent multiple screenshot requests
         self.set_sync_flag(AISimMem::SIM_SCAN_WAIT);
@@ -237,14 +250,23 @@ impl AISimMem {
                         .to_rgb8()
                         .into_raw();
 
-                    // println!("raw len: {}", img_raw.len());
-                    // println!("{}, {}", dyn_img.width(), dyn_img.height());
+                    // sensor data
+                    // memspace: sensor count, sensor data 1, ..., img
 
-                    // if img_raw.len() != AISimMem::IMG_SIZE {
-                    //     panic!("different image size!");
-                    // }
+                    if sensor_reads.len() > Self::MAX_PROXIMITY_SENSOR_COUNT {
+                        panic!("Not enough space for {} sensor reads.", sensor_reads.len());
+                    }
 
-                    memspace.write(&img_raw);
+                    memspace.set(sensor_reads.len() as u8);
+                    memspace = memspace.next(1);
+
+                    for (i, read) in sensor_reads.iter().enumerate() {
+                        memspace.next(i).set(*read);
+                    }
+
+                    memspace
+                        .next(Self::PROXIMITY_SENSOR_COUNT + Self::MAX_PROXIMITY_SENSOR_COUNT)
+                        .write(&img_raw);
                     sync_byte.set(AISimMem::SIM_AKNOWLEDGE_INSTRUCTION);
                 }
                 Err(_) => {
