@@ -14,7 +14,7 @@ class ScanResult:
     original: MatLike
     blurred: MatLike
     detections: list[Detection]
-    # proximity sensors results
+    proximities: list[int]
 
 class ArenitoState(Enum):
     LookingForCans = auto()
@@ -44,14 +44,15 @@ class ArenitoAI:
         Gets data from every sensor.
         """
 
-        original = self.com.get_image()
+        original, proximities = self.com.get_data()
         blurred = self.vis.blur(original)
         detections = self.vis.find_cans(blurred)
 
         return ScanResult(
             original=original,
             blurred=blurred,
-            detections=detections
+            detections=detections,
+            proximities=proximities
         )
 
     def get_state(self, scan_results: ScanResult):

@@ -71,7 +71,7 @@ class ArenitoComms:
 
         self.sim_interface = SimInterface(filename)
 
-    def get_image(self) -> MatLike:
+    def get_data(self) -> tuple[MatLike, list[int]]:
         """
         Gets the image from the camera.
         """
@@ -81,9 +81,9 @@ class ArenitoComms:
             if not ok:
                 raise Exception('Couldn\'t get frame.')
 
-            return frame
+            return (frame, [])
         else:
-            return self.sim_interface.get_image() # pyright: ignore[reportOptionalMemberAccess]
+            return self.sim_interface.get_data() # pyright: ignore[reportOptionalMemberAccess]
 
     def send_instruction(self, instr: Instruction):
         """
@@ -202,7 +202,7 @@ class SimInterface:
 
         self.mem[1] = val
 
-    def get_image(self) -> MatLike:
+    def get_data(self) -> tuple[MatLike, list[int]]:
         """
         Requests a frame and does some processing for the image
         to be usable by AI.
@@ -216,11 +216,16 @@ class SimInterface:
         raw_img = self.mem[img_offset : SimInterface.IMAGE_SIZE + 1 + img_offset]
         im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
 
+        print('Sensor reads', ', '.join(map(lambda n: str(int(n)), self.mem[2:4])))
+
         # for some reason blue and red channels are swapped?
         # r, g, b = im.split()
         # return np.array(Image.merge('RGB', (b, g, r)))
 
-        return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+        original = cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+        proximities = list(map(int, self.mem[2 : 2 + SimInterface.MAX_PROXIMITY_SENSOR_COUNT]))
+
+        return (original, proximities)
 
     def wait_confirmation(self):
         """
