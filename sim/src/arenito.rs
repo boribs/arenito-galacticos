@@ -214,19 +214,32 @@ fn proximity_sensor_reader(
 }
 
 fn draw_camera_area(arenito: Query<(&Arenito, &Transform)>, mut gizmos: Gizmos) {
+    fn draw_area(points: Vec<Vec3>, transform: &Transform, gizmos: &mut Gizmos) {
+        let mut points = points;
+        let rot = transform.rotation;
+        let pos = transform.translation;
+
+        for i in 0..points.len() {
+            points[i] = rot.mul_vec3(points[i]) + Vec3::new(pos.x, 0.0, pos.z);
+        }
+
+        for i in 0..points.len() - 1 {
+            gizmos.line(points[i], points[i + 1], Color::WHITE);
+        }
+        gizmos.line(points[3], points[0], Color::WHITE);
+    }
+
     let (arenito, transform) = arenito.single();
-    let mut points = arenito.front_cam_data.area.points.clone();
-    let rot = transform.rotation;
-    let pos = transform.translation;
-
-    for i in 0..points.len() {
-        points[i] = rot.mul_vec3(points[i]) + Vec3::new(pos.x, 0.0, pos.z);
-    }
-
-    for i in 0..points.len() - 1 {
-        gizmos.line(points[i], points[i + 1], Color::WHITE);
-    }
-    gizmos.line(points[3], points[0], Color::WHITE);
+    draw_area(
+        arenito.front_cam_data.area.points.clone(),
+        transform,
+        &mut gizmos,
+    );
+    draw_area(
+        arenito.rear_cam_data.area.points.clone(),
+        transform,
+        &mut gizmos,
+    );
 
     // This should not be here
     arenito.draw_sphere(transform, Color::WHITE, &mut gizmos);
@@ -373,8 +386,8 @@ pub struct ArenitoCompBrush;
 #[derive(Component, Copy, Clone)]
 pub struct ArenitoFrontCamWindow;
 
-// #[derive(Component, Copy, Clone)]
-// pub struct ArenitoRearCamWindow;
+#[derive(Component, Copy, Clone)]
+pub struct ArenitoRearCamWindow;
 
 /// Helper struct for camera spawning.
 #[derive(Clone)]
@@ -387,6 +400,13 @@ impl ArenitoCamData {
     fn front() -> Self {
         Self {
             offset: Vec3::new(0.75, 1.3, 0.0),
+            area: CameraArea::default(),
+        }
+    }
+
+    fn rear() -> Self {
+        Self {
+            offset: Vec3::new(-2.75, 0.3, 0.0),
             area: CameraArea::default(),
         }
     }
@@ -472,9 +492,8 @@ impl Default for ArenitoConfig {
 pub struct Arenito {
     pub vel: Vec3,
     pub acc: Vec3,
-    // pub cam_offset: Vec3,
-    // pub cam_area: CameraArea,
     front_cam_data: ArenitoCamData,
+    rear_cam_data: ArenitoCamData,
     initial_pos: Transform,
     brush_speed: f32,
     velocity_k: f32,
@@ -492,6 +511,7 @@ impl Arenito {
             vel: Vec3::ZERO,
             acc: Vec3::ZERO,
             front_cam_data: ArenitoCamData::front(),
+            rear_cam_data: ArenitoCamData::rear(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
@@ -522,6 +542,9 @@ impl Arenito {
         self.front_cam_data
             .area
             .compute_area(self.front_cam_data.offset, CENTER.y);
+        self.rear_cam_data
+            .area
+            .compute_area(self.rear_cam_data.offset, CENTER.y);
 
         commands
             .spawn((
@@ -617,46 +640,8 @@ impl Arenito {
 
                 self.front_cam_data
                     .spawn(parent, materials, asset_server, &ArenitoFrontCamWindow);
-
-                // Camera model
-                // parent.spawn(PbrBundle {
-                //     mesh: asset_server.load("models/camara.obj"),
-                //     material: materials.add(Color::BLACK.into()),
-                //     transform: Transform::from_translation(self.cam_offset).with_rotation(Quat::from_euler(
-                //         EulerRot::ZYX,
-                //         self.cam_area.alpha,
-                //         0.0,
-                //         0.0,
-                //     )),
-                //     ..default()
-                // });
-
-                // let front_window = parent
-                //     .spawn((
-                //         Window {
-                //             title: "Arenito view".to_owned(),
-                //             visible: false,
-                //             resolution: WindowResolution::new(IMG_WIDTH, IMG_HEIGHT),
-                //             resizable: false,
-                //             ..default()
-                //         },
-                //         ArenitoFrontCamWindow,
-                //     ))
-                //     .id();
-
-                // let mut t = Transform::from_translation(self.cam_offset).looking_to(Vec3::X, Vec3::Y);
-                // t.rotate_z(self.cam_area.alpha + 0.001);
-                // parent.spawn((
-                //     Camera3dBundle {
-                //         camera: Camera {
-                //             target: RenderTarget::Window(WindowRef::Entity(front_window)),
-                //             ..default()
-                //         },
-                //         transform: t,
-                //         ..default()
-                //     },
-                //     // ArenitoCamera,
-                // ));
+                self.rear_cam_data
+                    .spawn(parent, materials, asset_server, &ArenitoRearCamWindow);
             });
     }
 
