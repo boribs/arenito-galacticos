@@ -157,7 +157,7 @@ fn arenito_ai_mover(
                             }
                         }
 
-                        aisim.export_frame(&mut screenshot_manager, &window.single(), sensor_reads);
+                        aisim.export_data(&mut screenshot_manager, &window.single(), sensor_reads);
                         aisim.confirm_instruction();
                     } else {
                         arenito.instruction_handler.set(instr);

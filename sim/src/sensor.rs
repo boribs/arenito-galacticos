@@ -229,7 +229,7 @@ impl AISimMem {
     }
 
     /// Takes a screenshot of Arenito's Camera and writes it to the shared memory block.
-    pub fn export_frame(
+    pub fn export_data(
         &mut self,
         screenshot_manager: &mut ResMut<ScreenshotManager>,
         window: &Entity,
