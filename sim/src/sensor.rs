@@ -101,7 +101,7 @@ pub enum SimInstruction {
     MoveRight,
     MoveLongRight,
     Evade,
-    Scan,
+    FrontCamFrame,
 }
 
 /// Wrapper struct to store raw pointers to shared memory.

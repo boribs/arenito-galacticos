@@ -19,7 +19,7 @@ class Instruction(Enum):
     MoveRight = auto()
     MoveBack = auto()
     MoveLongRight = auto()
-    RequestScan = auto()
+    RequestFrontCam = auto()
 
 INSTRUCTION_MAP = {
     Instruction.MoveForward: 'a',
@@ -148,7 +148,7 @@ class SimInterface:
     """
 
     # sync constants
-    AI_FRAME_REQUEST = 1
+    AI_FRONT_CAM_REQUEST = 1
     SIM_FRAME_WAIT = 2
     AI_MOVE_INSTRUCTION = 3
     SIM_AKNOWLEDGE_INSTRUCTION = 4
@@ -208,7 +208,7 @@ class SimInterface:
         to be usable by AI.
         """
 
-        self.send_instruction(Instruction.RequestScan)
+        self.send_instruction(Instruction.RequestFrontCam)
         self.wait_confirmation()
 
         raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
@@ -233,8 +233,8 @@ class SimInterface:
         Sends an instruction to the simulation.
         """
 
-        if instr == Instruction.RequestScan:
-            self.set_sync_byte(SimInterface.AI_FRAME_REQUEST)
+        if instr == Instruction.RequestFrontCam:
+            self.set_sync_byte(SimInterface.AI_FRONT_CAM_REQUEST)
         elif instr == Instruction.MoveBack:
             raise Exception(f'unsoported instruction {instr}')
         else:

@@ -143,7 +143,7 @@ fn arenito_ai_mover(
             HandlerState::Waiting => {
                 if let Some(instr) = aisim.get_instruction() {
                     match instr {
-                        SimInstruction::Scan => {
+                        SimInstruction::FrontCamFrame => {
                             aisim.export_frame(
                                 &mut screenshot_manager,
                                 &front_window.single()
