@@ -13,7 +13,6 @@ use bevy::{
     window::{Window, WindowRef, WindowResolution},
 };
 use bevy_obj::*;
-use itertools::Itertools;
 
 const IMG_WIDTH: f32 = 512.0;
 const IMG_HEIGHT: f32 = 512.0;
@@ -137,6 +136,7 @@ fn arenito_ai_mover(
         Query<&mut Transform, With<ArenitoCompRightWheel>>,
     )>,
     window: Query<Entity, With<ArenitoCamWindow>>,
+    proximity_sensors: Query<&ProximitySensor>,
 ) {
     let mut arenito = arenito.single_mut();
 
@@ -149,11 +149,15 @@ fn arenito_ai_mover(
             HandlerState::Waiting => {
                 if let Some(instr) = aisim.get_instruction() {
                     if instr == SimInstruction::Scan {
-                        aisim.export_frame(
-                            &mut screenshot_manager,
-                            &window.single(),
-                            (40..42).collect_vec(), // tmp
-                        );
+                        let mut sensor_reads = vec![0_u8; AISimMem::MAX_PROXIMITY_SENSOR_COUNT];
+                        for sensor in proximity_sensors.iter() {
+                            sensor_reads[sensor.index] = (sensor.range * 10.0) as u8;
+                            if sensor_reads[sensor.index] == 30 {
+                                sensor_reads[sensor.index] = 255;
+                            }
+                        }
+
+                        aisim.export_frame(&mut screenshot_manager, &window.single(), sensor_reads);
                         aisim.confirm_instruction();
                     } else {
                         arenito.instruction_handler.set(instr);
@@ -197,7 +201,7 @@ fn proximity_sensor_reader(
         const ACTIVATION_RANGE: f32 = 1.5;
 
         if prox.range < ACTIVATION_RANGE && arenito.instruction_handler.available() {
-            arenito.instruction_handler.set(SimInstruction::Evade);
+            //arenito.instruction_handler.set(SimInstruction::Evade);
         }
 
         prox.draw_ray(&prox_transform, &mut gizmos);
@@ -501,7 +505,7 @@ impl Arenito {
                 let sensor_mesh = meshes.add(shape::Cube::new(0.08).into());
                 let sensor_material = materials.add(Color::rgb(0.3, 0.3, 0.6).into());
 
-                for prox_offset in self.proximity_sensor_offsets.iter() {
+                for (i, prox_offset) in self.proximity_sensor_offsets.iter().enumerate() {
                     parent.spawn(PbrBundle {
                         transform: *prox_offset,
                         mesh: sensor_mesh.clone(),
@@ -513,7 +517,7 @@ impl Arenito {
                             transform: *prox_offset,
                             ..default()
                         },
-                        ProximitySensor::default(),
+                        ProximitySensor::default().set_index(i),
                     ));
                 }
 

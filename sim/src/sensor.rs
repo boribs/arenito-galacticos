@@ -191,7 +191,7 @@ impl AISimMem {
     const PROXIMITY_SENSOR_COUNT: usize = 1;
     // how many bytes to allocate each sensor distance
     // distances are a single byte: distance until collision, in cm
-    const MAX_PROXIMITY_SENSOR_COUNT: usize = 5;
+    pub const MAX_PROXIMITY_SENSOR_COUNT: usize = 5;
     // total required memory
     pub const REQUIRED_MEMORY: usize = Self::SYNC_SIZE
         + Self::IMG_SIZE
@@ -323,6 +323,7 @@ impl AISimMem {
 pub struct ProximitySensor {
     pub max_range: f32,
     pub range: f32,
+    pub index: usize,
 }
 
 impl ProximitySensor {
@@ -345,6 +346,11 @@ impl ProximitySensor {
             color,
         );
     }
+
+    pub fn set_index(mut self, index: usize) -> Self {
+        self.index = index;
+        self
+    }
 }
 
 impl Default for ProximitySensor {
@@ -352,6 +358,7 @@ impl Default for ProximitySensor {
         Self {
             max_range: 3.0,
             range: 3.0,
+            index: 0,
         }
     }
 }
