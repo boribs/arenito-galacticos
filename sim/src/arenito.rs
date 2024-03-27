@@ -128,8 +128,10 @@ fn arenito_ai_mover(
         Query<&mut Transform, With<ArenitoCompLeftWheel>>,
         Query<&mut Transform, With<ArenitoCompRightWheel>>,
     )>,
-    front_window: Query<Entity, With<ArenitoFrontCamWindow>>,
-    // rear_window: Query<Entity, With<ArenitoRearCamWindow>>,
+    mut windows: ParamSet<(
+        Query<Entity, With<ArenitoFrontCamWindow>>,
+        Query<Entity, With<ArenitoRearCamWindow>>,
+    )>,
     proximity_sensors: Query<&ProximitySensor>,
 ) {
     let mut arenito = arenito.single_mut();
@@ -146,7 +148,14 @@ fn arenito_ai_mover(
                         SimInstruction::FrontCamFrame => {
                             aisim.export_frame(
                                 &mut screenshot_manager,
-                                &front_window.single()
+                                &windows.p0().single()
+                            );
+                            aisim.confirm_instruction();
+                        }
+                        SimInstruction::RearCamFrame => {
+                            aisim.export_frame(
+                                &mut screenshot_manager,
+                                &windows.p1().single()
                             );
                             aisim.confirm_instruction();
                         }

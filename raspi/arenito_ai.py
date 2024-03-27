@@ -46,7 +46,7 @@ class ArenitoAI:
         Gets data from every sensor.
         """
 
-        original = self.com.get_frame()
+        original = self.com.get_front_frame()
         blurred = self.vis.blur(original)
         detections = self.vis.find_cans(blurred)
         proximities = self.com.get_prox_sensors()

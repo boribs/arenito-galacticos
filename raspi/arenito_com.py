@@ -20,6 +20,7 @@ class Instruction(Enum):
     MoveBack = auto()
     MoveLongRight = auto()
     RequestFrontCam = auto()
+    RequestRearCam = auto()
     RequestProxSensor = auto()
 
 INSTRUCTION_MAP = {
@@ -73,19 +74,35 @@ class ArenitoComms:
 
         self.sim_interface = SimInterface(filename)
 
-    def get_frame(self) -> MatLike:
+    def get_front_frame(self) -> MatLike:
         """
-        Gets the image from the camera.
+        Gets the image from the front camera.
         """
 
         if self.video_capture:
-            ok, frame = self.video_capture.read()
-            if not ok:
-                raise Exception('Couldn\'t get frame.')
+            raise Exception('Real camera input not supported')
+            # ok, frame = self.video_capture.read()
+            # if not ok:
+            #     raise Exception('Couldn\'t get frame.')
 
-            return frame
+            # return frame
         else:
-            return self.sim_interface.get_frame() # pyright: ignore[reportOptionalMemberAccess]
+            return self.sim_interface.get_front_frame() # pyright: ignore[reportOptionalMemberAccess]
+
+    def get_rear_frame(self) -> MatLike:
+        """
+        Gets the image from the rear camera.
+        """
+
+        if self.video_capture:
+            raise Exception('Real camera input not supported')
+            # ok, frame = self.video_capture.read()
+            # if not ok:
+            #     raise Exception('Couldn\'t get frame.')
+
+            # return frame
+        else:
+            return self.sim_interface.get_rear_frame() # pyright: ignore[reportOptionalMemberAccess]
 
     def get_prox_sensors(self) -> list[int]:
         """
@@ -161,6 +178,7 @@ class SimInterface:
 
     # sync constants
     AI_FRONT_CAM_REQUEST = 1
+    AI_REAR_CAM_REQUEST = 6
     SIM_FRAME_WAIT = 2
     AI_MOVE_INSTRUCTION = 3
     SIM_AKNOWLEDGE_INSTRUCTION = 4
@@ -215,13 +233,29 @@ class SimInterface:
 
         self.mem[1] = val
 
-    def get_frame(self) -> MatLike:
+    def get_front_frame(self) -> MatLike:
         """
         Requests a frame and does some processing for the image
         to be usable by AI.
         """
 
         self.send_instruction(Instruction.RequestFrontCam)
+
+        raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
+        im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
+
+        # for some reason blue and red channels are swapped?
+        # r, g, b = im.split()
+        # return np.array(Image.merge('RGB', (b, g, r)))
+        return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+
+    def get_rear_frame(self) -> MatLike:
+        """
+        Requests a frame and does some processing for the image
+        to be usable by AI.
+        """
+
+        self.send_instruction(Instruction.RequestRearCam)
 
         raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
@@ -261,6 +295,8 @@ class SimInterface:
 
         if instr == Instruction.RequestFrontCam:
             self.set_sync_byte(SimInterface.AI_FRONT_CAM_REQUEST)
+        elif instr == Instruction.RequestRearCam:
+            self.set_sync_byte(SimInterface.AI_REAR_CAM_REQUEST)
         elif instr == Instruction.RequestProxSensor:
             self.set_sync_byte(SimInterface.AI_PROX_SENSOR_READ_REQUEST)
         else:

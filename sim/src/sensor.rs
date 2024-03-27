@@ -102,6 +102,7 @@ pub enum SimInstruction {
     MoveLongRight,
     Evade,
     FrontCamFrame,
+    RearCamFrame,
     ProxSensorReads,
 }
 
@@ -173,6 +174,7 @@ pub struct AISimMem {
 impl AISimMem {
     // sync constants
     const AI_FRONT_CAM_REQUEST: u8 = 1;
+    const AI_REAR_CAM_REQUEST: u8 = 6;
     const SIM_SCAN_WAIT: u8 = 2;
     const AI_MOVE_INSTRUCTION: u8 = 3;
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
@@ -287,6 +289,7 @@ impl AISimMem {
     pub fn get_instruction(&self) -> Option<SimInstruction> {
         match self.sync_byte.get() {
             AISimMem::AI_FRONT_CAM_REQUEST => Some(SimInstruction::FrontCamFrame),
+            AISimMem::AI_REAR_CAM_REQUEST => Some(SimInstruction::RearCamFrame),
             AISimMem::AI_PROX_SENSOR_READ_REQUEST => Some(SimInstruction::ProxSensorReads),
             AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
                 AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
