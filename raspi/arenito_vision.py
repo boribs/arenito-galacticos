@@ -381,18 +381,26 @@ class ArenitoVision:
         img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
 
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        mask = ColorFilter.filter(hsv, ColorFilter.BLACK)
+        detection_points = self.detect_blobs(hsv, ColorFilter.BLACK)
+
+        return [
+            Detection.from_point(point)
+            for point in detection_points
+            if self.reachable(hsv, point)
+        ]
+
+    def detect_blobs(self, img_hsv: MatLike, color: ColorF) -> list[Point]:
+        """
+        Finds blobs after aplying a color filter.
+        """
+
+        mask = ColorFilter.filter(img_hsv, color)
 
         keypoints = self.blob_detector.detect(mask)
-        detections: list[Detection] = []
-
-        for k in keypoints:
-            det = Point(*map(int, k.pt))
-
-            if self.reachable(hsv, det):
-                detections.append(Detection.from_point(det))
-
-        return detections
+        return [
+            Point(*map(int, k.pt))
+            for k in keypoints
+        ]
 
     def find_cans(self, img: MatLike) -> list[Detection]:
         """
