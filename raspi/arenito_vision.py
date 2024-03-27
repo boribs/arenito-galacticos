@@ -63,6 +63,38 @@ class Detection:
         rect = cv2.minAreaRect(cnt)
         return Detection(rect, cnt)
 
+class BlobDetector:
+    """
+    My blob detector class.
+    """
+
+    def __init__(self, params): # pyright: ignore[reportMissingParameterType, reportUnknownParameterType]
+        self.detector = cv2.SimpleBlobDetector.create(params)
+
+    @staticmethod
+    def can_detector(min_can_area: int) -> BlobDetector:
+        """
+        Blob detector tuned for cans.
+        """
+
+        params = cv2.SimpleBlobDetector.Params()
+        params.filterByArea = True
+        params.minArea = min_can_area
+        params.maxArea = 300000
+        params.filterByCircularity = False
+        params.filterByConvexity = False
+        params.filterByInertia = True
+        params.minInertiaRatio = 0.01
+        params.maxInertiaRatio = 0.7
+
+        return BlobDetector(params)
+
+    def detect(self, image: MatLike) -> Sequence[cv2.KeyPoint]:
+        """
+        Runs image through blob detector.
+        """
+
+        return self.detector.detect(image)
 
 ColorF = tuple[ntp.NDArray[np.int8], ntp.NDArray[np.int8]]
 class ColorFilter:
@@ -199,19 +231,7 @@ class ArenitoVision:
 
         # Minimum size for a rect to be considered a can
         self.min_can_area = 700
-
-        # Blob detector config
-        params = cv2.SimpleBlobDetector.Params()
-        params.filterByArea = True
-        params.minArea = self.min_can_area
-        params.maxArea = 300000
-        params.filterByCircularity = False
-        params.filterByConvexity = False
-        params.filterByInertia = True
-        params.minInertiaRatio = 0.01
-        params.maxInertiaRatio = 0.7
-
-        self.blob_detector = cv2.SimpleBlobDetector.create(params)
+        self.blob_detector = BlobDetector.can_detector(self.min_can_area)
 
         # Can critical region: The area with which will decide if a can was or not grabbed
         # +------------------------+
