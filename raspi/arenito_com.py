@@ -249,7 +249,6 @@ class SimInterface:
         # return np.array(Image.merge('RGB', (b, g, r)))
         return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
 
-
     def get_front_frame(self) -> MatLike:
         """
         Requests front camera's frame.
