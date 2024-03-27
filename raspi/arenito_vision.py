@@ -4,6 +4,7 @@ from __future__ import annotations
 import cv2
 import math
 import numpy as np
+import numpy.typing as ntp
 from argparse import Namespace
 from typing import NamedTuple
 from cv2.typing import MatLike, RotatedRect
@@ -62,6 +63,8 @@ class Detection:
         rect = cv2.minAreaRect(cnt)
         return Detection(rect, cnt)
 
+
+ColorF = tuple[ntp.NDArray[np.int8], ntp.NDArray[np.int8]]
 class ColorFilter:
     """
     Stores color filter data.
@@ -82,6 +85,15 @@ class ColorFilter:
         np.array([0, 0, 69]),      # lower
         np.array([175, 255, 255]), # upper
     )
+
+    @staticmethod
+    def filter(img_hsv: MatLike, color: ColorF) -> MatLike:
+        """
+        Applies color filter to hsv_img and returns mask.
+        """
+
+        lower, upper = color
+        return cv2.inRange(img_hsv, lower, upper)
 
 class ArenitoVision:
     """
@@ -302,12 +314,8 @@ class ArenitoVision:
         Determines if a detection is reachable. Returns true if possible, otherwise false.
         """
 
-        lower, upper = ColorFilter.BLUE
-        mask_azul = cv2.inRange(img_hsv, lower, upper)
-
-        # Filter out can deposit!
-        lower, upper = ColorFilter.RED
-        mask_red = cv2.inRange(img_hsv, lower, upper)
+        mask_azul = ColorFilter.filter(img_hsv, ColorFilter.BLUE)
+        mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
 
         mask = cv2.bitwise_or(mask_azul, mask_red)
 
@@ -373,9 +381,7 @@ class ArenitoVision:
         img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
 
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        lower, upper = ColorFilter.BLACK
-        mask = cv2.inRange(hsv, lower, upper)
-
+        mask = ColorFilter.filter(hsv, ColorFilter.BLACK)
 
         keypoints = self.blob_detector.detect(mask)
         detections: list[Detection] = []
