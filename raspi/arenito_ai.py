@@ -122,9 +122,7 @@ class ArenitoAI:
                 continue
 
             if min(scan_results.proximities[:2]) < ArenitoAI.MIN_PROX_REACT_RANGE:
-                for _ in range(10):
-                    self.com.send_instruction(Instruction.MoveBack)
-                self.com.send_instruction(Instruction.MoveLongRight)
+                self.evade()
                 continue
 
             if self.vis.can_in_critical_region(scan_results.detections):
@@ -181,3 +179,12 @@ class ArenitoAI:
             self.com.send_instruction(Instruction.MoveForward)
         else:
             self.com.send_instruction(Instruction.MoveRight)
+
+    def evade(self):
+        """
+        Evasion routine.
+        """
+
+        for _ in range(10):
+            self.com.send_instruction(Instruction.MoveBack)
+        self.com.send_instruction(Instruction.MoveLongRight)
