@@ -233,13 +233,13 @@ class SimInterface:
 
         self.mem[1] = val
 
-    def get_front_frame(self) -> MatLike:
+    def get_frame(self, instruction: Instruction) -> MatLike:
         """
         Requests a frame and does some processing for the image
         to be usable by AI.
         """
 
-        self.send_instruction(Instruction.RequestFrontCam)
+        self.send_instruction(instruction)
 
         raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
@@ -248,23 +248,21 @@ class SimInterface:
         # r, g, b = im.split()
         # return np.array(Image.merge('RGB', (b, g, r)))
         return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+
+
+    def get_front_frame(self) -> MatLike:
+        """
+        Requests front camera's frame.
+        """
+
+        return self.get_frame(Instruction.RequestFrontCam)
 
     def get_rear_frame(self) -> MatLike:
         """
-        Requests a frame and does some processing for the image
-        to be usable by AI.
+        Requests rear camera's frame.
         """
 
-        self.send_instruction(Instruction.RequestRearCam)
-
-        raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
-        im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
-
-        # for some reason blue and red channels are swapped?
-        # r, g, b = im.split()
-        # return np.array(Image.merge('RGB', (b, g, r)))
-
-        return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
+        return self.get_frame(Instruction.RequestRearCam)
 
     def get_proximity_sensor_reads(self) -> list[int]:
         """
