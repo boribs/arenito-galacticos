@@ -6,7 +6,7 @@ import math
 import numpy as np
 import numpy.typing as ntp
 from argparse import Namespace
-from typing import NamedTuple
+from typing import NamedTuple, Sequence
 from cv2.typing import MatLike, RotatedRect
 from arenito_com import AIMode
 
@@ -15,6 +15,7 @@ BLACK = (0, 0, 0)
 BLUE = (255, 0, 0)
 GREEN = (0, 255, 0)
 RED = (0, 0, 255)
+ORANGE = (3, 102, 252)
 
 class Point(NamedTuple):
     """
@@ -258,6 +259,7 @@ class ArenitoVision:
         state: str,
         can_counter: int,
         cicr: bool,
+        dump: None | Point,
     ):
         """
         Adds visual markings to image to help visualize decisions.
@@ -314,6 +316,9 @@ class ArenitoVision:
             cv2.circle(det_img, det.center, 10, WHITE, 10)
             cv2.drawContours(det_img, [det.contour], -1, GREEN, 1, cv2.LINE_AA) # pyright: ignore
             cv2.drawContours(det_img, [det.box], -1, RED, 1, cv2.LINE_AA) # pyright: ignore
+
+        if dump:
+            cv2.circle(det_img, dump, 10, ORANGE, 10)
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -409,12 +414,15 @@ class ArenitoVision:
             if self.reachable(hsv, point)
         ]
 
-    def detect_blobs(self, img_hsv: MatLike, color: ColorF) -> list[Point]:
+    def detect_blobs(self, img_hsv: MatLike, color: ColorF, show: bool = False) -> list[Point]:
         """
         Finds blobs after aplying a color filter.
         """
 
         mask = ColorFilter.filter(img_hsv, color)
+
+        if show:
+            cv2.imshow("mask", mask)
 
         keypoints = self.blob_detector.detect(mask)
         return [
@@ -444,3 +452,20 @@ class ArenitoVision:
             return False
 
         return self.can_critical_region.point_inside(detections[0].center)
+
+    def detect_dumping_zone(self, blurred_img: MatLike) -> None | Point:
+        """
+        Filters out red color and returns a point indicating where it is.
+        """
+
+        img = cv2.copyMakeBorder(blurred_img, 10, 10, 10, 10, cv2.BORDER_CONSTANT, None, WHITE)
+        zone = self.detect_blobs(
+            cv2.cvtColor(img, cv2.COLOR_BGR2HSV),
+            ColorFilter.RED,
+            True
+        )
+
+        if cv2.waitKey(1) == 27:
+            return None
+
+        return zone[0] if zone else None

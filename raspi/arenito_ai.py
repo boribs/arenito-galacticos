@@ -15,11 +15,12 @@ class ScanResult:
     blurred: MatLike
     detections: list[Detection]
     proximities: list[int]
+    dumping_zone: None | Point
 
 class ArenitoState(Enum):
     LookingForCans = auto()
     GrabbingCan = auto()
-    # DumpingCans = auto()
+    DumpingCans = auto()
 
 class ArenitoAI:
     """
@@ -50,12 +51,14 @@ class ArenitoAI:
         blurred = self.vis.blur(original)
         detections = self.vis.find_cans(blurred)
         proximities = self.com.get_prox_sensors()
+        dumping_zone = self.vis.detect_dumping_zone(blurred)
 
         return ScanResult(
             original=original,
             blurred=blurred,
             detections=detections,
-            proximities=proximities
+            proximities=proximities,
+            dumping_zone=dumping_zone
         )
 
     def get_state(self, scan_results: ScanResult):
@@ -65,6 +68,8 @@ class ArenitoAI:
 
         if scan_results.detections:
             self.state = ArenitoState.GrabbingCan
+        elif scan_results.dumping_zone: # and self.can_counter > 0:
+            self.state = ArenitoState.DumpingCans
         else:
             self.state = ArenitoState.LookingForCans
 
@@ -114,6 +119,7 @@ class ArenitoAI:
                 state_str,
                 self.can_counter,
                 self.can_in_critical_region,
+                scan_results.dumping_zone
             )
             cv2.imshow('arenito pov', scan_results.original)
             #   cv2.imshow('arenito pov - blurred', blurred)
@@ -133,6 +139,9 @@ class ArenitoAI:
 
             if self.state == ArenitoState.GrabbingCan:
                 self.get_can(scan_results)
+                self.clear_timer()
+            elif self.state == ArenitoState.DumpingCans:
+                self.dump_cans(scan_results)
                 self.clear_timer()
             elif self.state == ArenitoState.LookingForCans:
                 self.start_timer()
@@ -188,3 +197,41 @@ class ArenitoAI:
         for _ in range(10):
             self.com.send_instruction(Instruction.MoveBack)
         self.com.send_instruction(Instruction.MoveLongRight)
+
+    def dump_cans(self, scan_results: ScanResult):
+        """
+        Can-dumping routine.
+        """
+
+        # get close (front cam)
+        while not self.vis.can_critical_region.point_inside(scan_results.dumping_zone): # pyright: ignore[reportArgumentType]
+            self.align_with_deposit(scan_results)
+            self.com.send_instruction(Instruction.MoveForward)
+            scan_results = self.scan()
+
+            if not scan_results.dumping_zone:
+                break
+
+        while True:
+            print('halting')
+
+        # align (rear cam)
+        # get close (sensors)
+        # dump cans
+
+    def align_with_deposit(self, scan_results: ScanResult):
+        """
+        Aligns with can deposit.
+        """
+
+        while scan_results.dumping_zone:
+            x = scan_results.dumping_zone.x
+
+            if self.vis.center_x_max <= x:
+                self.com.send_instruction(Instruction.MoveRight)
+            elif self.vis.center_x_min >= x:
+                self.com.send_instruction(Instruction.MoveLeft)
+            else:
+                break
+
+            scan_results = self.scan()
