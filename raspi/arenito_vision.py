@@ -270,7 +270,7 @@ class ArenitoVision:
         state: str,
         can_counter: int,
         cicr: bool,
-        dump: None | Point,
+        dump: None | Detection,
     ):
         """
         Adds visual markings to image to help visualize decisions.
@@ -329,7 +329,7 @@ class ArenitoVision:
             cv2.drawContours(det_img, [det.box], -1, RED, 1, cv2.LINE_AA) # pyright: ignore
 
         if dump:
-            cv2.circle(det_img, dump, 10, ORANGE, 10)
+            cv2.circle(det_img, dump.center, 10, ORANGE, 10)
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -449,7 +449,7 @@ class ArenitoVision:
 
         return self.can_critical_region.point_inside(detections[0].center)
 
-    def detect_dumping_zone(self, blurred_img: MatLike) -> None | Point:
+    def detect_dumping_zone(self, blurred_img: MatLike) -> None | Detection:
         """
         Filters out red color and returns a point indicating where it is.
         """
