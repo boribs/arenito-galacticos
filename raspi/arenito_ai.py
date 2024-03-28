@@ -1,5 +1,6 @@
 # pyright: strict
 
+from __future__ import annotations
 import cv2
 from argparse import Namespace
 from cv2.typing import MatLike
@@ -8,6 +9,7 @@ from enum import Enum, auto
 from arenito_com import *
 from arenito_vision import *
 from time import time
+from typing import Callable
 
 @dataclass
 class ScanResult:
@@ -147,29 +149,18 @@ class ArenitoAI:
                 self.start_timer()
                 self.search_cans(scan_results)
 
-    def align(self, scan_results: ScanResult):
-        """
-        Aligns with closest (first) detection.
-        """
-
-        while scan_results.detections:
-            x = scan_results.detections[0].center.x
-
-            if self.vis.center_x_max <= x:
-                self.com.send_instruction(Instruction.MoveRight)
-            elif self.vis.center_x_min >= x:
-                self.com.send_instruction(Instruction.MoveLeft)
-            else:
-                break
-
-            scan_results = self.scan()
-
     def get_can(self, scan_results: ScanResult):
         """
         Can-getter routine.
         """
 
-        self.align(scan_results)
+        def can_aligner(ai: ArenitoAI) -> int:
+            scan_results = ai.scan()
+            if not scan_results.detections:
+                return 256
+            return scan_results.detections[0].center.x
+
+        self.align(scan_results.detections[0].center.x, can_aligner, self)
         self.com.send_instruction(Instruction.MoveForward)
 
     def search_cans(self, scan_results: ScanResult):
@@ -237,3 +228,25 @@ class ArenitoAI:
                 break
 
             scan_results = self.scan()
+
+    def align(
+        self,
+        initial_x: int,
+        callback: Callable[[ArenitoAI], int],
+        callback_args: ArenitoAI
+    ):
+        """
+        Alignment function. Calls callback to update x value.
+        """
+
+        x = initial_x
+        aligned = False
+        while not aligned:
+            if self.vis.center_x_max <= x:
+                self.com.send_instruction(Instruction.MoveRight)
+            elif self.vis.center_x_min >= x:
+                self.com.send_instruction(Instruction.MoveLeft)
+            else:
+                aligned = True
+
+            x = callback(callback_args)
