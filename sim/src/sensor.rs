@@ -264,10 +264,7 @@ impl AISimMem {
     }
 
     /// Reads Arenito's proximity sensors and returns the value.
-    pub fn export_sensor_reads(
-        &mut self,
-        sensor_reads: Vec<u8>,
-    ) {
+    pub fn export_sensor_reads(&mut self, sensor_reads: Vec<u8>) {
         self.memspace.set(sensor_reads.len() as u8);
         for (i, read) in sensor_reads.iter().enumerate() {
             self.memspace.next(i + 1).set(*read);

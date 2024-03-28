@@ -283,7 +283,9 @@ impl CameraData {
         let mut cam_transform =
             Transform::from_translation(self.offset.translation).looking_to(Vec3::X, Vec3::Y);
         cam_transform.rotation *= self.offset.rotation;
-        let window = parent.spawn((Self::get_window(title, visible), *component)).id();
+        let window = parent
+            .spawn((Self::get_window(title, visible), *component))
+            .id();
 
         parent.spawn(self.get_camera_bundle(window, cam_transform));
     }

@@ -26,7 +26,7 @@ struct Args {
     small_window: bool,
     /// Make Arenito's cameras windows visible
     #[arg(short = 'v', long, default_value_t = false)]
-    visible_cameras: bool
+    visible_cameras: bool,
 }
 
 const SMALL_WINDOW_SIZE_WIDTH: f32 = 600.0;
