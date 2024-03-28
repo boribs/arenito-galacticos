@@ -396,7 +396,7 @@ pub struct ArenitoConfig {
 impl ArenitoConfig {
     pub fn deposit_test(visible_cameras: bool) -> Self {
         ArenitoConfig {
-            initial_pos: Transform::from_xyz(-3.0, 0.0, 3.0).with_rotation(Quat::from_euler(
+            initial_pos: Transform::from_xyz(-3.0, 0.2, 3.0).with_rotation(Quat::from_euler(
                 EulerRot::XYZ,
                 0.0,
                 std::f32::consts::FRAC_PI_4,
