@@ -15,7 +15,7 @@ class ScanResult:
     blurred: MatLike
     detections: list[Detection]
     proximities: list[int]
-    dumping_zone: None | Point
+    dumping_zone: None | Detection
 
 class ArenitoState(Enum):
     LookingForCans = auto()
@@ -204,7 +204,9 @@ class ArenitoAI:
         """
 
         # get close (front cam)
-        while not self.vis.can_critical_region.point_inside(scan_results.dumping_zone): # pyright: ignore[reportArgumentType]
+        if not scan_results.dumping_zone: return
+
+        while not self.vis.deposit_critical_region.point_inside(scan_results.dumping_zone.center): # pyright: ignore[reportArgumentType]
             self.align_with_deposit(scan_results)
             self.com.send_instruction(Instruction.MoveForward)
             scan_results = self.scan()
@@ -212,10 +214,10 @@ class ArenitoAI:
             if not scan_results.dumping_zone:
                 break
 
-        while True:
-            print('halting')
-
         # align (rear cam)
+        print('halting')
+        exit(4545)
+
         # get close (sensors)
         # dump cans
 
@@ -225,7 +227,7 @@ class ArenitoAI:
         """
 
         while scan_results.dumping_zone:
-            x = scan_results.dumping_zone.x
+            x = scan_results.dumping_zone.center.x
 
             if self.vis.center_x_max <= x:
                 self.com.send_instruction(Instruction.MoveRight)

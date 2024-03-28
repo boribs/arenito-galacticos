@@ -157,6 +157,14 @@ class ArenitoVision:
         AIMode.Real : Rect(Point(0, 0), Point(0, 0)),
     }
 
+    DEPOSIT_CRITICAL_REGIONS = {
+        AIMode.Simulation : Rect(
+            Point(120, 300),
+            Point(392, 512)
+        ),
+        AIMode.Real : Rect(Point(0, 0), Point(0, 0)),
+    }
+
     def __init__(self, mode: AIMode, args: Namespace):
         if mode == AIMode.Simulation or mode == AIMode.Real:
             res = ArenitoVision.RESOLUTIONS[mode]
@@ -255,6 +263,8 @@ class ArenitoVision:
         # Arenito will remember if a can is visible within this area, the moment it stopps
         # being visible, that can most probably was grabbed.
         self.can_critical_region = ArenitoVision.CAN_CRITICAL_REGIONS[mode]
+        # Same for deposit's critial region
+        self.deposit_critical_region = ArenitoVision.DEPOSIT_CRITICAL_REGIONS[mode]
 
     def add_text(self, img: MatLike, text: str, pos: Point):
         """
@@ -298,6 +308,14 @@ class ArenitoVision:
             self.can_critical_region.a,
             self.can_critical_region.b,
             BLACK,
+            1
+        )
+
+        cv2.rectangle(
+            det_img,
+            self.deposit_critical_region.a,
+            self.deposit_critical_region.b,
+            ORANGE,
             1
         )
 
