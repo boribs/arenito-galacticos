@@ -13,6 +13,7 @@ rand = "0.8.5"
 memmap = "0.7.0"
 image = "0.24.8"
 itertools = "0.12.1"
+clap = { version = "4.5.4", features = ["derive"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

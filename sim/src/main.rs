@@ -6,11 +6,28 @@ pub mod sensor;
 pub mod static_shape;
 
 use arenito::{ArenitoConfig, ArenitoPlugin};
-use bevy::{prelude::*, window::ExitCondition, winit::WinitSettings};
+use bevy::{
+    prelude::*,
+    window::{ExitCondition, WindowResolution},
+    winit::WinitSettings,
+};
+use clap::Parser;
 use memmap;
 use scenes::{SceneData, SceneLoaderPlugin};
 use sensor::AISimMem;
 use std::{fs::OpenOptions, io::Write};
+
+/// CLI arguments
+#[derive(Parser, Debug)]
+#[command(about)]
+struct Args {
+    /// If set, main window's default size is small
+    #[arg(short, long, default_value_t = false)]
+    small_window: bool,
+}
+
+const SMALL_WINDOW_SIZE_WIDTH: f32 = 600.0;
+const SMALL_WINDOW_SIZE_HEIGHT: f32 = 360.0;
 
 fn main() {
     let mut file = match OpenOptions::new()
@@ -24,6 +41,13 @@ fn main() {
     // Clear first bytes
     let _ = file.write(&[0, 0, 0]);
 
+    let args = Args::parse();
+    let window_res = if args.small_window {
+        WindowResolution::new(SMALL_WINDOW_SIZE_WIDTH, SMALL_WINDOW_SIZE_HEIGHT)
+    } else {
+        WindowResolution::default()
+    };
+
     let mut mmap = unsafe {
         memmap::MmapOptions::new()
             .map_mut(&file)
@@ -33,6 +57,10 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.build().set(WindowPlugin {
             exit_condition: ExitCondition::OnPrimaryClosed,
+            primary_window: Some(Window {
+                resolution: window_res,
+                ..default()
+            }),
             ..default()
         }))
         .insert_resource(WinitSettings {
