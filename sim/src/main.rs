@@ -24,6 +24,9 @@ struct Args {
     /// If set, main window's default size is small
     #[arg(short, long, default_value_t = false)]
     small_window: bool,
+    /// Make Arenito's cameras windows visible
+    #[arg(short = 'v', long, default_value_t = false)]
+    visible_cameras: bool
 }
 
 const SMALL_WINDOW_SIZE_WIDTH: f32 = 600.0;
@@ -76,7 +79,10 @@ fn main() {
             },
             ArenitoPlugin {
                 enable_can_eating: true,
-                arenito_config: ArenitoConfig::default(),
+                arenito_config: ArenitoConfig {
+                    visible_cameras: args.visible_cameras,
+                    ..default()
+                },
             },
         ))
         .run();

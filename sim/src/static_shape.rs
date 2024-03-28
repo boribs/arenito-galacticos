@@ -239,10 +239,10 @@ impl CameraData {
         )
     }
 
-    fn get_window(title: String) -> Window {
+    fn get_window(title: String, visible: bool) -> Window {
         Window {
             title,
-            visible: false,
+            visible,
             resolution: WindowResolution::new(IMG_WIDTH, IMG_HEIGHT),
             resizable: false,
             ..default()
@@ -267,6 +267,7 @@ impl CameraData {
         asset_server: &Res<AssetServer>,
         component: &(impl Component + Copy),
         title: String,
+        visible: bool,
     ) {
         let euler = self.offset.rotation.to_euler(EulerRot::XYZ);
         let model_transform = Transform::from_translation(self.offset.translation)
@@ -282,7 +283,7 @@ impl CameraData {
         let mut cam_transform =
             Transform::from_translation(self.offset.translation).looking_to(Vec3::X, Vec3::Y);
         cam_transform.rotation *= self.offset.rotation;
-        let window = parent.spawn((Self::get_window(title), *component)).id();
+        let window = parent.spawn((Self::get_window(title, visible), *component)).id();
 
         parent.spawn(self.get_camera_bundle(window, cam_transform));
     }

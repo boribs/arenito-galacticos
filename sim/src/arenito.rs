@@ -146,17 +146,11 @@ fn arenito_ai_mover(
                 if let Some(instr) = aisim.get_instruction() {
                     match instr {
                         SimInstruction::FrontCamFrame => {
-                            aisim.export_frame(
-                                &mut screenshot_manager,
-                                &windows.p0().single()
-                            );
+                            aisim.export_frame(&mut screenshot_manager, &windows.p0().single());
                             aisim.confirm_instruction();
                         }
                         SimInstruction::RearCamFrame => {
-                            aisim.export_frame(
-                                &mut screenshot_manager,
-                                &windows.p1().single()
-                            );
+                            aisim.export_frame(&mut screenshot_manager, &windows.p1().single());
                             aisim.confirm_instruction();
                         }
                         SimInstruction::ProxSensorReads => {
@@ -396,6 +390,7 @@ pub struct ArenitoConfig {
     pub initial_pos: Transform,
     pub brush_speed: f32,
     pub velocity_k: f32,
+    pub visible_cameras: bool,
 }
 
 impl Default for ArenitoConfig {
@@ -409,6 +404,7 @@ impl Default for ArenitoConfig {
             )),
             brush_speed: 10.0,
             velocity_k: 1.5,
+            visible_cameras: false,
         }
     }
 }
@@ -431,6 +427,7 @@ pub struct Arenito {
     instruction_handler: InstructionHandler,
     control_mode: ControlMode,
     proximity_sensor_offsets: Vec<Transform>,
+    visible_cameras: bool,
 }
 
 impl Arenito {
@@ -452,6 +449,7 @@ impl Arenito {
             brush_speed: config.brush_speed,
             initial_pos: config.initial_pos,
             velocity_k: config.velocity_k,
+            visible_cameras: config.visible_cameras,
         }
     }
 
@@ -570,6 +568,7 @@ impl Arenito {
                     asset_server,
                     &ArenitoFrontCamWindow,
                     "Front view".to_owned(),
+                    self.visible_cameras,
                 );
 
                 self.rear_cam_data.spawn(
@@ -578,6 +577,7 @@ impl Arenito {
                     asset_server,
                     &ArenitoRearCamWindow,
                     "Rear view".to_owned(),
+                    self.visible_cameras,
                 );
             });
     }
