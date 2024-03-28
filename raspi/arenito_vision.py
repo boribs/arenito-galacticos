@@ -90,15 +90,6 @@ class BlobDetector:
 
         return BlobDetector(params)
 
-    @staticmethod
-    def deposit_detector() -> BlobDetector:
-        """
-        Blob detector tuned for deposit?
-        """
-
-        params = cv2.SimpleBlobDetector.Params()
-        return BlobDetector(params)
-
     def detect(self, image_hsv: MatLike) -> Sequence[cv2.KeyPoint]:
         """
         Runs image through blob detector.
@@ -253,7 +244,6 @@ class ArenitoVision:
         # Minimum size for a rect to be considered a can
         self.min_can_area = 700
         self.can_blob_detector = BlobDetector.can_detector(self.min_can_area)
-        self.deposit_blob_detector = BlobDetector.deposit_detector()
 
         # Can critical region: The area with which will decide if a can was or not grabbed
         # +------------------------+
