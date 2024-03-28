@@ -88,6 +88,17 @@ impl SceneData {
         self.can_positions = can_positions;
         self
     }
+
+    pub fn deposit_test() -> Self {
+        SceneData {
+            cam_transform: Transform::from_xyz(0.0, 15.0, 0.01).looking_at(Vec3::ZERO, Vec3::Y),
+            sand: PlaneData::sand(10.0, 10.0, 0.01),
+            water: PlaneData::water(12.0, 12.0, 0.01),
+            can_positions: Vec::new(),
+            deposit_position: Vec3::new(3.0, 0.0, -3.0),
+            obstacles: Vec::new(),
+        }
+    }
 }
 
 impl Default for SceneData {

@@ -73,16 +73,13 @@ fn main() {
         .insert_resource(AISimMem::new(&mut mmap))
         .add_plugins((
             SceneLoaderPlugin {
-                scene_data: SceneData::default(),
+                scene_data: SceneData::deposit_test(),
                 draw_can_collision_sphere: true,
                 draw_obstacle_collision_mesh: true,
             },
             ArenitoPlugin {
                 enable_can_eating: true,
-                arenito_config: ArenitoConfig {
-                    visible_cameras: args.visible_cameras,
-                    ..default()
-                },
+                arenito_config: ArenitoConfig::deposit_test(args.visible_cameras),
             },
         ))
         .run();
