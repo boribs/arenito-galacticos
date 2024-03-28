@@ -90,12 +90,32 @@ class BlobDetector:
 
         return BlobDetector(params)
 
-    def detect(self, image: MatLike) -> Sequence[cv2.KeyPoint]:
+    @staticmethod
+    def deposit_detector() -> BlobDetector:
+        """
+        Blob detector tuned for deposit?
+        """
+
+        params = cv2.SimpleBlobDetector.Params()
+        return BlobDetector(params)
+
+    def detect(self, image_hsv: MatLike) -> Sequence[cv2.KeyPoint]:
         """
         Runs image through blob detector.
         """
 
-        return self.detector.detect(image)
+        return self.detector.detect(image_hsv)
+
+    def points(self, image_hsv: MatLike) -> list[Point]:
+        """
+        Runs image through blob detector. Returns list of Point instead of cv2.KeyPoint.
+        """
+
+        keypoints = self.detect(image_hsv)
+        return [
+            Point(*map(int, k.pt))
+            for k in keypoints
+        ]
 
 ColorF = tuple[ntp.NDArray[np.int8], ntp.NDArray[np.int8]]
 class ColorFilter:
@@ -232,7 +252,8 @@ class ArenitoVision:
 
         # Minimum size for a rect to be considered a can
         self.min_can_area = 700
-        self.blob_detector = BlobDetector.can_detector(self.min_can_area)
+        self.can_blob_detector = BlobDetector.can_detector(self.min_can_area)
+        self.deposit_blob_detector = BlobDetector.deposit_detector()
 
         # Can critical region: The area with which will decide if a can was or not grabbed
         # +------------------------+
@@ -406,28 +427,13 @@ class ArenitoVision:
         img = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
 
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        detection_points = self.detect_blobs(hsv, ColorFilter.BLACK)
+        black_mask = ColorFilter.filter(hsv, ColorFilter.BLACK)
+        detection_points = self.can_blob_detector.points(black_mask)
 
         return [
             Detection.from_point(point)
             for point in detection_points
             if self.reachable(hsv, point)
-        ]
-
-    def detect_blobs(self, img_hsv: MatLike, color: ColorF, show: bool = False) -> list[Point]:
-        """
-        Finds blobs after aplying a color filter.
-        """
-
-        mask = ColorFilter.filter(img_hsv, color)
-
-        if show:
-            cv2.imshow("mask", mask)
-
-        keypoints = self.blob_detector.detect(mask)
-        return [
-            Point(*map(int, k.pt))
-            for k in keypoints
         ]
 
     def find_cans(self, img: MatLike) -> list[Detection]:
@@ -459,11 +465,10 @@ class ArenitoVision:
         """
 
         img = cv2.copyMakeBorder(blurred_img, 10, 10, 10, 10, cv2.BORDER_CONSTANT, None, WHITE)
-        zone = self.detect_blobs(
-            cv2.cvtColor(img, cv2.COLOR_BGR2HSV),
-            ColorFilter.RED,
-            True
-        )
+        img_hsv = ColorFilter.filter(cv2.cvtColor(img, cv2.COLOR_BGR2HSV), ColorFilter.RED)
+        zone = self.deposit_blob_detector.points(img_hsv)
+
+        cv2.imshow("dumping filter", img_hsv)
 
         if cv2.waitKey(1) == 27:
             return None
