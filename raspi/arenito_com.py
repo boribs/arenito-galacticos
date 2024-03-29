@@ -22,6 +22,7 @@ class Instruction(Enum):
     RequestFrontCam = auto()
     RequestRearCam = auto()
     RequestProxSensor = auto()
+    DumpCans = auto()
 
 INSTRUCTION_MAP = {
     Instruction.MoveForward: 'a',
@@ -121,8 +122,18 @@ class ArenitoComms:
 
         if self.serial:
             self.serial.send_instruction(instr)
-        else:
-            self.sim_interface.send_instruction(instr) # pyright: ignore[reportOptionalMemberAccess]
+        elif self.sim_interface:
+            self.sim_interface.send_instruction(instr)
+
+    def dump_cans(self):
+        """
+        Dumps cans.
+        """
+
+        if self.serial:
+            raise Exception('Instruction not implemented for Serial interface')
+        elif self.sim_interface:
+            self.sim_interface.send_instruction(Instruction.DumpCans)
 
 class SerialInterface:
     def __init__(self, port: str | None, baudrate: int, timeout: float = 0.0):
@@ -183,6 +194,7 @@ class SimInterface:
     AI_MOVE_INSTRUCTION = 3
     SIM_AKNOWLEDGE_INSTRUCTION = 4
     AI_PROX_SENSOR_READ_REQUEST = 5
+    AI_DUMP_CANS = 7
 
     # memory layout
     SYNC_SIZE = 1
@@ -299,7 +311,10 @@ class SimInterface:
             self.set_sync_byte(SimInterface.AI_REAR_CAM_REQUEST)
         elif instr == Instruction.RequestProxSensor:
             self.set_sync_byte(SimInterface.AI_PROX_SENSOR_READ_REQUEST)
+        elif instr == Instruction.DumpCans:
+            self.set_sync_byte(SimInterface.AI_DUMP_CANS)
         else:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
+
         self.wait_confirmation()

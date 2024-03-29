@@ -165,6 +165,10 @@ fn arenito_ai_mover(
                             }
                             aisim.export_sensor_reads(sensor_reads);
                         }
+                        SimInstruction::DumpCans => {
+                            println!("Dumping cans!");
+                            aisim.confirm_instruction();
+                        }
                         other => {
                             arenito.instruction_handler.set(other);
                             arenito.instruction_handler.execute();

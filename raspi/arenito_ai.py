@@ -10,7 +10,7 @@ from arenito_com import *
 from arenito_vision import *
 from arenito_timer import ArenitoTimer
 from typing import Callable, Iterable
-from time import sleep
+# from time import sleep
 
 @dataclass
 class ScanResult:
@@ -264,8 +264,7 @@ class ArenitoAI:
                 self.com.send_instruction(Instruction.MoveBack)
 
         # dump cans
-        sleep(1)
-        print(f'depositó {self.can_counter} latas.')
+        self.com.dump_cans()
         self.can_counter = 0
 
     def align(
