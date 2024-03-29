@@ -264,7 +264,7 @@ class ArenitoAI:
                 self.com.send_instruction(Instruction.MoveBack)
 
         # dump cans
-        self.com.dump_cans()
+        self.com.dump_cans(self.can_counter)
         self.can_counter = 0
 
     def align(

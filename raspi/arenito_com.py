@@ -125,7 +125,7 @@ class ArenitoComms:
         elif self.sim_interface:
             self.sim_interface.send_instruction(instr)
 
-    def dump_cans(self):
+    def dump_cans(self, ammount: int):
         """
         Dumps cans.
         """
@@ -133,7 +133,7 @@ class ArenitoComms:
         if self.serial:
             raise Exception('Instruction not implemented for Serial interface')
         elif self.sim_interface:
-            self.sim_interface.send_instruction(Instruction.DumpCans)
+            self.sim_interface.dump_cans(ammount)
 
 class SerialInterface:
     def __init__(self, port: str | None, baudrate: int, timeout: float = 0.0):
@@ -312,9 +312,14 @@ class SimInterface:
         elif instr == Instruction.RequestProxSensor:
             self.set_sync_byte(SimInterface.AI_PROX_SENSOR_READ_REQUEST)
         elif instr == Instruction.DumpCans:
-            self.set_sync_byte(SimInterface.AI_DUMP_CANS)
+            raise Exception('Must use proper dump_cans() method!')
         else:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
 
+        self.wait_confirmation()
+
+    def dump_cans(self, ammount: int):
+        self.mem[1] = ammount
+        self.set_sync_byte(SimInterface.AI_DUMP_CANS)
         self.wait_confirmation()
