@@ -149,7 +149,7 @@ fn arenito_ai_mover(
                             aisim.export_frame(&mut screenshot_manager, &windows.p0().single());
                             // It's ok to not await this frame, since it's probably very similar to previous.
                             // Awaiting every frame makes the robot sluggish, so I chose not to wait for forward frames.
-                            aisim.confirm_instruction();
+                            // aisim.confirm_instruction();
                         }
                         SimInstruction::RearCamFrame => {
                             aisim.export_frame(&mut screenshot_manager, &windows.p1().single());
@@ -299,7 +299,7 @@ impl InstructionHandler {
                 self.instructions = vec![(BaseInstruction::Back, 0.1)];
             }
             SimInstruction::MoveForward => {
-                self.instructions = vec![(BaseInstruction::Forward, 0.1)];
+                self.instructions = vec![(BaseInstruction::Forward, 0.15)];
             }
             SimInstruction::MoveLeft => {
                 self.instructions = vec![(BaseInstruction::Left, 0.05)];
@@ -308,7 +308,7 @@ impl InstructionHandler {
                 self.instructions = vec![(BaseInstruction::Right, 0.05)];
             }
             SimInstruction::MoveLongRight => {
-                self.instructions = vec![(BaseInstruction::Right, 1.3)];
+                self.instructions = vec![(BaseInstruction::Right, 1.1)];
             }
             SimInstruction::Evade => {
                 self.instructions =
