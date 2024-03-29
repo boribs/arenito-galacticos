@@ -484,6 +484,13 @@ class ArenitoVision:
 
         cv2.circle(blurred_img, det.center, 1, ORANGE, 1)
         cv2.drawContours(blurred_img, [det.box], -1, ORANGE, 1, cv2.LINE_AA) # pyright: ignore
+        cv2.rectangle(
+            blurred_img,
+            self.deposit_critical_region.a,
+            self.deposit_critical_region.b,
+            ORANGE,
+            1
+        )
         cv2.imshow('deposit', blurred_img)
 
         if cv2.waitKey(1) == 27:

@@ -194,12 +194,18 @@ class ArenitoAI:
         Can-dumping routine.
         """
 
-        def get_dump(ai: ArenitoAI) -> Detection | None:
-            img = ai.vis.blur(ai.com.get_front_frame())
+        def get_dump(ai: ArenitoAI, frame: MatLike) -> Detection | None:
+            img = ai.vis.blur(frame)
             return ai.vis.detect_dumping_zone(img)
 
         def front_cam_align(ai: ArenitoAI) -> int:
-            dump = get_dump(ai)
+            dump = get_dump(ai, ai.com.get_front_frame())
+            if not dump:
+                return 256
+            return dump.center.x
+
+        def rear_cam_align(ai: ArenitoAI) -> int:
+            dump = get_dump(ai, ai.com.get_rear_frame())
             if not dump:
                 return 256
             return dump.center.x
@@ -208,23 +214,29 @@ class ArenitoAI:
         if not scan_results.dumping_zone: return
 
         dump_x = scan_results.dumping_zone.center.x
-        done_aligning = False
-        while not done_aligning:
+        while True:
             self.align(dump_x, front_cam_align, self)
             self.com.send_instruction(Instruction.MoveForward)
-            dump = get_dump(self)
+            dump = get_dump(self, self.com.get_front_frame())
 
             if not dump:
-                done_aligning = True
+                break
+            elif self.vis.deposit_critical_region.point_inside(dump.center):
+                break
             else:
-                if self.vis.deposit_critical_region.point_inside(dump.center):
-                    done_aligning = True
-                    break
-
                 dump_x = dump.center.x
 
         # align (rear cam)
-        print('halting')
+        while True:
+            dump = get_dump(self, self.com.get_rear_frame())
+            if dump:
+                dump_x = dump.center.x
+                break
+
+            self.com.send_instruction(Instruction.MoveRight)
+
+        self.align(dump_x, rear_cam_align, self)
+
         exit(4545)
 
         # get close (sensors)
@@ -260,6 +272,7 @@ class ArenitoAI:
         x = initial_x
         aligned = False
         while not aligned:
+            # mínimo y máximo como parámetro
             if self.vis.center_x_max <= x:
                 self.com.send_instruction(Instruction.MoveRight)
             elif self.vis.center_x_min >= x:
