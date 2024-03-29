@@ -242,23 +242,6 @@ class ArenitoAI:
         # get close (sensors)
         # dump cans
 
-    def align_with_deposit(self, scan_results: ScanResult):
-        """
-        Aligns with can deposit.
-        """
-
-        while scan_results.dumping_zone:
-            x = scan_results.dumping_zone.center.x
-
-            if self.vis.center_x_max <= x:
-                self.com.send_instruction(Instruction.MoveRight)
-            elif self.vis.center_x_min >= x:
-                self.com.send_instruction(Instruction.MoveLeft)
-            else:
-                break
-
-            scan_results = self.scan()
-
     def align(
         self,
         initial_x: int,
@@ -273,9 +256,9 @@ class ArenitoAI:
         aligned = False
         while not aligned:
             # mínimo y máximo como parámetro
-            if self.vis.center_x_max <= x:
+            if self.vis.can_threshold_x[1] <= x:
                 self.com.send_instruction(Instruction.MoveRight)
-            elif self.vis.center_x_min >= x:
+            elif self.vis.can_threshold_x[0] >= x:
                 self.com.send_instruction(Instruction.MoveLeft)
             else:
                 aligned = True

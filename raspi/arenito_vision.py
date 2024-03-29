@@ -212,8 +212,10 @@ class ArenitoVision:
         # |          |   |         |
         # |          |   |         |
         # +------------------------+
-        self.center_x_min = self.res_x // 2 - self.margin_x
-        self.center_x_max = self.res_x // 2 + self.margin_x
+        self.can_threshold_x = (
+            self.res_x // 2 - self.margin_x, # min
+            self.res_x // 2 + self.margin_x  # max
+        )
 
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
@@ -328,15 +330,15 @@ class ArenitoVision:
         )
         cv2.line(
             det_img,
-            (self.center_x_min, 0),
-            (self.center_x_min, self.res_y),
+            (self.can_threshold_x[0], 0),
+            (self.can_threshold_x[0], self.res_y),
             BLUE,
             thickness=1,
         )
         cv2.line(
             det_img,
-            (self.center_x_max, 0),
-            (self.center_x_max, self.res_y),
+            (self.can_threshold_x[1], 0),
+            (self.can_threshold_x[1], self.res_y),
             BLUE,
             thickness=1,
         )
