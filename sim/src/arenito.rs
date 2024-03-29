@@ -9,6 +9,7 @@ use bevy::{
     render::view::{screenshot::ScreenshotManager, RenderLayers},
 };
 use bevy_obj::*;
+use rand::Rng;
 
 /* ----------------------------Arenito Plugin---------------------------- */
 
@@ -122,7 +123,7 @@ fn arenito_ai_mover(
     mut aisim: ResMut<AISimMem>,
     mut screenshot_manager: ResMut<ScreenshotManager>,
     mut arenito: Query<&mut Arenito>,
-    arenito_body: ParamSet<(
+    mut arenito_body: ParamSet<(
         Query<&mut Transform, With<ArenitoCompFrame>>,
         Query<&mut Transform, With<ArenitoCompBrush>>,
         Query<&mut Transform, With<ArenitoCompLeftWheel>>,
@@ -165,8 +166,8 @@ fn arenito_ai_mover(
                             }
                             aisim.export_sensor_reads(sensor_reads);
                         }
-                        SimInstruction::DumpCans => {
-                            println!("Dumping cans!");
+                        SimInstruction::DumpCans(n) => {
+                            dump_cans(arenito_body.p0().single(), n);
                             aisim.confirm_instruction();
                         }
                         other => {
@@ -786,4 +787,31 @@ pub fn eat_cans(
             commands.entity(ent).despawn();
         }
     }
+}
+
+/// Spawns ´cans´ wherever Arenito is positioned.
+pub fn dump_cans(
+    // commands: &mut Commands,
+    arenito_transform: &Transform,
+    cans: u8,
+) {
+    const MAX_DUMPED_CANS: u8 = 8;
+    const DISPERSION_LENGTH: f32 = 3.5;
+    const DISPERSION_WIDTH: f32 = 2.3;
+
+    let mut rng = rand::thread_rng();
+    let mut can_positions = Vec::<Vec3>::new();
+    let step = DISPERSION_LENGTH / MAX_DUMPED_CANS as f32;
+
+    for i in 0..cans {
+        let lp = step * (i + 1) as f32;
+        let range = (lp * DISPERSION_WIDTH) / (2.0 * DISPERSION_LENGTH);
+        let can_pos = Vec3::new(lp, 0.0, rng.gen_range(-range..range));
+
+        can_positions
+            .push(arenito_transform.rotation.mul_vec3(can_pos) + arenito_transform.translation);
+    }
+
+    println!("{:?}", can_positions);
+    println!("dumping {cans} cans!");
 }
