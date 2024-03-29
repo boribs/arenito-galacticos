@@ -178,7 +178,14 @@ class ArenitoAI:
         """
 
         for _ in range(10):
+            # Don't go back if on the border
+            img = self.com.get_rear_frame()
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            if not self.vis.reachable(img, self.vis.r_dot):
+                break
+
             self.com.send_instruction(Instruction.MoveBack)
+
         self.com.send_instruction(Instruction.MoveLongRight)
 
     def dump_cans(self, scan_results: ScanResult):
