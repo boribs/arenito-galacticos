@@ -450,7 +450,8 @@ pub struct Arenito {
 impl Arenito {
     /// Returns an empty, non-spawned Arenito.
     pub fn new(config: &ArenitoConfig) -> Self {
-        let sensor_rot = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, -15.0_f32.to_radians());
+        let front_sensor_rot = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, -15.0_f32.to_radians());
+        let rear_sensor_rot = Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, std::f32::consts::PI);
         Arenito {
             vel: Vec3::ZERO,
             acc: Vec3::ZERO,
@@ -460,8 +461,10 @@ impl Arenito {
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
             proximity_sensor_offsets: vec![
-                Transform::from_xyz(0.74, 1.3, 0.5).with_rotation(sensor_rot),
-                Transform::from_xyz(0.74, 1.3, -0.5).with_rotation(sensor_rot),
+                Transform::from_xyz(0.74, 1.3, 0.5).with_rotation(front_sensor_rot),
+                Transform::from_xyz(0.74, 1.3, -0.5).with_rotation(front_sensor_rot),
+                Transform::from_xyz(-0.64, -0.03, 0.5).with_rotation(rear_sensor_rot),
+                Transform::from_xyz(-0.64, -0.03, -0.5).with_rotation(rear_sensor_rot),
             ],
             brush_speed: config.brush_speed,
             initial_pos: config.initial_pos,
