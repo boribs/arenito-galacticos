@@ -202,6 +202,20 @@ class ArenitoAI:
                 return 256
             return dump.center.x
 
+        def rear_sensor_align() -> tuple[int, int]:
+            SENSOR_ALIGN_THRESHOLD = 2
+            while True:
+                der, izq = self.com.get_prox_sensors()[2:4]
+                if abs(der - izq) <= SENSOR_ALIGN_THRESHOLD:
+                    break
+
+                if der > izq:
+                    self.com.send_instruction(Instruction.MoveRight)
+                elif izq > der:
+                    self.com.send_instruction(Instruction.MoveLeft)
+
+            return der, izq
+
         # get close (front cam)
         if not scan_results.dumping_zone: return
 
@@ -239,12 +253,20 @@ class ArenitoAI:
             [self]
         )
 
+        # get close (sensors)
+        MAX_SENSOR_DIST = 4
+
+        while True:
+            sensor, _ = rear_sensor_align()
+            if sensor < MAX_SENSOR_DIST:
+                break
+            else:
+                self.com.send_instruction(Instruction.MoveBack)
+
+        # dump cans
         sleep(1)
         print(f'depositó {self.can_counter} latas.')
         self.can_counter = 0
-
-        # get close (sensors)
-        # dump cans
 
     def align(
         self,
