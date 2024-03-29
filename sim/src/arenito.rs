@@ -308,7 +308,7 @@ impl InstructionHandler {
                 self.instructions = vec![(BaseInstruction::Right, 0.05)];
             }
             SimInstruction::MoveLongRight => {
-                self.instructions = vec![(BaseInstruction::Right, 0.6)];
+                self.instructions = vec![(BaseInstruction::Right, 1.3)];
             }
             SimInstruction::Evade => {
                 self.instructions =
