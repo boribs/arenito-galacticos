@@ -1,5 +1,5 @@
 use crate::{
-    cans::CanData,
+    cans::{CanData, CanManager},
     collision::*,
     sensor::{AISimMem, ProximitySensor, SimInstruction},
     static_shape::*,
@@ -134,6 +134,8 @@ fn arenito_ai_mover(
         Query<Entity, With<ArenitoRearCamWindow>>,
     )>,
     proximity_sensors: Query<&ProximitySensor>,
+    mut commands: Commands,
+    mut can_manager: ResMut<CanManager>,
 ) {
     let mut arenito = arenito.single_mut();
 
@@ -167,7 +169,12 @@ fn arenito_ai_mover(
                             aisim.export_sensor_reads(sensor_reads);
                         }
                         SimInstruction::DumpCans(n) => {
-                            dump_cans(arenito_body.p0().single(), n);
+                            dump_cans(
+                                &mut commands,
+                                &mut can_manager,
+                                arenito_body.p0().single(),
+                                n,
+                            );
                             aisim.confirm_instruction();
                         }
                         other => {
@@ -791,7 +798,8 @@ pub fn eat_cans(
 
 /// Spawns ´cans´ wherever Arenito is positioned.
 pub fn dump_cans(
-    // commands: &mut Commands,
+    commands: &mut Commands,
+    can_manager: &mut ResMut<CanManager>,
     arenito_transform: &Transform,
     cans: u8,
 ) {
@@ -806,12 +814,22 @@ pub fn dump_cans(
     for i in 0..cans {
         let lp = step * (i + 1) as f32;
         let range = (lp * DISPERSION_WIDTH) / (2.0 * DISPERSION_LENGTH);
-        let can_pos = Vec3::new(lp, 0.0, rng.gen_range(-range..range));
+        let can_pos = Vec3::new(-lp - 1.0, 0.0, rng.gen_range(-range..range));
 
         can_positions
             .push(arenito_transform.rotation.mul_vec3(can_pos) + arenito_transform.translation);
     }
 
-    println!("{:?}", can_positions);
-    println!("dumping {cans} cans!");
+    for d in can_positions.iter() {
+        can_manager.spawn(
+            commands,
+            CanData::default(),
+            Transform::from_translation(*d).with_rotation(Quat::from_euler(
+                EulerRot::XYZ,
+                0.0,
+                rng.gen_range(-std::f32::consts::PI..std::f32::consts::PI),
+                1.56,
+            )),
+        );
+    }
 }
