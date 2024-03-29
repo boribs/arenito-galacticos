@@ -155,7 +155,7 @@ class ArenitoAI:
         """
 
         def can_aligner(ai: ArenitoAI) -> int:
-            scan_results = ai.scan()
+            scan_results = ai.scan() # no es necesario escanear!
             if not scan_results.detections:
                 return 256
             return scan_results.detections[0].center.x
@@ -194,16 +194,34 @@ class ArenitoAI:
         Can-dumping routine.
         """
 
+        def get_dump(ai: ArenitoAI) -> Detection | None:
+            img = ai.vis.blur(ai.com.get_front_frame())
+            return ai.vis.detect_dumping_zone(img)
+
+        def front_cam_align(ai: ArenitoAI) -> int:
+            dump = get_dump(ai)
+            if not dump:
+                return 256
+            return dump.center.x
+
         # get close (front cam)
         if not scan_results.dumping_zone: return
 
-        while not self.vis.deposit_critical_region.point_inside(scan_results.dumping_zone.center): # pyright: ignore[reportArgumentType]
-            self.align_with_deposit(scan_results)
+        dump_x = scan_results.dumping_zone.center.x
+        done_aligning = False
+        while not done_aligning:
+            self.align(dump_x, front_cam_align, self)
             self.com.send_instruction(Instruction.MoveForward)
-            scan_results = self.scan()
+            dump = get_dump(self)
 
-            if not scan_results.dumping_zone:
-                break
+            if not dump:
+                done_aligning = True
+            else:
+                if self.vis.deposit_critical_region.point_inside(dump.center):
+                    done_aligning = True
+                    break
+
+                dump_x = dump.center.x
 
         # align (rear cam)
         print('halting')
