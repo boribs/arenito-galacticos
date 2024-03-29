@@ -160,7 +160,7 @@ class ArenitoAI:
                 return 256
             return scan_results.detections[0].center.x
 
-        self.align(scan_results.detections[0].center.x, can_aligner, self)
+        self.align(scan_results.detections[0].center.x, can_aligner, [self]) # pyright: ignore[reportUnknownMemberType]
         self.com.send_instruction(Instruction.MoveForward)
 
     def search_cans(self, scan_results: ScanResult):
@@ -215,7 +215,7 @@ class ArenitoAI:
 
         dump_x = scan_results.dumping_zone.center.x
         while True:
-            self.align(dump_x, front_cam_align, self)
+            self.align(dump_x, front_cam_align, [self]) # pyright: ignore[reportUnknownMemberType]
             self.com.send_instruction(Instruction.MoveForward)
             dump = get_dump(self, self.com.get_front_frame())
 
@@ -235,7 +235,7 @@ class ArenitoAI:
 
             self.com.send_instruction(Instruction.MoveRight)
 
-        self.align(dump_x, rear_cam_align, self)
+        self.align(dump_x, rear_cam_align, [self]) # pyright: ignore[reportUnknownMemberType]
 
         exit(4545)
 
@@ -263,7 +263,7 @@ class ArenitoAI:
         self,
         initial_x: int,
         callback: Callable[[ArenitoAI], int],
-        callback_args: ArenitoAI
+        callback_args: any # pyright: ignore
     ):
         """
         Alignment function. Calls callback to update x value.
@@ -280,4 +280,4 @@ class ArenitoAI:
             else:
                 aligned = True
 
-            x = callback(callback_args)
+            x = callback(*callback_args) # pyright: ignore[reportUnknownArgumentType]
