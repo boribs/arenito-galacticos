@@ -1,9 +1,9 @@
 Físico:
-    ☐ Mejorar detección de objetos
+    ✔ Mejorar detección de objetos @done(24-03-28 23:00)
         Checar la forma de los blobs para determinar si un objeto es una lata.
         Las detecciones pueden ser cilíndricas, triangulares o rectangulares?
 
-    ☐ Mejorar detección de obstáculos
+    ✔ Mejorar detección de obstáculos @done(24-03-28 23:00)
         Probar bien sensores ultrasónicos.
         Intentar con sensores digitales infrarrojos amarillos (de los que
         nos prestaron los amigos de Jalisco).
