@@ -9,7 +9,7 @@ from enum import Enum, auto
 from arenito_com import *
 from arenito_vision import *
 from time import time
-from typing import Callable
+from typing import Callable, Iterable
 
 @dataclass
 class ScanResult:
@@ -160,7 +160,12 @@ class ArenitoAI:
                 return 256
             return scan_results.detections[0].center.x
 
-        self.align(scan_results.detections[0].center.x, can_aligner, [self]) # pyright: ignore[reportUnknownMemberType]
+        self.align( # pyright: ignore[reportUnknownMemberType]
+            scan_results.detections[0].center.x,
+            self.vis.can_threshold_x,
+            can_aligner,
+            [self]
+        )
         self.com.send_instruction(Instruction.MoveForward)
 
     def search_cans(self, scan_results: ScanResult):
@@ -215,7 +220,12 @@ class ArenitoAI:
 
         dump_x = scan_results.dumping_zone.center.x
         while True:
-            self.align(dump_x, front_cam_align, [self]) # pyright: ignore[reportUnknownMemberType]
+            self.align( # pyright: ignore[reportUnknownMemberType]
+                dump_x,
+                self.vis.can_threshold_x,
+                front_cam_align,
+                [self]
+            )
             self.com.send_instruction(Instruction.MoveForward)
             dump = get_dump(self, self.com.get_front_frame())
 
@@ -235,7 +245,12 @@ class ArenitoAI:
 
             self.com.send_instruction(Instruction.MoveRight)
 
-        self.align(dump_x, rear_cam_align, [self]) # pyright: ignore[reportUnknownMemberType]
+        self.align( # pyright: ignore[reportUnknownMemberType]
+            dump_x,
+            self.vis.can_threshold_x,
+            rear_cam_align,
+            [self]
+        )
 
         exit(4545)
 
@@ -245,20 +260,21 @@ class ArenitoAI:
     def align(
         self,
         initial_x: int,
+        threshold: tuple[int, int],
         callback: Callable[[ArenitoAI], int],
-        callback_args: any # pyright: ignore
+        callback_args: Iterable[any] # pyright: ignore
     ):
         """
         Alignment function. Calls callback to update x value.
         """
-
+        tmin, tmax = threshold
         x = initial_x
         aligned = False
         while not aligned:
             # mínimo y máximo como parámetro
-            if self.vis.can_threshold_x[1] <= x:
+            if tmax <= x:
                 self.com.send_instruction(Instruction.MoveRight)
-            elif self.vis.can_threshold_x[0] >= x:
+            elif tmin >= x:
                 self.com.send_instruction(Instruction.MoveLeft)
             else:
                 aligned = True
