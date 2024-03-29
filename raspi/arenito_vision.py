@@ -278,6 +278,7 @@ class ArenitoVision:
         can_counter: int,
         cicr: bool,
         dump: None | Detection,
+        clock: str,
     ):
         """
         Adds visual markings to image to help visualize decisions.
@@ -345,6 +346,8 @@ class ArenitoVision:
 
         if dump:
             cv2.circle(det_img, dump.center, 10, ORANGE, 10)
+
+        self.add_text(det_img, f'Time: {clock}', Point(10, 75))
 
     def dist_from_center(self, det: Point) -> float:
         """

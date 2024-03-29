@@ -45,6 +45,10 @@ class ArenitoAI:
         self.can_counter = 0
         self.can_in_critical_region = False
 
+        # Clock
+        self.clock = ArenitoTimer()
+        self.clock.start()
+
     def scan(self) -> ScanResult:
         """
         Gets data from every sensor.
@@ -100,6 +104,7 @@ class ArenitoAI:
                 self.can_counter,
                 self.can_in_critical_region,
                 scan_results.dumping_zone,
+                self.clock.full()
             )
             cv2.imshow('arenito pov', scan_results.original)
             #   cv2.imshow('arenito pov - blurred', blurred)

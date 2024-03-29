@@ -22,6 +22,14 @@ class ArenitoTimer:
             return 'Not set'
         else:
             elapsed = self.elapsed_time()
-            m = elapsed // 60
             s = elapsed % 60
             return '{0:.2f}'.format(s)
+
+    def full(self) -> str:
+        if not self.clock:
+            return 'Not set'
+        else:
+            elapsed = self.elapsed_time()
+            m = elapsed // 60
+            s = elapsed % 60
+            return f'{int(m)}m {int(s)}s'
