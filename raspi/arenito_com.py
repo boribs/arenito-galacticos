@@ -204,6 +204,9 @@ class SimInterface:
         with open(filename, 'r+') as f:
             self.mem = mmap(f.fileno(), length=0)
 
+        # Clear memory!
+        self.mem.write(bytes([0] * len(self.mem)))
+
     def close(self):
         """
         Closes access to shared memory.
