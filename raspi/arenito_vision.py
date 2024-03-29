@@ -418,8 +418,12 @@ class ArenitoVision:
             if w >= img_w or h >= img_h:
                 continue
 
-            if w * h > self.min_can_area:
+            area = w * h
+            if area > self.min_can_area:
                 det = Detection(rect, cnt)
+
+                # discard really long detections
+                if w / h < 0.5: continue
 
                 if self.reachable(img_hsv, det.center):
                     detections.append(det)
