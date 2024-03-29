@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from arenito_com import *
 from arenito_vision import *
-from time import time
+from time import time, sleep
 from typing import Callable, Iterable
 
 @dataclass
@@ -70,7 +70,7 @@ class ArenitoAI:
 
         if scan_results.detections:
             self.state = ArenitoState.GrabbingCan
-        elif scan_results.dumping_zone: # and self.can_counter > 0:
+        elif scan_results.dumping_zone and self.can_counter > 0:
             self.state = ArenitoState.DumpingCans
         else:
             self.state = ArenitoState.LookingForCans
@@ -176,7 +176,7 @@ class ArenitoAI:
         Can-search routine.
         """
 
-        MAX_SEARCH_SECONDS = 30
+        MAX_SEARCH_SECONDS = 35
 
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
@@ -255,7 +255,9 @@ class ArenitoAI:
             [self]
         )
 
-        exit(4545)
+        sleep(1)
+        print(f'depositó {self.can_counter} latas.')
+        self.can_counter = 0
 
         # get close (sensors)
         # dump cans
