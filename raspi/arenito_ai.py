@@ -155,10 +155,13 @@ class ArenitoAI:
         """
 
         def can_aligner(ai: ArenitoAI) -> int:
-            scan_results = ai.scan() # no es necesario escanear!
-            if not scan_results.detections:
+            original = self.com.get_front_frame()
+            blurred = self.vis.blur(original)
+            detections = self.vis.find_cans(blurred)
+
+            if not detections:
                 return 256
-            return scan_results.detections[0].center.x
+            return detections[0].center.x
 
         self.align( # pyright: ignore[reportUnknownMemberType]
             scan_results.detections[0].center.x,
