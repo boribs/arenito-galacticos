@@ -469,7 +469,6 @@ class ArenitoVision:
         Filters out red color and returns a point indicating where it is.
         """
 
-        # img = cv2.copyMakeBorder(blurred_img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
         img_hsv = ColorFilter.filter(cv2.cvtColor(blurred_img, cv2.COLOR_BGR2HSV), ColorFilter.RED)
 
         contours, _ = cv2.findContours(img_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
@@ -478,17 +477,6 @@ class ArenitoVision:
 
         rect = cv2.minAreaRect(contours[0])
         det = Detection(rect, contours[0])
-
-        cv2.circle(blurred_img, det.center, 1, ORANGE, 1)
-        cv2.drawContours(blurred_img, [det.box], -1, ORANGE, 1, cv2.LINE_AA) # pyright: ignore
-        cv2.rectangle(
-            blurred_img,
-            self.deposit_critical_region.a,
-            self.deposit_critical_region.b,
-            ORANGE,
-            1
-        )
-        cv2.imshow('deposit', blurred_img)
 
         if cv2.waitKey(1) == 27:
             return None
