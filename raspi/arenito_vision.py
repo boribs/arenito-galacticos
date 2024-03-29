@@ -377,8 +377,6 @@ class ArenitoVision:
         cross = cv2.bitwise_and(mask, line)
         white_px = np.count_nonzero(cross)
 
-        # cv2.imshow("mask", mask)
-
         return white_px < self.min_px_water
 
     def min_rect_method(self, img: MatLike) -> list[Detection]:
@@ -390,8 +388,11 @@ class ArenitoVision:
         gray = cv2.copyMakeBorder(img, 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, WHITE)
 
         # need better filter
-        gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
-        _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
+        # gray = cv2.cvtColor(gray, cv2.COLOR_RGB2GRAY)
+        # _, mask = cv2.threshold(gray, 50, 255, cv2.RETR_EXTERNAL)
+
+        gray = cv2.cvtColor(gray, cv2.COLOR_BGR2HSV)
+        mask = ColorFilter.filter(gray, ColorFilter.BLACK)
 
         contours, _ = cv2.findContours(
             mask,
