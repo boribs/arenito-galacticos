@@ -272,6 +272,7 @@ class ArenitoAI:
         """
         Alignment function. Calls callback to update x value.
         """
+
         tmin, tmax = threshold
         x = initial_x
         aligned = False
