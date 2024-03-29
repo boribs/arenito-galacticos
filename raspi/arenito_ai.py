@@ -247,7 +247,7 @@ class ArenitoAI:
 
         self.align( # pyright: ignore[reportUnknownMemberType]
             dump_x,
-            self.vis.can_threshold_x,
+            self.vis.deposit_threshold_x,
             rear_cam_align,
             [self]
         )

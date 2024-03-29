@@ -164,7 +164,6 @@ class ArenitoVision:
                 raise Exception(f'no such algorithm {other}')
 
         self.res_x, self.res_y = res
-        self.margin_x = int(self.res_x * 0.2)
 
         # Bottom center of the image
         # +------------------------+
@@ -196,9 +195,15 @@ class ArenitoVision:
         # |          |   |         |
         # |          |   |         |
         # +------------------------+
+        margin_x = int(self.res_x * 0.2)
         self.can_threshold_x = (
-            self.res_x // 2 - self.margin_x, # min
-            self.res_x // 2 + self.margin_x  # max
+            self.res_x // 2 - margin_x, # min
+            self.res_x // 2 + margin_x  # max
+        )
+        margin_x = int(self.res_x * 0.04)
+        self.deposit_threshold_x = (
+            self.res_x // 2 - margin_x, # min
+            self.res_x // 2 + margin_x  # max
         )
 
         # When finding out if a point is reachable, counts how many blue pixels
