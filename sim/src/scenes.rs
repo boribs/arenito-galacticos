@@ -216,7 +216,7 @@ fn generate_scene(
     // spawn lights
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 7500.0,
+            illuminance: 3750.0,
             ..default()
         },
         transform: Transform::from_xyz(3.0, 2.0, -1.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -225,7 +225,25 @@ fn generate_scene(
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 7500.0,
+            illuminance: 3750.0,
+            ..default()
+        },
+        transform: Transform::from_xyz(-3.0, 2.0, -1.0).looking_at(Vec3::ZERO, Vec3::Y),
+        ..default()
+    });
+
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 3750.0,
+            ..default()
+        },
+        transform: Transform::from_xyz(3.0, 2.0, 1.0).looking_at(Vec3::ZERO, Vec3::Y),
+        ..default()
+    });
+
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 3750.0,
             ..default()
         },
         transform: Transform::from_xyz(-3.0, 2.0, 1.0).looking_at(Vec3::ZERO, Vec3::Y),
