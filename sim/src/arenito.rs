@@ -147,11 +147,13 @@ fn arenito_ai_mover(
                     match instr {
                         SimInstruction::FrontCamFrame => {
                             aisim.export_frame(&mut screenshot_manager, &windows.p0().single());
+                            // It's ok to not await this frame, since it's probably very similar to previous.
+                            // Awaiting every frame makes the robot sluggish, so I chose not to wait for forward frames.
                             aisim.confirm_instruction();
                         }
                         SimInstruction::RearCamFrame => {
                             aisim.export_frame(&mut screenshot_manager, &windows.p1().single());
-                            aisim.confirm_instruction();
+                            // But for rear cam, it's very important to make sure the image is from this camera.
                         }
                         SimInstruction::ProxSensorReads => {
                             let mut sensor_reads = vec![0_u8; AISimMem::MAX_PROXIMITY_SENSOR_COUNT];
