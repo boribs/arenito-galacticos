@@ -8,8 +8,9 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from arenito_com import *
 from arenito_vision import *
-from time import time, sleep
+from arenito_timer import ArenitoTimer
 from typing import Callable, Iterable
+from time import sleep
 
 @dataclass
 class ScanResult:
@@ -40,7 +41,7 @@ class ArenitoAI:
         self.state = ArenitoState.LookingForCans
 
         # Can tracking stuff
-        self.timer: float | None = None
+        self.timer = ArenitoTimer()
         self.can_counter = 0
         self.can_in_critical_region = False
 
@@ -75,29 +76,6 @@ class ArenitoAI:
         else:
             self.state = ArenitoState.LookingForCans
 
-    def start_timer(self):
-        """
-        Starts the timer.
-        """
-
-        if not self.timer:
-            self.timer = time()
-
-    def get_timer_elapsed(self) -> float:
-        """
-        Returns elapsed time since the timer was started.
-        """
-
-        current_time = time() - self.timer if self.timer else 0
-        return current_time
-
-    def clear_timer(self):
-        """
-        Clears timer.
-        """
-
-        self.timer = None
-
     def main(self):
         """
         Main loop.
@@ -112,8 +90,8 @@ class ArenitoAI:
             self.get_state(scan_results)
 
             state_str = self.state.name
-            if self.timer and self.state == ArenitoState.LookingForCans:
-                state_str += ': {0:.2f}'.format(time() - self.timer)
+            if self.timer.clock and self.state == ArenitoState.LookingForCans:
+                state_str += f': {self.timer.seconds()}'
 
             self.vis.add_markings(
                 scan_results.original,
@@ -121,7 +99,7 @@ class ArenitoAI:
                 state_str,
                 self.can_counter,
                 self.can_in_critical_region,
-                scan_results.dumping_zone
+                scan_results.dumping_zone,
             )
             cv2.imshow('arenito pov', scan_results.original)
             #   cv2.imshow('arenito pov - blurred', blurred)
@@ -141,12 +119,13 @@ class ArenitoAI:
 
             if self.state == ArenitoState.GrabbingCan:
                 self.get_can(scan_results)
-                self.clear_timer()
+                self.timer.reset()
             elif self.state == ArenitoState.DumpingCans:
                 self.dump_cans(scan_results)
-                self.clear_timer()
+                self.timer.reset()
             elif self.state == ArenitoState.LookingForCans:
-                self.start_timer()
+                if not self.timer.clock:
+                    self.timer.start()
                 self.search_cans(scan_results)
 
     def get_can(self, scan_results: ScanResult):
@@ -180,9 +159,9 @@ class ArenitoAI:
 
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
-        if self.get_timer_elapsed() > MAX_SEARCH_SECONDS:
+        if self.timer.elapsed_time() > MAX_SEARCH_SECONDS:
             self.com.send_instruction(Instruction.MoveLongRight)
-            self.clear_timer()
+            self.timer.reset()
         elif self.vis.reachable(hsv, self.vis.r_dot):
             self.com.send_instruction(Instruction.MoveForward)
         else:
