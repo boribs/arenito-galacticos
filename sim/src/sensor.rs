@@ -192,16 +192,13 @@ impl AISimMem {
     const SYNC_SIZE: usize = 1;
     // min size required to store image, found experimentally
     const IMG_SIZE: usize = 786_432;
-    // one byte indicating how many sensors there are
-    const PROXIMITY_SENSOR_COUNT: usize = 1;
     // how many bytes to allocate each sensor distance
     // distances are a single byte: distance until collision, in cm
+    // when sending sensor data, another byte, before sensor data
+    // is set that indicates how many sensors there are.
     pub const MAX_PROXIMITY_SENSOR_COUNT: usize = 5;
     // total required memory
-    pub const REQUIRED_MEMORY: usize = Self::SYNC_SIZE
-        + Self::IMG_SIZE
-        + Self::PROXIMITY_SENSOR_COUNT
-        + Self::MAX_PROXIMITY_SENSOR_COUNT;
+    pub const REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
     pub const MMAP_FILENAME: &'static str = "file.mmap";
 
     pub fn new(mmap: &mut MmapMut) -> Self {
