@@ -416,7 +416,7 @@ impl Default for ArenitoConfig {
             initial_pos: Transform::from_xyz(5.0, 0.2, -5.0).with_rotation(Quat::from_euler(
                 EulerRot::XYZ,
                 0.0,
-                0.0, //-1.3,
+                -1.3,
                 0.0,
             )),
             brush_speed: 10.0,

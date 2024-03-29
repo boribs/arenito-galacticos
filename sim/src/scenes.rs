@@ -105,7 +105,7 @@ impl Default for SceneData {
     fn default() -> Self {
         SceneData {
             cam_transform: Transform::from_xyz(0.0, 20.0, 0.01).looking_at(Vec3::ZERO, Vec3::Y),
-            sand: PlaneData::sand(15.0, 25.0, 0.01),
+            sand: PlaneData::sand2(15.0, 25.0, 0.01),
             water: PlaneData::water(17.0, 27.0, 0.01),
             can_positions: vec![
                 (3.0, 3.0, 0.6),
@@ -157,6 +157,16 @@ impl PlaneData {
     pub fn sand(width: f32, length: f32, reflectance: f32) -> Self {
         PlaneData {
             base: TextureOrColor::Texture("textures/sand_01.png"),
+            width,
+            length,
+            reflectance,
+        }
+    }
+
+    /// Plane data for sand with other texture.
+    pub fn sand2(width: f32, length: f32, reflectance: f32) -> Self {
+        PlaneData {
+            base: TextureOrColor::Texture("textures/sand_02.png"),
             width,
             length,
             reflectance,
