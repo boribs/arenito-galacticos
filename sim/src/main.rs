@@ -73,6 +73,7 @@ fn main() {
         .insert_resource(AISimMem::new(&mut mmap))
         .add_plugins((
             SceneLoaderPlugin {
+                // scene_data: SceneData::deposit_test(),
                 scene_data: SceneData::default(),
                 draw_can_collision_sphere: true,
                 draw_obstacle_collision_mesh: true,

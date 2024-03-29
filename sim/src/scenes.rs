@@ -94,9 +94,7 @@ impl SceneData {
             cam_transform: Transform::from_xyz(0.0, 15.0, 0.01).looking_at(Vec3::ZERO, Vec3::Y),
             sand: PlaneData::sand(10.0, 10.0, 0.01),
             water: PlaneData::water(12.0, 12.0, 0.01),
-            can_positions: vec![
-                (0.0, 0.0, 0.6),
-            ],
+            can_positions: vec![(0.0, 0.0, 0.6)],
             deposit_position: Vec3::new(3.0, 0.0, -3.0),
             obstacles: Vec::new(),
         }
@@ -278,10 +276,7 @@ fn generate_scene(
 
         can_manager.spawn(
             &mut commands,
-            CanData {
-                size: CanSize::Big,
-                texture: CanTexture::Shiny,
-            },
+            CanData::default(),
             Transform::from_xyz(*x, 0.2, *z).with_rotation(Quat::from_euler(
                 EulerRot::XYZ,
                 0.0,
