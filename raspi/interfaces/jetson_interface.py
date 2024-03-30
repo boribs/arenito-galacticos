@@ -3,6 +3,7 @@
 from arenito_com_consts import *
 from cv2.typing import MatLike
 import cv2
+import Jetson.GPIO as GPIO # pyright: ignore
 
 class ArenitoCameras:
     """
@@ -38,12 +39,16 @@ class JetsonInterface:
     Sensor interaction through NVIDIA Jetson Nano.
     """
 
-    def __init__(self):
-        # initialize cameras
-        # cam0 -> front
-        # cam1 -> rear
+    BUTTON_CALIBRATION_PIN = 18
 
+    def __init__(self):
         self.cameras = ArenitoCameras()
+        # camera calibration
+        GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType]
+        GPIO.setup(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.IN) # pyright: ignore[reportUnknownMemberType]
+
+        GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType]
+        print('button!')
 
     def get_front_frame(self) -> MatLike:
         """
