@@ -4,6 +4,7 @@ from argparse import Namespace
 from cv2.typing import MatLike
 from arenito_com_consts import *
 from interfaces.sim_interface import SimInterface
+from interfaces.jetson_interface import JetsonInterface
 
 class ArenitoComms:
     """
@@ -17,12 +18,15 @@ class ArenitoComms:
         # self.serial: SerialInterface | None = None
         # self.video_capture: cv2.VideoCapture | None = None
         self.sim_interface: SimInterface | None = None
+        self.jetson_interface: JetsonInterface | None = None
 
         if mode == AIMode.Simulation:
             self.connect_simulation(args.filename)
         # elif mode == AIMode.Real:
             # self.connect_serial(args.port, args.baudrate, args.timeout)
             # self.init_video()
+        elif mode == AIMode.Jetson:
+            self.connect_jetson()
         else:
             raise Exception(f'Unsupported mode {mode}.')
 
@@ -39,6 +43,13 @@ class ArenitoComms:
     #     """
 
     #     self.serial = SerialInterface(port, baudrate, timeout)
+
+    def connect_jetson(self):
+        """
+        Initializes JetsonInterface.
+        """
+
+        self.jetson_interface = JetsonInterface()
 
     def connect_simulation(self, filename: str):
         """
