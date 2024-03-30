@@ -1,11 +1,9 @@
 # pyright: strict
 
-import cv2
 from argparse import Namespace
 from cv2.typing import MatLike
-from arenito_com_conts import *
+from arenito_com_consts import *
 from interfaces.sim_interface import SimInterface
-
 
 class ArenitoComms:
     """

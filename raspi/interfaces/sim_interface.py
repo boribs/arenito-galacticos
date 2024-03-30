@@ -1,4 +1,4 @@
-from arenito_com_conts import *
+from arenito_com_consts import *
 from cv2.typing import MatLike
 import cv2
 from mmap import mmap
