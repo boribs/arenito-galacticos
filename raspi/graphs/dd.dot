@@ -38,19 +38,20 @@ digraph G {
         startb -> centrab -> Avanza -> endb
     }
 
-    subgraph cluster_encontro_deposito {
+    subgraph cluster_encuentra_deposito {
         graph [style = invis]
         startc [style = filled; shape = box; label = "encuentra depósito"]
         q1c [shape = diamond; label = "¿Tiene latas?"]
         i1c [label = "Tira latas"]
         i2c [label = "Gira ~180º"]
         centrac [style = filled; shape = septagon; label = "Centra"]
+        acercac [style = filled; shape = septagon; label = "Acerca"]
         endc [shape = plain; label = "..."]
 
         startc -> q1c
         q1c -> endc [label = "No"]
         q1c -> centrac [label = "Si"]
-        centrac -> i1c -> i2c -> endc
+        centrac -> acercac -> i1c -> i2c -> endc
     }
 
     subgraph cluster_centra {
