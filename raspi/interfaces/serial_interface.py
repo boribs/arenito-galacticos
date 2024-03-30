@@ -1,4 +1,6 @@
-from arenito_com_conts import *
+# pyright: strict
+
+from arenito_com_consts import *
 from serial import Serial
 import subprocess
 

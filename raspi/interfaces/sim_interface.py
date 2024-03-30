@@ -146,6 +146,10 @@ class SimInterface:
         self.wait_confirmation()
 
     def dump_cans(self, ammount: int):
+        """
+        Dumps cans.
+        """
+
         self.mem[1] = ammount
         self.set_sync_byte(SimInterface.AI_DUMP_CANS)
         self.wait_confirmation()
