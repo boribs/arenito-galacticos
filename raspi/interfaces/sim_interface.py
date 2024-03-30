@@ -1,3 +1,5 @@
+# pyright: strict
+
 from arenito_com_consts import *
 from cv2.typing import MatLike
 import cv2
@@ -102,7 +104,7 @@ class SimInterface:
 
         return self.get_frame(Instruction.RequestRearCam)
 
-    def get_proximity_sensor_reads(self) -> list[int]:
+    def get_proximity_sensors(self) -> list[int]:
         """
         Returns proximity sensor reads.
         """

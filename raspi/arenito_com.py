@@ -85,7 +85,7 @@ class ArenitoComms:
         # if self.serial:
         #     raise Exception('Proximity sensors not implemented for serial interface')
 
-        return self.sim_interface.get_proximity_sensor_reads() # pyright: ignore[reportOptionalMemberAccess]
+        return self.sim_interface.get_proximity_sensors() # pyright: ignore[reportOptionalMemberAccess]
 
     def send_instruction(self, instr: Instruction):
         """
