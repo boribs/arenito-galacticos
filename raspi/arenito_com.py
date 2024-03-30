@@ -11,7 +11,8 @@ from mmap import mmap
 
 class AIMode(Enum):
     Simulation = auto()
-    Real = auto()
+    Real = auto() # don't like you
+    Jetson = auto()
 
 class Instruction(Enum):
     MoveForward = auto()

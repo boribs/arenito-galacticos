@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('timeout', nargs='?', type=float, default=0.5)
 
     parser.add_argument('filename', nargs='?', type=str, default='../sim/file.mmap')
-    parser.add_argument('--sim', '-s', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--mode', '-m', type=str, default='s')
     parser.add_argument('--no_move', '-n', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
 

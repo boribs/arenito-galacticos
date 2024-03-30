@@ -25,6 +25,12 @@ class ArenitoState(Enum):
     GrabbingCan = auto()
     DumpingCans = auto()
 
+MODE_DICT = {
+    's' : AIMode.Simulation,
+    'a' : AIMode.Real,
+    'j' : AIMode.Jetson,
+}
+
 class ArenitoAI:
     """
     AI class, the brains of it all.
@@ -33,7 +39,7 @@ class ArenitoAI:
     MIN_PROX_REACT_RANGE = 14
 
     def __init__(self, args: Namespace):
-        mode = AIMode.Simulation if args.sim else AIMode.Real
+        mode = MODE_DICT[args.mode]
         self.args = args
         self.com = ArenitoComms(mode, args)
         self.vis = ArenitoVision(mode, args)
