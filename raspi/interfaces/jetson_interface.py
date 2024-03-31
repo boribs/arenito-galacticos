@@ -13,12 +13,21 @@ class ArenitoCameras:
     def __init__(self):
         self.cameras: list[cv2.VideoCapture] = []
 
-    def init_video_capture(self, index: int) -> cv2.VideoCapture:
+    def add_video_capture(self):
         """
         Initializes video capture device.
         """
 
-        return cv2.VideoCapture(index)
+        # must get indices in a better way...
+        # https://stackoverflow.com/questions/57577445/list-available-cameras-opencv-python
+        index = len(self.cameras)
+        capture_device = cv2.VideoCapture(index)
+
+        ok, _ = capture_device.read()
+        if not ok or not capture_device.isOpened():
+            raise Exception(f'Can\'t use capture device on index {index}')
+
+        self.cameras.append(capture_device)
 
     def get_front_frame(self) -> MatLike:
         """
@@ -47,8 +56,15 @@ class JetsonInterface:
         GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType]
         GPIO.setup(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.IN) # pyright: ignore[reportUnknownMemberType]
 
+        self.cameras.add_video_capture()
+
+        print('añadiendo cámara trasera')
         GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType]
-        print('button!')
+
+        self.cameras.add_video_capture()
+
+        cv2.imwrite('frontal.png', self.cameras.get_front_frame())
+        cv2.imwrite('rear.png', self.cameras.get_rear_frame())
 
     def get_front_frame(self) -> MatLike:
         """
