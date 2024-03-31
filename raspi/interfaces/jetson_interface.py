@@ -53,16 +53,19 @@ class JetsonInterface:
     BUTTON_CALIBRATION_PIN = 18
 
     def __init__(self):
-        self.cameras = ArenitoCameras()
-        # camera calibration
         GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType]
         GPIO.setup(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.IN) # pyright: ignore[reportUnknownMemberType]
 
+        self.cameras = ArenitoCameras()
+        self.init_cameras()
+
+    def init_cameras(self):
+        """
+        Camera initialization routine: first camera -> front camera, second camera -> rear camera.
+        """
+
         self.cameras.add_video_capture()
-
-        print('añadiendo cámara trasera')
         GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType]
-
         self.cameras.add_video_capture()
 
         cv2.imwrite('frontal.png', self.cameras.get_front_frame())
