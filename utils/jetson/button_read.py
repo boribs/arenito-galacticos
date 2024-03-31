@@ -1,5 +1,9 @@
 import Jetson.GPIO as GPIO
 
+# Los botones deben conectarse bien
+# https://docs.arduino.cc/built-in-examples/digital/Button/
+# Recuerda poner una resistenica de 10K
+
 but_pin = 18
 
 GPIO.setmode(GPIO.BOARD)
