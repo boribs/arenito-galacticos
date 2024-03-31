@@ -34,14 +34,16 @@ class ArenitoCameras:
         Requests front camera's frame.
         """
 
-        raise Exception('TODO')
+        _, frame = self.cameras[0].read()
+        return frame
 
     def get_rear_frame(self) -> MatLike:
         """
         Requests rear camera's frame.
         """
 
-        raise Exception('TODO')
+        _, frame = self.cameras[1].read()
+        return frame
 
 class JetsonInterface:
     """
