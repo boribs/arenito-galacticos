@@ -63,30 +63,24 @@ class ArenitoComms:
         Gets the image from the front camera.
         """
 
-        # if self.video_capture:
-        #     raise Exception('Real camera input not supported')
-            # ok, frame = self.video_capture.read()
-            # if not ok:
-            #     raise Exception('Couldn\'t get frame.')
-
-            # return frame
-        # else:
-        return self.sim_interface.get_front_frame() # pyright: ignore[reportOptionalMemberAccess]
+        if self.jetson_interface:
+            return self.jetson_interface.get_front_frame()
+        elif self.sim_interface:
+            return self.sim_interface.get_front_frame()
+        else:
+            raise Exception('No valid interface.')
 
     def get_rear_frame(self) -> MatLike:
         """
         Gets the image from the rear camera.
         """
 
-        # if self.video_capture:
-        #     raise Exception('Real camera input not supported')
-            # ok, frame = self.video_capture.read()
-            # if not ok:
-            #     raise Exception('Couldn\'t get frame.')
-
-            # return frame
-        # else:
-        return self.sim_interface.get_rear_frame() # pyright: ignore[reportOptionalMemberAccess]
+        if self.jetson_interface:
+            return self.jetson_interface.get_rear_frame()
+        elif self.sim_interface:
+            return self.sim_interface.get_rear_frame()
+        else:
+            raise Exception('No valid interface.')
 
     def get_prox_sensors(self) -> list[int]:
         """
@@ -95,8 +89,12 @@ class ArenitoComms:
 
         # if self.serial:
         #     raise Exception('Proximity sensors not implemented for serial interface')
-
-        return self.sim_interface.get_proximity_sensors() # pyright: ignore[reportOptionalMemberAccess]
+        if self.jetson_interface:
+            return self.jetson_interface.get_prox_sensors()
+        elif self.sim_interface:
+            return self.sim_interface.get_prox_sensors()
+        else:
+            raise Exception('No valid interface.')
 
     def send_instruction(self, instr: Instruction):
         """
@@ -105,8 +103,12 @@ class ArenitoComms:
 
         # if self.serial:
         #     self.serial.send_instruction(instr)
-        if self.sim_interface:
+        if self.jetson_interface:
+            self.jetson_interface.send_instruction(instr)
+        elif self.sim_interface:
             self.sim_interface.send_instruction(instr)
+        else:
+            raise Exception('No valid interface.')
 
     def dump_cans(self, ammount: int):
         """
@@ -115,5 +117,9 @@ class ArenitoComms:
 
         # if self.serial:
         #     raise Exception('Instruction not implemented for Serial interface')
-        if self.sim_interface:
+        if self.jetson_interface:
+            self.jetson_interface.dump_cans()
+        elif self.sim_interface:
             self.sim_interface.dump_cans(ammount)
+        else:
+            raise Exception('No valid interface.')
