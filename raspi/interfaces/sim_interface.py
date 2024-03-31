@@ -104,7 +104,7 @@ class SimInterface:
 
         return self.get_frame(Instruction.RequestRearCam)
 
-    def get_proximity_sensors(self) -> list[int]:
+    def get_prox_sensors(self) -> list[int]:
         """
         Returns proximity sensor reads.
         """
