@@ -146,14 +146,14 @@ class ArenitoVision:
 
     RESOLUTIONS = {
         AIMode.Simulation : (512, 512),
-        AIMode.Real : (640, 380),
+        AIMode.Jetson : (640, 380),
     }
 
     def __init__(self, mode: AIMode, args: Namespace):
-        if mode == AIMode.Simulation or mode == AIMode.Real:
+        if mode == AIMode.Simulation or mode == AIMode.Jetson:
             res = ArenitoVision.RESOLUTIONS[mode]
         else:
-            raise Exception(f'No such mode {mode}')
+            raise Exception(f'Unsupported mode mode {mode}')
 
         match args.algorithm:
             case 'blob-detector':
@@ -161,7 +161,7 @@ class ArenitoVision:
             case 'min-rect':
                 self.can_detection_function = self.min_rect_method
             case other:
-                raise Exception(f'no such algorithm {other}')
+                raise Exception(f'Unsupported algorithm {other}')
 
         self.res_x, self.res_y = res
 
