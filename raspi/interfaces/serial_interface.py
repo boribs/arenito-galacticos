@@ -15,6 +15,8 @@ class SerialInterface:
 
         # if port is None: port = SerialInterface.find_port()
         self.serial = Serial(port=port, baudrate=baudrate)
+        # wait for arduino to be ready
+        self.wait_confirmation()
 
     @staticmethod
     def find_port() -> str:
