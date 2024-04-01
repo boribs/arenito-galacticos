@@ -3,9 +3,11 @@
 from arenito_com_consts import *
 from interfaces.serial_interface import SerialInterface
 from cv2.typing import MatLike
-import cv2
-import Jetson.GPIO as GPIO # pyright: ignore
+import cv2, os
 from argparse import Namespace
+
+if os.getenv('IS_JETSON'):
+    import Jetson.GPIO as GPIO # pyright: ignore
 
 class ArenitoCameras:
     """
@@ -57,8 +59,8 @@ class JetsonInterface:
     BUTTON_CALIBRATION_PIN = 18
 
     def __init__(self, args: Namespace):
-        GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType]
-        GPIO.setup(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.IN) # pyright: ignore[reportUnknownMemberType]
+        GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+        GPIO.setup(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.IN) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
         self.serial_interface = SerialInterface(args.port, args.baudrate)
 
@@ -76,7 +78,7 @@ class JetsonInterface:
         """
 
         self.cameras.add_video_capture()
-        GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType]
+        GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         self.cameras.add_video_capture()
 
         cv2.imwrite('frontal.png', self.cameras.get_front_frame())
