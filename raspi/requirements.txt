@@ -1,5 +1,6 @@
 numpy==1.24.3
-opencv-python==4.9.0-80
-pyserial==3.5
+opencv-python==4.9.0.80
 pillow==9.5.0
-Jetson.GPIO==2.1.6
+Jetson.GPIO==2.1.6 ; platform_machine == 'aarch64'
+pyserial==3.5 ; platform_machine == 'aarch64'
+i2c_lcd==0.1.0 ; platform_machine == 'aarch64'
