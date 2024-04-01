@@ -98,3 +98,11 @@ class ArenitoComms:
             self.sim_interface.dump_cans(ammount)
         else:
             raise Exception('No valid interface.')
+
+    def lcd_show(self, msg: str, line: int):
+        """
+        Shows a message on the LCD display. Only for JetsonInterface.
+        """
+
+        if self.jetson_interface:
+            self.jetson_interface.lcd_show(msg, line)
