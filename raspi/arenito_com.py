@@ -15,16 +15,11 @@ class ArenitoComms:
     """
 
     def __init__(self, mode: AIMode, args: Namespace):
-        # self.serial: SerialInterface | None = None
-        # self.video_capture: cv2.VideoCapture | None = None
         self.sim_interface: SimInterface | None = None
         self.jetson_interface: JetsonInterface | None = None
 
         if mode == AIMode.Simulation:
             self.connect_simulation(args.filename)
-        # elif mode == AIMode.Real:
-            # self.connect_serial(args.port, args.baudrate, args.timeout)
-            # self.init_video()
         elif mode == AIMode.Jetson:
             self.connect_jetson(args)
         else:
@@ -73,8 +68,6 @@ class ArenitoComms:
         Returns proximity sensor reads. Only for Sim.
         """
 
-        # if self.serial:
-        #     raise Exception('Proximity sensors not implemented for serial interface')
         if self.jetson_interface:
             return self.jetson_interface.get_prox_sensors()
         elif self.sim_interface:
@@ -87,8 +80,6 @@ class ArenitoComms:
         Sends instruction to arduino board through serial interface.
         """
 
-        # if self.serial:
-        #     self.serial.send_instruction(instr)
         if self.jetson_interface:
             self.jetson_interface.send_instruction(instr)
         elif self.sim_interface:
@@ -101,8 +92,6 @@ class ArenitoComms:
         Dumps cans.
         """
 
-        # if self.serial:
-        #     raise Exception('Instruction not implemented for Serial interface')
         if self.jetson_interface:
             self.jetson_interface.dump_cans()
         elif self.sim_interface:
