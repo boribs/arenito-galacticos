@@ -3,11 +3,10 @@
 from arenito_com_consts import *
 from serial import Serial
 import subprocess
-from argparse import Namespace
 
 class SerialInterface:
-    def __init__(self, args: Namespace):
-        self.connect(args.port, args.baudrate)
+    def __init__(self, port: str, baudrate: int):
+        self.connect(port, baudrate)
 
     def connect(self, port: str, baudrate: int):
         """
@@ -34,19 +33,32 @@ class SerialInterface:
 
         return ports[0][0]
 
+    def get_prox_sensors(self) -> list[int]:
+        """
+        Returns proximity sensor reads.
+        """
+
+        pass
+
+    def dump_cans(self):
+        """
+        Dumps cans.
+        """
+
+        self.send_instruction(Instruction.DumpCans)
+        self.wait_confirmation()
+
     def send_instruction(self, instr: Instruction):
         """
         Sends instruction to arduino board through serial interface.
         """
 
-        # Arduino sends an ok message when its ready to receive an instruction.
-        # Wait for ok message
-        p = self.serial.read()
+        self.serial.write(INSTRUCTION_MAP[instr].encode('utf-8'))
+        self.wait_confirmation()
 
-        # Then send instruction
-        if p:
-            print(f'Enviando {INSTRUCTION_MAP[instr]}::{p}')
-            self.serial.write(bytes(
-                INSTRUCTION_MAP[instr],
-                'utf-8'
-            ))
+    def wait_confirmation(self):
+        """
+        Waits for confirmation from Arduino.
+        """
+
+        self.serial.readline()
