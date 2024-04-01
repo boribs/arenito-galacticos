@@ -81,10 +81,13 @@ class ArenitoAI:
 
         if scan_results.detections:
             self.state = ArenitoState.GrabbingCan
+            self.com.lcd_show('Recogiendo lata ', 1)
         elif scan_results.dumping_zone and self.can_counter > 0:
             self.state = ArenitoState.DumpingCans
+            self.com.lcd_show('Depositando     ', 1)
         else:
             self.state = ArenitoState.LookingForCans
+            self.com.lcd_show('Buscando lata   ', 1)
 
     def main(self):
         """
