@@ -94,7 +94,7 @@ class JetsonInterface:
 
         self.lcd_show('Conecte camara trasera', 1)
         self.lcd_show('y oprima el boton', 2)
-        GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType]
+        GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
         self.cameras.add_video_capture()
 
