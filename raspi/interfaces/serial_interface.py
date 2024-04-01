@@ -40,7 +40,11 @@ class SerialInterface:
         Returns proximity sensor reads.
         """
 
-        pass
+        self.serial.write(INSTRUCTION_MAP[Instruction.RequestProxSensor].encode('utf-8'))
+        sensor_reads = self.serial.readline().decode('utf-8').strip()[:-1]
+        self.wait_confirmation()
+
+        return list(map(int, sensor_reads.split(',')))
 
     def dump_cans(self):
         """
