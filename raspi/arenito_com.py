@@ -26,16 +26,16 @@ class ArenitoComms:
             # self.connect_serial(args.port, args.baudrate, args.timeout)
             # self.init_video()
         elif mode == AIMode.Jetson:
-            self.connect_jetson()
+            self.connect_jetson(args)
         else:
             raise Exception(f'Unsupported mode {mode}.')
 
-    def connect_jetson(self):
+    def connect_jetson(self, args: Namespace):
         """
         Initializes JetsonInterface.
         """
 
-        self.jetson_interface = JetsonInterface()
+        self.jetson_interface = JetsonInterface(args)
 
     def connect_simulation(self, filename: str):
         """
