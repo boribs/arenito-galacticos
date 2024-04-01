@@ -30,20 +30,6 @@ class ArenitoComms:
         else:
             raise Exception(f'Unsupported mode {mode}.')
 
-    # def init_video(self, device_index: int = 0):
-    #     """
-    #     Initializes the capture device.
-    #     """
-
-    #     self.video_capture = cv2.VideoCapture(device_index)
-
-    # def connect_serial(self, port: str | None, baudrate: int, timeout: float = 0.0):
-    #     """
-    #     Establishes serial communication.
-    #     """
-
-    #     self.serial = SerialInterface(port, baudrate, timeout)
-
     def connect_jetson(self):
         """
         Initializes JetsonInterface.

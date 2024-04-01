@@ -3,18 +3,19 @@
 from arenito_com_consts import *
 from serial import Serial
 import subprocess
+from argparse import Namespace
 
 class SerialInterface:
-    def __init__(self, port: str | None, baudrate: int, timeout: float = 0.0):
-        self.connect(port, baudrate, timeout)
+    def __init__(self, args: Namespace):
+        self.connect(args.port, args.baudrate)
 
-    def connect(self, port: str | None, baudrate: int, timeout: float):
+    def connect(self, port: str, baudrate: int):
         """
         Establishes serial communication.
         """
 
-        if port is None: port = SerialInterface.find_port()
-        self.serial = Serial(port=port, baudrate=baudrate, timeout=timeout)
+        # if port is None: port = SerialInterface.find_port()
+        self.serial = Serial(port=port, baudrate=baudrate)
 
     @staticmethod
     def find_port() -> str:

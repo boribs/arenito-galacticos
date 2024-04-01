@@ -9,7 +9,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('port', nargs='?', type=str, default=None)
     parser.add_argument('baudrate', nargs='?', type=int, default=115200)
-    parser.add_argument('timeout', nargs='?', type=float, default=0.5)
 
     parser.add_argument('filename', nargs='?', type=str, default='../sim/file.mmap')
     parser.add_argument('--mode', '-m', type=str, default='s')
