@@ -2,6 +2,7 @@
 
 from arenito_com_consts import *
 from interfaces.serial_interface import SerialInterface
+import utils.I2C_LCD_driver as I2C_LCD_driver
 from cv2.typing import MatLike
 import cv2
 import Jetson.GPIO as GPIO # pyright: ignore
@@ -62,6 +63,11 @@ class JetsonInterface:
 
         self.serial_interface = SerialInterface(args.port, args.baudrate)
 
+        # LCD1602 with i2c shield
+        # can be any LCD with i2c, though
+        self.lcd = I2C_LCD_driver.lcd()
+        self.lcd.lcd_clear()
+
         # Camera setup:
         # 1. Connect the front camera
         # 2. Start the AI script
@@ -70,15 +76,27 @@ class JetsonInterface:
         self.cameras = ArenitoCameras()
         self.init_cameras()
 
+    def lcd_show(self, msg: str, line: int):
+        """
+        Displays some text on the mounted LCD display.
+        """
+
+        self.lcd.lcd_display_string(msg, line) # pyright: ignore[reportUnknownMemberType]
+
     def init_cameras(self):
         """
         Camera initialization routine: first camera -> front camera, second camera -> rear camera.
         """
 
         self.cameras.add_video_capture()
+
+        self.lcd_show('Conecte camara trasera', 1)
+        self.lcd_show('y oprima el boton', 2)
         GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType]
+
         self.cameras.add_video_capture()
 
+        # maybe don't do this?
         cv2.imwrite('frontal.png', self.cameras.get_front_frame())
         cv2.imwrite('rear.png', self.cameras.get_rear_frame())
 
