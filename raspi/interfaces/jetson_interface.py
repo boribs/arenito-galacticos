@@ -1,9 +1,11 @@
 # pyright: strict
 
 from arenito_com_consts import *
+from interfaces.serial_interface import SerialInterface
 from cv2.typing import MatLike
 import cv2
 import Jetson.GPIO as GPIO # pyright: ignore
+from argparse import Namespace
 
 class ArenitoCameras:
     """
@@ -48,14 +50,23 @@ class ArenitoCameras:
 class JetsonInterface:
     """
     Sensor interaction through NVIDIA Jetson Nano.
+    The Jetson has an Arduino board as a slave, to facilitate sensor data retrieval.
+    These boards communicate through serial interface (Jetson Nano port /dev/ttyTHS1).
     """
 
     BUTTON_CALIBRATION_PIN = 18
 
-    def __init__(self):
+    def __init__(self, args: Namespace):
         GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType]
         GPIO.setup(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.IN) # pyright: ignore[reportUnknownMemberType]
 
+        self.serial_interface = SerialInterface(args.port, args.baudrate)
+
+        # Camera setup:
+        # 1. Connect the front camera
+        # 2. Start the AI script
+        # 3. Connect rear camera
+        # 4. Press camera config button
         self.cameras = ArenitoCameras()
         self.init_cameras()
 
@@ -90,18 +101,18 @@ class JetsonInterface:
         Returns proximity sensor reads.
         """
 
-        raise Exception('TODO')
+        return self.serial_interface.get_prox_sensors()
 
     def send_instruction(self, instr: Instruction):
         """
         Requests some instructions execution.
         """
 
-        raise Exception('TODO')
+        self.serial_interface.send_instruction(instr)
 
     def dump_cans(self):
         """
         Dumps cans.
         """
 
-        raise Exception('TODO')
+        self.serial_interface.dump_cans()
