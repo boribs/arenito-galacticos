@@ -467,6 +467,10 @@ class ArenitoVision:
         return cv2.GaussianBlur(img, (51, 51), 0)
 
     def can_in_critical_region(self, detections: list[Detection]) -> bool:
+        """
+        Returns true when the closest can is in the critical zone.
+        """
+
         if not detections:
             return False
 
