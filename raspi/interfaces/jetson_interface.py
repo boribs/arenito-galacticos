@@ -93,6 +93,7 @@ class JetsonInterface:
         """
 
         self.lcd.lcd_display_string(msg, line) # pyright: ignore[reportUnknownMemberType]
+        print(f'[INFO] {msg}')
 
     def init_cameras(self):
         """
