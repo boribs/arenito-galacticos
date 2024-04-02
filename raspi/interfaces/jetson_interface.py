@@ -58,10 +58,19 @@ class JetsonInterface:
     """
 
     BUTTON_CALIBRATION_PIN = 18
+    BUTTON_START_AI = 16
 
     def __init__(self, args: Namespace):
         GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-        GPIO.setup(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.IN) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+        GPIO.setup([ # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+            JetsonInterface.BUTTON_CALIBRATION_PIN,
+            JetsonInterface.BUTTON_START_AI,
+        ],
+        GPIO.IN) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+
+        # Start button, required by rules.
+        self.lcd_show('Esperando inicio', 1)
+        GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
         self.serial_interface = SerialInterface(args.port, args.baudrate)
 
