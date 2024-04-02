@@ -1,83 +1,53 @@
-// Usando puentes H de los rojos
-int motDa = 6;
-int motDb = 7;
-int motIa = 8;
-int motIb = 9;
+class DCMotor {
+    public:
+    int in1, in2;
 
-// Rodillo!
-int rodA = 4;
-int rodB = 3;
+    DCMotor(int in1, int in2) {
+        this->in1 = in1;
+        this->in2 = in2;
+    }
+
+    void setup() {
+        pinMode(this->in1, OUTPUT);
+        pinMode(this->in2, OUTPUT);
+
+        digitalWrite(this->in1, LOW);
+        digitalWrite(this->in2, LOW);
+    }
+
+    void clockwise() {
+        digitalWrite(this->in1, LOW);
+        digitalWrite(this->in2, HIGH);
+    }
+
+    void counterClockwise() {
+        digitalWrite(this->in1, HIGH);
+        digitalWrite(this->in2, LOW);
+    }
+
+    void stop() {
+        digitalWrite(this->in1, LOW);
+        digitalWrite(this->in2, LOW);
+    }
+};
+
+DCMotor tapa = DCMotor(7, 6);
 
 void setup() {
-    pinMode(motIa, OUTPUT);
-    pinMode(motIb, OUTPUT);
-    pinMode(motDa, OUTPUT);
-    pinMode(motDb, OUTPUT);
-    pinMode(rodA, OUTPUT);
-    pinMode(rodB, OUTPUT);
-
-    avanza(1000);
-    alto(1000);
-    derecha(1000);
-    alto(1000);
-    izquierda(1000);
-    alto(1000);
-    retrocede(100);
-    alto(1000);
+  Serial.begin(9600);
+  tapa.setup();
 }
 
 void loop() {
+  tapa.clockwise();
+  Serial.println("Giro del Motor en sentido horario");
+  delay(5000);
 
-}
+  tapa.counterClockwise();
+  Serial.println("Giro del Motor en sentido antihorario");
+  delay(5000);
 
-void prendeRodillo() {
-  digitalWrite(rodA, HIGH);
-  digitalWrite(rodB, LOW);
-}
-
-void apagaRodillo() {
-  digitalWrite(rodA, LOW);
-  digitalWrite(rodB, LOW);
-}
-
-void avanza(int tiempo) {
-  prendeRodillo();
-  digitalWrite(motIa, HIGH);
-  digitalWrite(motIb, LOW);
-  digitalWrite(motDa, HIGH);
-  digitalWrite(motDb, LOW);
-  delay(tiempo);
-  apagaRodillo();
-}
-
-void retrocede(int tiempo) {
-  digitalWrite(motIa, LOW);
-  digitalWrite(motIb, HIGH);
-  digitalWrite(motDa, LOW);
-  digitalWrite(motDb, HIGH);
-  delay(tiempo);
-}
-
-void derecha(int tiempo) {
-  digitalWrite(motIa, HIGH);
-  digitalWrite(motIb, LOW);
-  digitalWrite(motDa, LOW);
-  digitalWrite(motDb, HIGH);
-  delay(tiempo);
-}
-
-void izquierda(int tiempo) {
-  digitalWrite(motIa, LOW);
-  digitalWrite(motIb, HIGH);
-  digitalWrite(motDa, HIGH);
-  digitalWrite(motDb, LOW);
-  delay(tiempo);
-}
-
-void alto(int tiempo) {
-  digitalWrite(motIa, LOW);
-  digitalWrite(motIb, LOW);
-  digitalWrite(motDa, LOW);
-  digitalWrite(motDb, LOW);
-  delay(tiempo);
+  tapa.stop();
+  Serial.println("Motor Detenido");
+  delay(3000);
 }
