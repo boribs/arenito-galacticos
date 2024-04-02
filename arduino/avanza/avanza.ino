@@ -1,6 +1,6 @@
 #include "ArenitoUtils.h"
 
-DCMotor tapa = DCMotor(7, 6);
+DCMotor tapa = DCMotor(9, 8, 7);
 
 void setup() {
   Serial.begin(9600);
@@ -9,9 +9,11 @@ void setup() {
 
 void loop() {
     if (digitalRead(4) != 0) {
-        tapa.clockwise();
+        tapa.clockwise(130);
+        delay(300);
     } else if (digitalRead(5) != 0) {
-        tapa.counterClockwise();
+        tapa.counterClockwise(80);
+        delay(150);
     } else {
         tapa.stop();
     }
