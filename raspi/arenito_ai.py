@@ -169,6 +169,7 @@ class ArenitoAI:
         self.align( # pyright: ignore[reportUnknownMemberType]
             scan_results.detections[0].center.x,
             self.vis.can_threshold_x,
+            15,
             can_aligner,
             [self]
         )
@@ -179,7 +180,7 @@ class ArenitoAI:
         Can-search routine.
         """
 
-        MAX_SEARCH_SECONDS = 35
+        MAX_SEARCH_SECONDS = 20
 
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
@@ -253,6 +254,7 @@ class ArenitoAI:
             self.align( # pyright: ignore[reportUnknownMemberType]
                 dump_x,
                 self.vis.can_threshold_x,
+                15,
                 front_cam_align,
                 [self]
             )
@@ -279,6 +281,7 @@ class ArenitoAI:
         self.align( # pyright: ignore[reportUnknownMemberType]
             dump_x,
             self.vis.deposit_threshold_x,
+            15,
             rear_cam_align,
             [self]
         )
@@ -303,6 +306,7 @@ class ArenitoAI:
         self,
         initial_x: int,
         threshold: tuple[int, int],
+        timeout: int,
         callback: Callable[[ArenitoAI], int],
         callback_args: Iterable[any] # pyright: ignore
     ):
@@ -313,7 +317,8 @@ class ArenitoAI:
         tmin, tmax = threshold
         x = initial_x
         aligned = False
-        while not aligned:
+        t = time.time()
+        while not aligned and time.time() - t < timeout:
             # mínimo y máximo como parámetro
             if tmax <= x:
                 self.com.send_instruction(Instruction.MoveRight)
