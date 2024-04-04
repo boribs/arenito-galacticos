@@ -10,7 +10,7 @@ from arenito_com import *
 from arenito_vision import *
 from arenito_timer import ArenitoTimer
 from typing import Callable, Iterable
-# from time import sleep
+import time
 
 @dataclass
 class ScanResult:
@@ -245,8 +245,11 @@ class ArenitoAI:
         # get close (front cam)
         if not scan_results.dumping_zone: return
 
+        MAX_SEARCH_TIME = 20
+
         dump_x = scan_results.dumping_zone.center.x
-        while True:
+        t = time.time()
+        while time.time() - t < MAX_SEARCH_TIME:
             self.align( # pyright: ignore[reportUnknownMemberType]
                 dump_x,
                 self.vis.can_threshold_x,
@@ -264,7 +267,8 @@ class ArenitoAI:
                 dump_x = dump.center.x
 
         # align (rear cam)
-        while True:
+        t = time.time()
+        while time.time() - t < MAX_SEARCH_TIME:
             dump = get_dump(self, self.com.get_rear_frame())
             if dump:
                 dump_x = dump.center.x
@@ -282,7 +286,8 @@ class ArenitoAI:
         # get close (sensors)
         MAX_SENSOR_DIST = 4
 
-        while True:
+        t = time.time()
+        while time.time() - t < MAX_SEARCH_TIME:
             sensor, _ = rear_sensor_align()
             if sensor < MAX_SENSOR_DIST:
                 break
