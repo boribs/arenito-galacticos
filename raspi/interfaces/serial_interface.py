@@ -52,7 +52,6 @@ class SerialInterface:
         """
 
         self.send_instruction(Instruction.DumpCans)
-        self.wait_confirmation()
 
     def send_instruction(self, instr: Instruction):
         """
