@@ -1,6 +1,6 @@
 #include "ArenitoUtils.h"
 
-u1 = Ultrasonic(2, 3);
+Ultrasonic u1 = Ultrasonic(2, 3);
 
 void setup() {
     pinMode(13, OUTPUT);
