@@ -1,41 +1,131 @@
-void setup() {
-  Serial.begin(115200);
-  Serial.setTimeout(0);
+#include "ArenitoUtils.h"
 
-  Serial.println("Arduino ready");
+const int INSTRUCTION_EXECUTION_TIME = 100; // ms
+const int MOTOR_PWM_ENABLE = 200;
+const int BACKDOOR_PWM_UP = 130;
+const int BACKDOOR_PWM_DOWN = 80;
+const int BACKDOOR_TIMEOUT = 1000; // ms
+
+DCMotor left = DCMotor(12, 24, 25);
+DCMotor right = DCMotor(11, 26, 27);
+DCMotor backdoor = DCMotor(13, 22, 23);
+LimitSwitch ls_up = LimitSwitch(53);
+LimitSwitch ls_down = LimitSwitch(52);
+
+void setup() {
+    Serial.begin(115200);
+    Serial.setTimeout(0);
+
+    left.setup();
+    right.setup();
+    backdoor.setup();
+
+    Serial.println("Arduino ready");
 }
 
 enum InstructionMap {
-  MoveForward = 'a',
-  MoveLeft = 'i',
-  MoveRight = 'd',
-  MoveBack = 'r',
-  MoveLongRight = 'D',
-  RequestProxSensor = 's',
+    MoveForward = 'a',
+    MoveLeft = 'i',
+    MoveRight = 'd',
+    MoveBack = 'r',
+    MoveLongRight = 'D',
+    RequestProxSensor = 's',
+    DumpCans = 'c',
 };
 
 void loop() {
-  while (Serial.available() == 0) { ; }
+    while (Serial.available() == 0) { ; }
 
-  char instr = Serial.readString()[0];
-  switch (instr) {
-    case MoveForward:
-      break;
-    case MoveLeft:
-      break;
-    case MoveRight:
-      break;
-    case MoveBack:
-      break;
-    case MoveLongRight:
-      break;
-    case RequestProxSensor:
-      // TODO: Finish this.
-      Serial.println("25,25,100,100,");
-      break;
-    default:
-      break;
-  }
+    char instr = Serial.readString()[0];
+    switch (instr) {
+        case MoveForward:
+            left.clockwise(MOTOR_PWM_ENABLE);
+            right.clockwise(MOTOR_PWM_ENABLE);
 
-  Serial.println("ok");
+            timeout_repeat(INSTRUCTION_EXECUTION_TIME, []() {
+                // measure distance with MPU6050
+            });
+
+            left.stop();
+            right.stop();
+            break;
+
+        case MoveLeft:
+            left.clockwise(MOTOR_PWM_ENABLE);
+            right.counterClockwise(MOTOR_PWM_ENABLE);
+
+            timeout_repeat(INSTRUCTION_EXECUTION_TIME, []() {
+                // measure distance with MPU6050
+            });
+
+            left.stop();
+            right.stop();
+            break;
+
+        case MoveRight:
+            left.counterClockwise(MOTOR_PWM_ENABLE);
+            right.clockwise(MOTOR_PWM_ENABLE);
+
+            timeout_repeat(INSTRUCTION_EXECUTION_TIME, []() {
+                // measure distance with MPU6050
+            });
+
+            left.stop();
+            right.stop();
+            break;
+
+        case MoveBack:
+            left.counterClockwise(MOTOR_PWM_ENABLE);
+            right.counterClockwise(MOTOR_PWM_ENABLE);
+
+            timeout_repeat(INSTRUCTION_EXECUTION_TIME, []() {
+                // measure distance with MPU6050
+            });
+
+            left.stop();
+            right.stop();
+            break;
+
+        case MoveLongRight:
+            left.counterClockwise(MOTOR_PWM_ENABLE);
+            right.clockwise(MOTOR_PWM_ENABLE);
+
+            timeout_repeat(3 * INSTRUCTION_EXECUTION_TIME, []() {
+                // measure distance with MPU6050
+            });
+
+            left.stop();
+            right.stop();
+            break;
+
+        case RequestProxSensor:
+            // TODO: Finish this.
+            Serial.print("25,25,100,100,");
+            break;
+
+        case DumpCans:
+            // when it reaches this point
+            // its already aligned with deposit
+
+            // open backdoor
+            backdoor.clockwise(BACKDOOR_PWM_UP);
+            timeout_repeat(BACKDOOR_TIMEOUT, []() {
+                return ls_up.read() == LOW;
+            });
+            backdoor.stop();
+
+            // close backdoor
+            backdoor.counterClockwise(BACKDOOR_PWM_DOWN);
+            timeout_repeat(BACKDOOR_TIMEOUT, []() {
+                return ls_down.read() == LOW;
+            });
+            backdoor.stop();
+            break;
+
+        default:
+            break;
+    }
+
+    // confirmation message
+    Serial.println("ok");
 }
