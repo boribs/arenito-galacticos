@@ -93,6 +93,42 @@ class DCMotor {
     }
 };
 
+class Ultrasonic {
+    public:
+    int echo, trigger;
+
+    /*
+     * Sets echo and trigger pins.
+     */
+    Ultrasonic(int echo, int trigger) {
+        this->echo = echo;
+        this->trigger = trigger;
+    }
+
+    /*
+     * Configures `echo` and `trigger` pins.
+     */
+    void setup() {
+        pinMode(this->echo, INPUT);
+        pinMode(this->trigger, OUTPUT);
+        digitalWrite(this->trigger, LOW);
+    }
+
+    /*
+     * Returns the distance in cm readout from this sensor.
+     */
+    long read() {
+        digitalWrite(this->trigger, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(this->trigger, LOW);
+
+        float duration = pulseIn(this->echo, HIGH);
+        // https://arduinogetstarted.com/tutorials/arduino-ultrasonic-sensor
+        // TODO: Filter noise.
+        return duration * 0.017;
+    }
+};
+
 /*
  * Repeat until either `bool_func` is done or `timeout_ms` is reached.
  * `bool_func` is expected to return true when done executing.
