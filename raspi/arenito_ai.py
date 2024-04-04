@@ -36,6 +36,7 @@ class ArenitoAI:
     """
 
     MIN_PROX_REACT_RANGE = 14
+    TEST_TIME_SECS = 5 * 60
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
@@ -49,6 +50,7 @@ class ArenitoAI:
         # Can tracking stuff
         self.timer = ArenitoTimer()
         self.can_counter = 0
+        self.dumped_can_counter = 0
         self.can_in_critical_region = False
 
         # Clock
@@ -144,6 +146,11 @@ class ArenitoAI:
                 if not self.timer.clock:
                     self.timer.start()
                 self.search_cans(scan_results)
+
+        # stats
+        print(f'Tiempo de ejecución: {test_timer.full()}')
+        print(f'Arenito depositó {self.dumped_can_counter} latas'
+              f', se quedó con {self.can_counter} latas dentro.')
 
     def get_can(self, scan_results: ScanResult):
         """
@@ -284,6 +291,7 @@ class ArenitoAI:
 
         # dump cans
         self.com.dump_cans(self.can_counter)
+        self.dumped_can_counter += self.can_counter
         self.can_counter = 0
 
     def align(
