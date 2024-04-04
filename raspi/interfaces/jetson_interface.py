@@ -1,14 +1,14 @@
 # pyright: strict
 
 from arenito_com_consts import *
-from interfaces.serial_interface import SerialInterface
-import utils.I2C_LCD_driver as I2C_LCD_driver
 from cv2.typing import MatLike
 import cv2, os
 from argparse import Namespace
 
 if os.getenv('IS_JETSON'):
     import Jetson.GPIO as GPIO # pyright: ignore
+    from interfaces.serial_interface import SerialInterface
+    import utils.I2C_LCD_driver as I2C_LCD_driver
 
 class ArenitoCameras:
     """
@@ -72,11 +72,11 @@ class JetsonInterface:
         self.lcd_show('Esperando inicio', 1)
         GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
-        self.serial_interface = SerialInterface(args.port, args.baudrate)
+        self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
 
         # LCD1602 with i2c shield
         # can be any LCD with i2c, though
-        self.lcd = I2C_LCD_driver.lcd()
+        self.lcd = I2C_LCD_driver.lcd() # pyright: ignore[reportPossiblyUnboundVariable]
         self.lcd.lcd_clear()
 
         # Camera setup:
