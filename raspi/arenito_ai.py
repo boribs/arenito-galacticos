@@ -94,7 +94,9 @@ class ArenitoAI:
         Main loop.
         """
 
-        while True:
+        test_timer = ArenitoTimer()
+        test_timer.start()
+        while test_timer.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
             if cv2.waitKey(1) == 27:
                 break
 
