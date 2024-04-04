@@ -60,32 +60,42 @@ class JetsonInterface:
     BUTTON_CALIBRATION_PIN = 18
     BUTTON_START_AI = 16
 
-    def __init__(self, args: Namespace):
+    def __init__(
+        self,
+        args: Namespace,
+        no_cam: bool = False,
+        no_start: bool = False,
+        no_lcd: bool = False,
+    ):
         GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         GPIO.setup([ # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-            JetsonInterface.BUTTON_CALIBRATION_PIN,
-            JetsonInterface.BUTTON_START_AI,
-        ],
-        GPIO.IN) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+                JetsonInterface.BUTTON_CALIBRATION_PIN,
+                JetsonInterface.BUTTON_START_AI,
+            ],
+            GPIO.IN # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+        )
 
         # Start button, required by rules.
-        self.lcd_show('Esperando inicio', 1)
-        GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+        if not no_start:
+            self.lcd_show('Esperando inicio', 1)
+            GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
         self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
 
         # LCD1602 with i2c shield
         # can be any LCD with i2c, though
-        self.lcd = I2C_LCD_driver.lcd() # pyright: ignore[reportPossiblyUnboundVariable]
-        self.lcd.lcd_clear()
+        if not no_lcd:
+            self.lcd = I2C_LCD_driver.lcd() # pyright: ignore[reportPossiblyUnboundVariable]
+            self.lcd.lcd_clear()
 
         # Camera setup:
         # 1. Connect the front camera
         # 2. Start the AI script
         # 3. Connect rear camera
         # 4. Press camera config button
-        self.cameras = ArenitoCameras()
-        self.init_cameras()
+        if not no_cam:
+            self.cameras = ArenitoCameras()
+            self.init_cameras()
 
     def lcd_show(self, msg: str, line: int):
         """
