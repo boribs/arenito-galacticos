@@ -23,4 +23,5 @@ INSTRUCTION_MAP = {
     Instruction.MoveBack: 'r',
     Instruction.MoveLongRight: 'D',
     Instruction.RequestProxSensor: 's',
+    Instruction.DumpCans: 'c',
 }
