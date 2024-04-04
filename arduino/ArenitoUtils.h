@@ -129,6 +129,29 @@ class Ultrasonic {
     }
 };
 
+class LimitSwitch {
+    public:
+    int pin;
+
+    LimitSwitch(int pin) {
+        this->pin = pin;
+    }
+
+    /*
+     * Configures input pin.
+     */
+    void setup() {
+        pinMode(this->pin, INPUT);
+    }
+
+    /*
+     * Returns digital read of pin.
+     */
+    int read() {
+        return digitalRead(this->pin);
+    }
+};
+
 /*
  * Repeat until either `bool_func` is done or `timeout_ms` is reached.
  * `bool_func` is expected to return true when done executing.
