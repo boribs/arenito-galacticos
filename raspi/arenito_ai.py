@@ -27,7 +27,6 @@ class ArenitoState(Enum):
 
 MODE_DICT = {
     's' : AIMode.Simulation,
-    'a' : AIMode.Real,
     'j' : AIMode.Jetson,
 }
 
@@ -41,6 +40,7 @@ class ArenitoAI:
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
         self.args = args
+        self.headless = args.headless
         self.com = ArenitoComms(mode, args)
         self.vis = ArenitoVision(mode, args)
 
@@ -115,8 +115,9 @@ class ArenitoAI:
                 scan_results.dumping_zone,
                 self.clock.full()
             )
-            cv2.imshow('arenito pov', scan_results.original)
-            #   cv2.imshow('arenito pov - blurred', blurred)
+
+            if not self.headless:
+                cv2.imshow('arenito pov', scan_results.original)
 
             if self.args.no_move:
                 continue
