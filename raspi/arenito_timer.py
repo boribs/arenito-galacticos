@@ -1,6 +1,7 @@
+from __future__ import annotations
 import time
 
-class ArenitoTimer:
+class ArenitoTimer: # rename this to Timer
     """
     A convenient timer class.
     """
@@ -8,8 +9,9 @@ class ArenitoTimer:
     def __init__(self):
         self.clock: float | None = None
 
-    def start(self):
+    def start(self) -> ArenitoTimer:
         self.clock = time.time()
+        return self
 
     def elapsed_time(self) -> float:
         return time.time() - self.clock if self.clock else 0

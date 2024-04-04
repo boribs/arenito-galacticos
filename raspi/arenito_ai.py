@@ -36,7 +36,7 @@ class ArenitoAI:
     """
 
     MIN_PROX_REACT_RANGE = 14
-    TEST_TIME_SECS = 5 * 60
+    TEST_TIME_SECS = 3 * 60
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
@@ -54,8 +54,7 @@ class ArenitoAI:
         self.can_in_critical_region = False
 
         # Clock
-        self.clock = ArenitoTimer()
-        self.clock.start()
+        self.clock = ArenitoTimer().start()
 
     def scan(self) -> ScanResult:
         """
@@ -96,8 +95,7 @@ class ArenitoAI:
         Main loop.
         """
 
-        test_timer = ArenitoTimer()
-        test_timer.start()
+        test_timer = ArenitoTimer().start()
         while test_timer.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
             if cv2.waitKey(1) == 27:
                 break
