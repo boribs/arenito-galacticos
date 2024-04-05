@@ -1,9 +1,13 @@
 #include "ArenitoUtils.h"
 
-IBT2 left = IBT2(9, 8);
+LimitSwitch a = LimitSwitch(23);
+LimitSwitch b = LimitSwitch(24);
 
 void setup() {
-    left.setup();
+    a.setup();
+    b.setup();
+
+    pinMode(13, OUTPUT);
 
     Serial.begin(115200);
     Serial.setTimeout(0);
@@ -12,14 +16,9 @@ void setup() {
 }
 
 void loop() {
-    while (Serial.available() == 0) { ; }
-
-    char instr = Serial.read();
-    switch (instr) {
-        case 'a':
-            left.clockwise(200);
-            delay(100);
-            left.stop();
-            break;
+    if (a.read() == LOW || b.read() == LOW) {
+        digitalWrite(13, HIGH);
+    } else {
+        digitalWrite(13, LOW);
     }
 }
