@@ -75,18 +75,18 @@ class JetsonInterface:
             GPIO.IN # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         )
 
+        # LCD1602 with i2c shield
+        # can be any LCD with i2c, though
+        if not no_lcd:
+            self.lcd = I2C_LCD_driver.lcd() # pyright: ignore[reportPossiblyUnboundVariable]
+            self.lcd.lcd_clear()
+
         # Start button, required by rules.
         if not no_start:
             self.lcd_show('Esperando inicio', 1)
             GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
         self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
-
-        # LCD1602 with i2c shield
-        # can be any LCD with i2c, though
-        if not no_lcd:
-            self.lcd = I2C_LCD_driver.lcd() # pyright: ignore[reportPossiblyUnboundVariable]
-            self.lcd.lcd_clear()
 
         # Camera setup:
         # 1. Connect the front camera
