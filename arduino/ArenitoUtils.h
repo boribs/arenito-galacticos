@@ -13,7 +13,7 @@ class L298N { // single
     public:
     int enable, in1, in2;
 
-    DCMotor(int enable, int in1, int in2) {
+    L298N(int enable, int in1, int in2) {
         this->enable = enable;
         this->in1 = in1;
         this->in2 = in2;
