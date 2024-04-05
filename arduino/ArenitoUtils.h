@@ -109,8 +109,16 @@ class IBT2 {
 };
 
 class Ultrasonic {
+    private:
+    ulong_t lastDuration = 0,
+            maxDuration = 11650, // around 200cm
+            maxRange = 100; // no idea what this is for
+
+    float noiseReject = 0.25; // percentage
+
     public:
     int echo, trigger;
+    static const float SPEED_OF_SOUND = 29.1; // µs/cm
 
     /*
      * Sets echo and trigger pins.
@@ -132,15 +140,29 @@ class Ultrasonic {
     /*
      * Returns the distance in cm readout from this sensor.
      */
-    long read() {
+    ulong_t read() {
+        // I don't love this.
+        digitalWrite(this->trigger, LOW);
+        delayMicroseconds(2);
         digitalWrite(this->trigger, HIGH);
         delayMicroseconds(10);
         digitalWrite(this->trigger, LOW);
 
-        float duration = pulseIn(this->echo, HIGH);
-        // https://arduinogetstarted.com/tutorials/arduino-ultrasonic-sensor
-        // TODO: Filter noise.
-        return duration * 0.017;
+        ulong_t duration = pulseIn(this->echo, HIGH);
+        ulong_t unfiltered = (duration / 2) / SPEED_OF_SOUND;
+
+        // https://github.com/MrNerdy404/HC-SR04_Filter/blob/master/SR04_Filter.ino
+        if (duration <= 8) duration = ((this->maxRange + 1) * SPEED_OF_SOUND * 2);
+        if (this->lastDuration == 0) this->lastDuration = duration;
+        if (duration > (5 * this->maxDuration)) duration = this->lastDuration;
+        if (duration > this->maxDuration) duration = this->maxDuration;
+
+        if ((duration - this->lastDuration) < (-1.0 * this->noiseReject * this->lastDuration)){
+            return (this->lastDuration / 2) / SPEED_OF_SOUND;
+        }
+
+        this->lastDuration = duration;
+        return (duration / 2) / SPEED_OF_SOUND;
     }
 };
 
