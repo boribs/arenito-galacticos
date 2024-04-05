@@ -106,7 +106,7 @@ class IBT2 {
         digitalWrite(this->in1, LOW);
         digitalWrite(this->in2, LOW);
     }
-}
+};
 
 class Ultrasonic {
     public:
