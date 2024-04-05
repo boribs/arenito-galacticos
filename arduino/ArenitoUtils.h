@@ -103,8 +103,8 @@ class IBT2 {
      * Stops motor.
      */
     void stop() {
-        digitalWrite(this->forward, LOW);
-        digitalWrite(this->backward, LOW);
+        analogWrite(this->forward, 0);
+        analogWrite(this->backward, 0);
     }
 };
 
