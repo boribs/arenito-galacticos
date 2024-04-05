@@ -7,7 +7,7 @@ const int BACKDOOR_PWM_DOWN = 80;
 const int BACKDOOR_TIMEOUT = 1000; // ms
 
 IBT2 left = IBT2(13, 12);
-IBT2 = IBT2(11, 10);
+IBT2 right = IBT2(11, 10);
 L298N backdoor = L298N(9, 22, 23);
 LimitSwitch ls_up = LimitSwitch(53);
 LimitSwitch ls_down = LimitSwitch(52);
