@@ -1,6 +1,6 @@
 #include "ArenitoUtils.h"
 
-const int INSTRUCTION_EXECUTION_TIME = 100; // ms
+const int INSTRUCTION_EXECUTION_TIME = 500; // ms
 const int MOTOR_PWM_ENABLE = 200;
 const int BACKDOOR_PWM_UP = 130;
 const int BACKDOOR_PWM_DOWN = 80;
@@ -30,23 +30,40 @@ void setup() {
     Serial.println("hola");
 }
 
+void moveForward() {
+    left.clockwise(MOTOR_PWM_ENABLE);
+    right.clockwise(MOTOR_PWM_ENABLE);
+
+    timeout_repeat(INSTRUCTION_EXECUTION_TIME, []() {
+        // measure distance with MPU6050
+        return false;
+    });
+
+    left.stop();
+    right.stop();
+}
+
+void moveBackward() {
+    left.counterClockwise(MOTOR_PWM_ENABLE);
+    right.counterClockwise(MOTOR_PWM_ENABLE);
+
+    timeout_repeat(INSTRUCTION_EXECUTION_TIME, []() {
+        // measure distance with MPU6050
+        return false;
+    });
+
+    left.stop();
+    right.stop();
+}
+
 void loop() {
     while (Serial.available() == 0) { ; }
 
     char instr = Serial.read();
-    switch (instr) {
-
-        case MoveForward:
-            left.clockwise(MOTOR_PWM_ENABLE);
-            right.clockwise(MOTOR_PWM_ENABLE);
-
-            timeout_repeat(INSTRUCTION_EXECUTION_TIME, []() {
-                // measure distance with MPU6050
-            });
-
-            left.stop();
-            right.stop();
-            break;
+    if (instr == 'a') {
+        moveForward();
+    } else if (instr == 'r') {
+        moveBackward();
     }
 
     Serial.println("aksjdfhas");

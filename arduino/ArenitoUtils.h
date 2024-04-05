@@ -171,7 +171,7 @@ class LimitSwitch {
  * Repeat until either `bool_func` is done or `timeout_ms` is reached.
  * `bool_func` is expected to return true when done executing.
  */
-void timeout_repeat(ulong_t timeout_ms, bool_func stop_condition) {
+static void timeout_repeat(ulong_t timeout_ms, bool_func stop_condition) {
     ulong_t time = millis();
 
     while (millis() - time < timeout_ms) {
