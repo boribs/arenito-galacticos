@@ -6,9 +6,9 @@ const int BACKDOOR_PWM_UP = 130;
 const int BACKDOOR_PWM_DOWN = 80;
 const int BACKDOOR_TIMEOUT = 1000; // ms
 
-DCMotor left = DCMotor(12, 24, 25);
-DCMotor right = DCMotor(11, 26, 27);
-DCMotor backdoor = DCMotor(13, 22, 23);
+IBT2 left = IBT2(13, 12);
+IBT2 = IBT2(11, 10);
+L298N backdoor = L298N(13, 22, 23);
 LimitSwitch ls_up = LimitSwitch(53);
 LimitSwitch ls_down = LimitSwitch(52);
 
@@ -113,6 +113,9 @@ void loop() {
                 return ls_up.read() == LOW;
             });
             backdoor.stop();
+
+            // delay?
+            // wiggle?
 
             // close backdoor
             backdoor.counterClockwise(BACKDOOR_PWM_DOWN);

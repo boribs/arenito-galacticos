@@ -6,24 +6,15 @@ const int PIN_UNSET = -1;
 typedef bool (*bool_func)();
 typedef unsigned long ulong_t;
 
-class DCMotor {
+/*
+ * L297N H-bridge controller.
+ */
+class L298N { // single
     public:
     int enable, in1, in2;
 
-    /*
-     * Sets motor pins, expected H-bridge.
-     */
     DCMotor(int enable, int in1, int in2) {
         this->enable = enable;
-        this->in1 = in1;
-        this->in2 = in2;
-    }
-
-    /*
-     * Sets motor pins.
-     */
-    DCMotor(int in1, int in2) {
-        this->enable = PIN_UNSET;
         this->in1 = in1;
         this->in2 = in2;
     }
@@ -38,18 +29,6 @@ class DCMotor {
 
         digitalWrite(this->in1, LOW);
         digitalWrite(this->in2, LOW);
-
-        if (this->enable != PIN_UNSET) {
-            pinMode(this->enable, OUTPUT);
-        }
-    }
-
-    /*
-     * Clockwise movement, full speed.
-     */
-    void clockwise() {
-        digitalWrite(this->in1, LOW);
-        digitalWrite(this->in2, HIGH);
     }
 
     /*
@@ -60,14 +39,6 @@ class DCMotor {
         analogWrite(this->enable, enable);
         digitalWrite(this->in1, LOW);
         digitalWrite(this->in2, HIGH);
-    }
-
-    /*
-     * Counterclockwise movement, full speed.
-     */
-    void counterClockwise() {
-        digitalWrite(this->in1, HIGH);
-        digitalWrite(this->in2, LOW);
     }
 
     /*
@@ -84,14 +55,58 @@ class DCMotor {
      * Stops motor.
      */
     void stop() {
-        if (this->enable != PIN_UNSET) {
-            analogWrite(this->enable, 0);
-        }
-
         digitalWrite(this->in1, LOW);
         digitalWrite(this->in2, LOW);
     }
 };
+
+/*
+ * IBT-2 H-bridge controller.
+ */
+class IBT2 {
+    public:
+    int forward, backward;
+
+    IBT2(int forward, int backward) {
+        this->forward = forward;
+        this->backward = backward;
+    }
+
+    /*
+     * Configures forward and backward pins.
+     * Must be both PWM.
+     */
+    void setup() {
+        pinMode(this->forward, OUTPUT);
+        pinMode(this->backward, OUTPUT);
+    }
+
+    /*
+     * Clockwise movement, speed relative to `enable` pin.
+     * `enable` must be in the 0-255 range.
+     */
+    void clockwise(uint8_t speed) {
+        analogWrite(this->forward, speed);
+        analogWrite(this->backward, 0);
+    }
+
+    /*
+     * Counterclockwise movement, speed relative to `enable` pin.
+     * `enable` must be in the 0-255 range.
+     */
+    void counterClockwise(uint8_t speed) {
+        analogWrite(this->forward, 0);
+        analogWrite(this->backward, speed);
+    }
+
+    /*
+     * Stops motor.
+     */
+    void stop() {
+        digitalWrite(this->in1, LOW);
+        digitalWrite(this->in2, LOW);
+    }
+}
 
 class Ultrasonic {
     public:
