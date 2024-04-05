@@ -13,6 +13,12 @@ L298N backdoor = L298N(8, 52, 53);
 LimitSwitch ls_up = LimitSwitch(22);
 LimitSwitch ls_down = LimitSwitch(23);
 
+//                    trigger, echo
+Ultrasonic u1 = Ultrasonic(24, 25);
+Ultrasonic u2 = Ultrasonic(26, 27);
+Ultrasonic u3 = Ultrasonic(28, 29);
+Ultrasonic u4 = Ultrasonic(30, 31);
+
 enum InstructionMap {
     MoveForward = 'a',
     MoveLeft = 'i',
@@ -96,6 +102,15 @@ void loop() {
             openBackdoor();
             delay(1500);
             closeBackdoor();
+            break;
+
+        case RequestProxSensor:
+            Serial.println(
+                String(u1.read()) + "," +
+                String(u2.read()) + "," +
+                String(u3.read()) + "," +
+                String(u4.read())
+            );
             break;
 
         default:
