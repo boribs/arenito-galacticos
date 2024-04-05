@@ -115,7 +115,7 @@ class Ultrasonic {
     /*
      * Sets echo and trigger pins.
      */
-    Ultrasonic(int echo, int trigger) {
+    Ultrasonic(int trigger, int echo) {
         this->echo = echo;
         this->trigger = trigger;
     }
