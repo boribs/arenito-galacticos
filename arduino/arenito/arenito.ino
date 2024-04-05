@@ -60,10 +60,17 @@ void loop() {
     while (Serial.available() == 0) { ; }
 
     char instr = Serial.read();
-    if (instr == 'a') {
-        moveForward();
-    } else if (instr == 'r') {
-        moveBackward();
+    switch (instr) {
+        case MoveForward:
+            moveForward();
+            break;
+
+        case MoveBack:
+            moveBackward();
+            break;
+
+        default:
+            break;
     }
 
     Serial.println("aksjdfhas");
