@@ -37,6 +37,11 @@ void setup() {
     ls_up.setup();
     ls_down.setup();
 
+    u1.setup();
+    u2.setup();
+    u3.setup();
+    u4.setup();
+
     Serial.begin(115200);
     Serial.setTimeout(0);
 
