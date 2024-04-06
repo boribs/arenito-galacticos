@@ -177,6 +177,14 @@ fn arenito_ai_mover(
                             );
                             aisim.confirm_instruction();
                         }
+                        SimInstruction::BrushOn => {
+                            arenito.brush_on = true;
+                            aisim.confirm_instruction();
+                        }
+                        SimInstruction::BrushOff => {
+                            arenito.brush_on = false;
+                            aisim.confirm_instruction();
+                        }
                         other => {
                             arenito.instruction_handler.set(other);
                             arenito.instruction_handler.execute();
@@ -453,6 +461,7 @@ pub struct Arenito {
     brush_speed: f32,
     velocity_k: f32,
     brush_offset: Vec3, // brush pos relative to Arenito's center
+    brush_on: bool,
     instruction_handler: InstructionHandler,
     control_mode: ControlMode,
     proximity_sensor_offsets: Vec<Transform>,
@@ -470,6 +479,7 @@ impl Arenito {
             front_cam_data: CameraData::front(),
             rear_cam_data: CameraData::rear(),
             brush_offset: Vec3::new(0.75, 0.4, 0.0),
+            brush_on: false,
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
             proximity_sensor_offsets: vec![
@@ -733,9 +743,11 @@ impl Arenito {
         arenito_frame.translation += pos_diff;
         arenito_frame.rotation *= rot_diff;
 
-        let mut arenito_brush = arenito_body.p1();
-        let mut arenito_brush = arenito_brush.single_mut();
-        arenito_brush.rotate_local_z(-self.brush_speed * delta);
+        if self.brush_on {
+            let mut arenito_brush = arenito_body.p1();
+            let mut arenito_brush = arenito_brush.single_mut();
+            arenito_brush.rotate_local_z(-self.brush_speed * delta);
+        }
 
         // wheel rotation
         let mut l = 1.0;

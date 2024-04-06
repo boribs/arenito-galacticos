@@ -105,6 +105,8 @@ pub enum SimInstruction {
     RearCamFrame,
     ProxSensorReads,
     DumpCans(u8),
+    BrushOn,
+    BrushOff,
 }
 
 /// Wrapper struct to store raw pointers to shared memory.
@@ -181,6 +183,8 @@ impl AISimMem {
     const SIM_AKNOWLEDGE_INSTRUCTION: u8 = 4;
     const AI_PROX_SENSOR_READ_REQUEST: u8 = 5;
     const AI_DUMP_CANS: u8 = 7;
+    const AI_BRUSH_ON: u8 = b'P';
+    const AI_BRUSH_OFF: u8 = b'p';
 
     // movement instruction constants
     const MOV_FORWARD: u8 = b'a';
@@ -289,6 +293,8 @@ impl AISimMem {
             AISimMem::AI_PROX_SENSOR_READ_REQUEST => Some(SimInstruction::ProxSensorReads),
             AISimMem::AI_DUMP_CANS => Some(SimInstruction::DumpCans(self.memspace.get())),
             AISimMem::AI_MOVE_INSTRUCTION => match self.memspace.get() {
+            AISimMem::AI_BRUSH_ON => Some(SimInstruction::BrushOn),
+            AISimMem::AI_BRUSH_OFF => Some(SimInstruction::BrushOff),
                 AISimMem::MOV_FORWARD => Some(SimInstruction::MoveForward),
                 AISimMem::MOV_LEFT => Some(SimInstruction::MoveLeft),
                 AISimMem::MOV_RIGHT => Some(SimInstruction::MoveRight),

@@ -37,6 +37,7 @@ class ArenitoAI:
 
     MIN_PROX_REACT_RANGE = 14
     TEST_TIME_SECS = 3 * 60
+    BRUSH_ON_SECS = 7
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
@@ -48,10 +49,13 @@ class ArenitoAI:
         self.state = ArenitoState.LookingForCans
 
         # Can tracking stuff
-        self.timer = ArenitoTimer()
+        self.can_search_timer = ArenitoTimer()
         self.can_counter = 0
         self.dumped_can_counter = 0
         self.can_in_critical_region = False
+
+        # Brush stuff
+        self.brush_on_timer = ArenitoTimer()
 
         # Clock
         self.clock = ArenitoTimer().start()
@@ -105,8 +109,12 @@ class ArenitoAI:
             self.get_state(scan_results)
 
             state_str = self.state.name
-            if self.timer.clock and self.state == ArenitoState.LookingForCans:
-                state_str += f': {self.timer.seconds()}'
+            if self.can_search_timer.clock and self.state == ArenitoState.LookingForCans:
+                state_str += f': {self.can_search_timer.seconds()}'
+
+            if self.brush_on_timer.elapsed_time() >= ArenitoAI.BRUSH_ON_SECS:
+                self.brush_on_timer.reset()
+                self.com.send_instruction(Instruction.BrushOff)
 
             self.vis.add_markings(
                 scan_results.original,
@@ -136,13 +144,20 @@ class ArenitoAI:
 
             if self.state == ArenitoState.GrabbingCan:
                 self.get_can(scan_results)
-                self.timer.reset()
+                self.can_search_timer.reset()
+
+                if not self.brush_on_timer.clock:
+                    self.com.send_instruction(Instruction.BrushOn)
+
+                self.brush_on_timer.start()
+
             elif self.state == ArenitoState.DumpingCans:
                 self.dump_cans(scan_results)
-                self.timer.reset()
+                self.can_search_timer.reset()
+
             elif self.state == ArenitoState.LookingForCans:
-                if not self.timer.clock:
-                    self.timer.start()
+                if not self.can_search_timer.clock:
+                    self.can_search_timer.start()
                 self.search_cans(scan_results)
 
         # stats
@@ -182,9 +197,9 @@ class ArenitoAI:
 
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
-        if self.timer.elapsed_time() > MAX_SEARCH_SECONDS:
+        if self.can_search_timer.elapsed_time() > MAX_SEARCH_SECONDS:
             self.com.send_instruction(Instruction.MoveLongRight)
-            self.timer.reset()
+            self.can_search_timer.reset()
         elif self.vis.reachable(hsv, self.vis.r_dot):
             self.com.send_instruction(Instruction.MoveForward)
         else:
