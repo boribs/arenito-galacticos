@@ -167,7 +167,7 @@ class Ultrasonic {
             sum += filterArray[sample];
         }
 
-        return sum / 10;;
+        return sum / 10;
     }
 
     /*
