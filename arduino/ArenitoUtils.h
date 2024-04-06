@@ -1,12 +1,13 @@
 #ifndef __H_ARENITO_UTILS
 #define __H_ARENITO_UTILS 1
 
-const int PIN_UNSET = -1;
-
 typedef bool (*bool_func)();
 typedef unsigned long ulong_t;
 
-ulong_t filterArray[20]; // array to store data samples from sensor
+const int PIN_UNSET = -1;
+const ulong_t PULSE_IN_TIMEOUT = 5000;
+
+ulong_t filterArray[10]; // array to store data samples from sensor
 
 /*
  * L297N H-bridge controller.
@@ -141,14 +142,14 @@ class Ultrasonic {
 
     ulong_t filterRead() {
         // 1. TAKING MULTIPLE MEASUREMENTS AND STORE IN AN ARRAY
-        for (int sample = 0; sample < 20; sample++) {
+        for (int sample = 0; sample < 10; sample++) {
             filterArray[sample] = read();
             delay(5); // to avoid untrasonic interfering
         }
 
         // 2. SORTING THE ARRAY IN ASCENDING ORDER
-        for (int i = 0; i < 19; i++) {
-            for (int j = i + 1; j < 20; j++) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = i + 1; j < 10; j++) {
                 if (filterArray[i] > filterArray[j]) {
                     ulong_t swap = filterArray[i];
                     filterArray[i] = filterArray[j];
@@ -163,11 +164,11 @@ class Ultrasonic {
         // ----------------------------------------------------------------
         // => get average of the 10 middle samples (from 5th to 14th)
         ulong_t sum = 0;
-        for (int sample = 5; sample < 15; sample++) {
+        for (int sample = 2; sample < 8; sample++) {
             sum += filterArray[sample];
         }
 
-        return sum / 10;
+        return sum / 6;
     }
 
     /*
@@ -181,7 +182,7 @@ class Ultrasonic {
         delayMicroseconds(10);
         digitalWrite(this->trigger, LOW);
 
-        ulong_t duration = pulseIn(this->echo, HIGH);
+        ulong_t duration = pulseIn(this->echo, HIGH, PULSE_IN_TIMEOUT);
         ulong_t unfiltered = (duration / 2) / SPEED_OF_SOUND;
 
         // https://github.com/MrNerdy404/HC-SR04_Filter/blob/master/SR04_Filter.ino
