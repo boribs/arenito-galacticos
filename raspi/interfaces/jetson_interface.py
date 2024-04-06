@@ -92,6 +92,7 @@ class JetsonInterface:
 
         # Start button, required by rules.
         if not no_start:
+            self.lcd.lcd_clear()
             self.lcd_show('Esperando inicio', 1)
             GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
