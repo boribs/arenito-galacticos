@@ -41,7 +41,7 @@ class SerialInterface:
         """
 
         self.serial.write(INSTRUCTION_MAP[Instruction.RequestProxSensor].encode('utf-8'))
-        sensor_reads = self.serial.readline().decode('utf-8').strip()[:-1]
+        sensor_reads = self.serial.readline().decode('utf-8').strip()#[:-1]
         self.wait_confirmation()
 
         return list(map(int, sensor_reads.split(',')))
@@ -52,7 +52,6 @@ class SerialInterface:
         """
 
         self.send_instruction(Instruction.DumpCans)
-        self.wait_confirmation()
 
     def send_instruction(self, instr: Instruction):
         """

@@ -15,6 +15,8 @@ class Instruction(Enum):
     RequestRearCam = auto()
     RequestProxSensor = auto()
     DumpCans = auto()
+    BrushOn = auto()
+    BrushOff = auto()
 
 INSTRUCTION_MAP = {
     Instruction.MoveForward: 'a',
@@ -23,4 +25,7 @@ INSTRUCTION_MAP = {
     Instruction.MoveBack: 'r',
     Instruction.MoveLongRight: 'D',
     Instruction.RequestProxSensor: 's',
+    Instruction.DumpCans: 'c',
+    Instruction.BrushOn: 'P',
+    Instruction.BrushOff: 'p',
 }
