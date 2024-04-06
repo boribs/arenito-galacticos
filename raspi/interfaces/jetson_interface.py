@@ -81,13 +81,6 @@ class JetsonInterface:
             self.lcd = I2C_LCD_driver.lcd() # pyright: ignore[reportPossiblyUnboundVariable]
             self.lcd.lcd_clear()
 
-        # Start button, required by rules.
-        if not no_start:
-            self.lcd_show('Esperando inicio', 1)
-            GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-
-        self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
-
         # Camera setup:
         # 1. Connect the front camera
         # 2. Start the AI script
@@ -96,6 +89,13 @@ class JetsonInterface:
         if not no_cam:
             self.cameras = ArenitoCameras()
             self.init_cameras()
+
+        # Start button, required by rules.
+        if not no_start:
+            self.lcd_show('Esperando inicio', 1)
+            GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+
+        self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
 
     def lcd_show(self, msg: str, line: int):
         """
