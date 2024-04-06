@@ -6,7 +6,7 @@ const int PIN_UNSET = -1;
 typedef bool (*bool_func)();
 typedef unsigned long ulong_t;
 
-float filterArray[20]; // array to store data samples from sensor
+ulong_t filterArray[20]; // array to store data samples from sensor
 
 /*
  * L297N H-bridge controller.
@@ -139,7 +139,7 @@ class Ultrasonic {
         digitalWrite(this->trigger, LOW);
     }
 
-    long filter() {
+    ulong_t filterRead() {
         // 1. TAKING MULTIPLE MEASUREMENTS AND STORE IN AN ARRAY
         for (int sample = 0; sample < 20; sample++) {
             filterArray[sample] = read();
@@ -149,11 +149,11 @@ class Ultrasonic {
         // 2. SORTING THE ARRAY IN ASCENDING ORDER
         for (int i = 0; i < 19; i++) {
             for (int j = i + 1; j < 20; j++) {
-            if (filterArray[i] > filterArray[j]) {
-                float swap = filterArray[i];
-                filterArray[i] = filterArray[j];
-                filterArray[j] = swap;
-            }
+                if (filterArray[i] > filterArray[j]) {
+                    ulong_t swap = filterArray[i];
+                    filterArray[i] = filterArray[j];
+                    filterArray[j] = swap;
+                }
             }
         }
 
@@ -162,14 +162,12 @@ class Ultrasonic {
         // + the five biggest  samples are considered as noise -> ignore it
         // ----------------------------------------------------------------
         // => get average of the 10 middle samples (from 5th to 14th)
-        double sum = 0;
+        ulong_t sum = 0;
         for (int sample = 5; sample < 15; sample++) {
             sum += filterArray[sample];
         }
 
-        long distance = sum / 10;
-
-        return distance;
+        return sum / 10;;
     }
 
     /*
