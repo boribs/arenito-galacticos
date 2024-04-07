@@ -1,6 +1,10 @@
 #ifndef __H_ARENITO_UTILS
 #define __H_ARENITO_UTILS 1
 
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
+
 typedef bool (*bool_func)();
 typedef unsigned long ulong_t;
 
@@ -8,6 +12,10 @@ const int PIN_UNSET = -1;
 const ulong_t PULSE_IN_TIMEOUT = 5000;
 
 ulong_t filterArray[10]; // array to store data samples from sensor
+
+typedef struct {
+    float x, y, z;
+} vec3;
 
 /*
  * L297N H-bridge controller.
@@ -220,6 +228,58 @@ class LimitSwitch {
      */
     int read() {
         return digitalRead(this->pin);
+    }
+};
+
+class MPU6050 {
+    public:
+    Adafruit_MPU6050 mpu;
+    sensors_event_t a, g, t;
+    vec3 cal_a;
+
+    MPU6050() {}
+
+    void setup() {
+        mpu.begin();
+        mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
+        mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+        mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
+
+        calibrate();
+
+        Serial.println(
+            String(cal_a.x) + "," +
+            String(cal_a.y) + "," +
+            String(cal_a.z) + "A"
+        );
+    }
+
+    void calibrate() {
+        int numMuestras = 1000;
+
+        for (int i = 0; i < numMuestras; i++) {
+            read();
+            cal_a.x += a.acceleration.x;
+            cal_a.y += a.acceleration.y;
+            cal_a.z += a.acceleration.z;
+            delay(10);
+        }
+
+        cal_a.x /= numMuestras;
+        cal_a.y /= numMuestras;
+        cal_a.z /= numMuestras;
+    }
+
+    void read() {
+        mpu.getEvent(&a, &g, &t);
+    }
+
+    vec3 acc() {
+        return (vec3) {
+            .x = this->a.acceleration.x - cal_a.x,
+            .y = this->a.acceleration.y - cal_a.y,
+            .z = this->a.acceleration.z - cal_a.z
+        };
     }
 };
 
