@@ -1,9 +1,9 @@
 #ifndef __H_ARENITO_UTILS
 #define __H_ARENITO_UTILS 1
 
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_Sensor.h>
-#include <Wire.h>
+// #include <Adafruit_MPU6050.h>
+// #include <Adafruit_Sensor.h>
+// #include <Wire.h>
 // #include "quickVec3.h"
 
 typedef bool (*bool_func)();
