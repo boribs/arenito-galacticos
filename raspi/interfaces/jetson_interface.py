@@ -2,7 +2,7 @@
 
 from arenito_com_consts import *
 from cv2.typing import MatLike
-import cv2, os
+import cv2, os, time
 from argparse import Namespace
 
 if os.getenv('IS_JETSON'):
@@ -57,8 +57,7 @@ class JetsonInterface:
     These boards communicate through serial interface (Jetson Nano port /dev/ttyTHS1).
     """
 
-    BUTTON_CALIBRATION_PIN = 18
-    BUTTON_START_AI = 16
+    BUTTON_IN = 16
 
     def __init__(
         self,
@@ -68,10 +67,8 @@ class JetsonInterface:
         no_lcd: bool = False,
     ):
         GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-        GPIO.setup([ # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-                JetsonInterface.BUTTON_CALIBRATION_PIN,
-                JetsonInterface.BUTTON_START_AI,
-            ],
+        GPIO.setup( # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+            JetsonInterface.BUTTON_IN,
             GPIO.IN # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         )
 
@@ -94,7 +91,8 @@ class JetsonInterface:
         if not no_start:
             self.lcd.lcd_clear()
             self.lcd_show('Esperando inicio', 1)
-            GPIO.wait_for_edge(JetsonInterface.BUTTON_START_AI, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+
+            GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
         self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
 
@@ -113,10 +111,10 @@ class JetsonInterface:
 
         self.cameras.add_video_capture()
 
-        self.lcd_show('Conecte camara trasera', 1)
-        self.lcd_show('y oprima el boton', 2)
-        GPIO.wait_for_edge(JetsonInterface.BUTTON_CALIBRATION_PIN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-
+        time.sleep(0.5)
+        self.lcd_show('Conecte cam. T.', 1)
+        self.lcd_show('Oprima el boton', 2)
+        GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         self.cameras.add_video_capture()
 
         # maybe don't do this?
