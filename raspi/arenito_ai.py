@@ -100,6 +100,10 @@ class ArenitoAI:
         """
 
         test_timer = ArenitoTimer().start()
+
+        # drop backdoor
+        self.com.send_instruction(Instruction.DumpCans)
+
         while test_timer.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
             if cv2.waitKey(1) == 27:
                 break
