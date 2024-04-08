@@ -4,6 +4,7 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
+#include "quickVec3.h"
 
 typedef bool (*bool_func)();
 typedef unsigned long ulong_t;
@@ -12,10 +13,6 @@ const int PIN_UNSET = -1;
 const ulong_t PULSE_IN_TIMEOUT = 5000;
 
 ulong_t filterArray[10]; // array to store data samples from sensor
-
-typedef struct {
-    float x, y, z;
-} vec3;
 
 /*
  * L297N H-bridge controller.
@@ -235,7 +232,7 @@ class MPU6050 {
     public:
     Adafruit_MPU6050 mpu;
     sensors_event_t a, g, t;
-    vec3 cal_a;
+    Vec3 cal_a;
 
     MPU6050() {}
 
@@ -247,11 +244,11 @@ class MPU6050 {
 
         calibrate();
 
-        Serial.println(
-            String(cal_a.x) + "," +
-            String(cal_a.y) + "," +
-            String(cal_a.z) + "A"
-        );
+        // Serial.println(
+        //     String(cal_a.x) + "," +
+        //     String(cal_a.y) + "," +
+        //     String(cal_a.z) + "A"
+        // );
     }
 
     void calibrate() {
@@ -274,12 +271,12 @@ class MPU6050 {
         mpu.getEvent(&a, &g, &t);
     }
 
-    vec3 acc() {
-        return (vec3) {
-            .x = this->a.acceleration.x - cal_a.x,
-            .y = this->a.acceleration.y - cal_a.y,
-            .z = this->a.acceleration.z - cal_a.z
-        };
+    Vec3 acc() {
+        return Vec3(
+            a.acceleration.x,
+            a.acceleration.y,
+            a.acceleration.z
+        ) - cal_a;
     }
 };
 
