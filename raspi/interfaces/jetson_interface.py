@@ -91,6 +91,7 @@ class JetsonInterface:
         if not no_start:
             self.lcd.lcd_clear()
             self.lcd_show('Esperando inicio', 1)
+            self.lcd_show('Oprima el boton', 2)
 
             GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
 
