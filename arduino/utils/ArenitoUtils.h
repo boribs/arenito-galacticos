@@ -4,7 +4,7 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
-#include "quickVec3.h"
+// #include "quickVec3.h"
 
 typedef bool (*bool_func)();
 typedef unsigned long ulong_t;
@@ -228,6 +228,7 @@ class LimitSwitch {
     }
 };
 
+/*
 class MPU6050 {
     public:
     Adafruit_MPU6050 mpu;
@@ -262,9 +263,7 @@ class MPU6050 {
             delay(10);
         }
 
-        cal_a.x /= numMuestras;
-        cal_a.y /= numMuestras;
-        cal_a.z /= numMuestras;
+        cal_a = cal_a / numMuestras;
     }
 
     void read() {
@@ -279,6 +278,7 @@ class MPU6050 {
         ) - cal_a;
     }
 };
+*/
 
 /*
  * Repeat until either `bool_func` is done or `timeout_ms` is reached.
