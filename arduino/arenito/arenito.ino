@@ -52,7 +52,7 @@ void setup() {
     Serial.begin(115200);
     Serial.setTimeout(0);
 
-    Serial.println("hola");
+    Serial.println("Arduino listo");
 }
 
 void moveForward() {
@@ -139,5 +139,5 @@ void loop() {
             break;
     }
 
-    Serial.println("aksjdfhas");
+    Serial.println("ok");
 }
