@@ -94,6 +94,7 @@ class JetsonInterface:
             self.lcd_show('Oprima el boton', 2)
 
             GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+            self.lcd.lcd_clear()
 
         self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
 
