@@ -146,7 +146,7 @@ class ArenitoVision:
 
     RESOLUTIONS = {
         AIMode.Simulation : (512, 512),
-        AIMode.Jetson : (640, 380),
+        AIMode.Jetson : (512, 512),
     }
 
     def __init__(self, mode: AIMode, args: Namespace):

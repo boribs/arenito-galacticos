@@ -40,7 +40,7 @@ class ArenitoCameras:
         """
 
         _, frame = self.cameras[0].read()
-        return frame
+        return cv2.resize(frame, (512, 512))
 
     def get_rear_frame(self) -> MatLike:
         """
@@ -48,7 +48,7 @@ class ArenitoCameras:
         """
 
         _, frame = self.cameras[1].read()
-        return frame
+        return cv2.resize(frame, (512, 512))
 
 class JetsonInterface:
     """
