@@ -1,7 +1,7 @@
 #include "ArenitoUtils.h"
 
 LimitSwitch a = LimitSwitch(23);
-LimitSwitch b = LimitSwitch(24);
+LimitSwitch b = LimitSwitch(22);
 
 void setup() {
     a.setup();
