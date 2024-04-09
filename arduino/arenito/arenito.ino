@@ -1,9 +1,10 @@
 #include "ArenitoUtils.h"
 
 const int INSTRUCTION_EXECUTION_TIME = 1000; // ms
-const int MOTOR_PWM_ENABLE = 200;
-const int BACKDOOR_PWM_UP = 110;
-const int BACKDOOR_PWM_DOWN = 80;
+const int MOTOR_MOVE_TIME = 500; // ms
+const int MOTOR_PWM_ENABLE = 150;
+const int BACKDOOR_PWM_UP = 180;
+const int BACKDOOR_PWM_DOWN = 100;
 const int BACKDOOR_TIMEOUT = 1000; // ms
 const int BRUSH_PWM_ENABLE = 150;
 
@@ -97,6 +98,30 @@ void closeBackdoor() {
     backdoor.stop();
 }
 
+void moveLeft(const int time) {
+    left.clockwise(MOTOR_PWM_ENABLE);
+    right.counterClockwise(MOTOR_PWM_ENABLE);
+
+    timeout_repeat(time, []() {
+        return false;
+    });
+
+    left.stop();
+    right.stop();
+}
+
+void moveRight(const int time) {
+    left.counterClockwise(MOTOR_PWM_ENABLE);
+    right.clockwise(MOTOR_PWM_ENABLE);
+
+    timeout_repeat(time, []() {
+        return false;
+    });
+
+    left.stop();
+    right.stop();
+}
+
 void loop() {
     while (Serial.available() == 0) {
         brush.clockwise(brush_on ?  BRUSH_PWM_ENABLE : 0);
@@ -110,6 +135,14 @@ void loop() {
 
         case MoveBack:
             moveBackward();
+            break;
+
+        case MoveLeft:
+            moveLeft(MOTOR_MOVE_TIME);
+            break;
+
+        case MoveRight:
+            moveRight(MOTOR_MOVE_TIME);
             break;
 
         case DumpCans:
