@@ -11,7 +11,12 @@ args = parser.parse_args()
 instr = eval(f'Instruction.{args.instr}')
 
 jetson_init = time.time()
-ji = JetsonInterface(args, True, True, True)
+ji = JetsonInterface(
+    args,
+    no_cam=True,
+    no_start=True,
+    no_lcd=True,
+)
 jetson_init = time.time() - jetson_init
 
 instruction_time = time.time()
