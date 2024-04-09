@@ -87,6 +87,8 @@ class ArenitoComms:
         else:
             raise Exception('No valid interface.')
 
+        print(f'sent instruction {instr}')
+
     def dump_cans(self, ammount: int):
         """
         Dumps cans.
