@@ -163,6 +163,9 @@ class ArenitoVision:
             case other:
                 raise Exception(f'Unsupported algorithm {other}')
 
+        self.img_counter = 0
+        self.save_images: bool = args.save_images
+
         self.res_x, self.res_y = res
 
         # Bottom center of the image
@@ -349,6 +352,9 @@ class ArenitoVision:
 
         self.add_text(det_img, f'Time: {clock}', Point(10, 75))
 
+        if self.save_images:
+            cv2.imwrite(f'img/markings_{self.img_counter}.jpg', det_img)
+
     def dist_from_center(self, det: Point) -> float:
         """
         Calculates the distance from `self.bottom_center` to `det`.
@@ -359,11 +365,7 @@ class ArenitoVision:
 
         return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-    def reachable(
-        self,
-        img_hsv: MatLike,
-        det: Point,
-    ) -> bool:
+    def reachable(self, img_hsv: MatLike, det: Point) -> bool:
         """
         Determines if a detection is reachable. Returns true if possible, otherwise false.
         """
@@ -379,6 +381,10 @@ class ArenitoVision:
 
         cross = cv2.bitwise_and(mask, line)
         white_px = np.count_nonzero(cross)
+
+        if self.save_images:
+            cv2.imwrite(f'img/mask_{self.img_counter}.jpg', mask)
+            cv2.imwrite(f'img/reachable_{self.img_counter}.jpg', cross)
 
         return white_px < self.min_px_water
 
@@ -427,6 +433,9 @@ class ArenitoVision:
 
             if self.reachable(img_hsv, det.center):
                 detections.append(det)
+
+        if self.save_images:
+            cv2.imwrite(f'img/cans_{self.img_counter}.jpg', mask)
 
         return detections
 

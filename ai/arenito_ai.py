@@ -102,7 +102,7 @@ class ArenitoAI:
         test_timer = ArenitoTimer().start()
 
         # drop backdoor
-        self.com.send_instruction(Instruction.DumpCans)
+        self.com.dump_cans(0)
 
         while test_timer.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
             if cv2.waitKey(1) == 27:
@@ -163,6 +163,8 @@ class ArenitoAI:
                 if not self.can_search_timer.clock:
                     self.can_search_timer.start()
                 self.search_cans(scan_results)
+
+            self.vis.img_counter += 1
 
         # stats
         print(f'Tiempo de ejecución: {test_timer.full()}')
