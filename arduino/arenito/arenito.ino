@@ -163,6 +163,10 @@ void loop() {
             moveRight(MOTOR_MOVE_TIME);
             break;
 
+        case MoveLongRight:
+            moveRight(MOTOR_MOVE_TIME * 4);
+            break;
+
         case DumpCans:
             openBackdoor();
             delay(1500);
