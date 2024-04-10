@@ -65,8 +65,8 @@ void moveForward() {
         return false;
     });
 
-    left.stop();
-    right.stop();
+    // left.stop();
+    // right.stop();
 }
 
 void moveBackward() {
@@ -78,8 +78,8 @@ void moveBackward() {
         return false;
     });
 
-    left.stop();
-    right.stop();
+    // left.stop();
+    // right.stop();
 }
 
 void openBackdoor() {
@@ -106,8 +106,8 @@ void moveLeft(const int time) {
         return false;
     });
 
-    left.stop();
-    right.stop();
+    // left.stop();
+    // right.stop();
 }
 
 void moveRight(const int time) {
@@ -118,8 +118,8 @@ void moveRight(const int time) {
         return false;
     });
 
-    left.stop();
-    right.stop();
+    // left.stop();
+    // right.stop();
 }
 
 void loop() {
