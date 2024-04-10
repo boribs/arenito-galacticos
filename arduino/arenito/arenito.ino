@@ -104,8 +104,8 @@ void closeBackdoor() {
 }
 
 void moveLeft(const int time) {
-    left.clockwise(MOTOR_PWM_ENABLE);
-    right.counterClockwise(MOTOR_PWM_ENABLE);
+    left.clockwise(MOTOR_ROT_PWM_ENABLE);
+    right.counterClockwise(MOTOR_ROT_PWM_ENABLE);
 
     timeout_repeat(time, []() {
         return false;
@@ -116,8 +116,8 @@ void moveLeft(const int time) {
 }
 
 void moveRight(const int time) {
-    left.counterClockwise(MOTOR_PWM_ENABLE);
-    right.clockwise(MOTOR_PWM_ENABLE);
+    left.counterClockwise(MOTOR_ROT_PWM_ENABLE);
+    right.clockwise(MOTOR_ROT_PWM_ENABLE);
 
     timeout_repeat(time, []() {
         return false;
