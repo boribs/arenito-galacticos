@@ -171,10 +171,10 @@ void loop() {
 
         case RequestProxSensor:
             Serial.println(
-                String(u1.filterRead()) + "," +
-                String(u2.filterRead()) + "," +
-                String(u3.filterRead()) + "," +
-                String(u4.filterRead())
+                String(u1.read()) + "," +
+                String(u2.read()) + "," +
+                String(u3.read()) + "," +
+                String(u4.read())
             );
             break;
 
