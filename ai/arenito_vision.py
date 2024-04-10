@@ -439,6 +439,8 @@ class ArenitoVision:
         if self.save_images:
             cv2.imwrite(f'img/cans_{self.img_counter}.jpg', mask)
 
+        detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=True)
+
         return detections
 
     def blob_detector_method(self, img: MatLike) -> list[Detection]:
