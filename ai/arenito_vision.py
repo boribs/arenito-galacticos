@@ -475,7 +475,12 @@ class ArenitoVision:
         # img = cv2.bilateralFilter(img, 25, 100, 100)
         # img = cv2.medianBlur(img, 9)
         # this seems to be the best compromise between performance and results
-        return cv2.GaussianBlur(img, (51, 51), 0)
+        blurred = cv2.GaussianBlur(img, (51, 51), 0)
+
+        if self.save_images:
+            cv2.imwrite(f'img/blurred{self.img_counter}.jpg', blurred)
+
+        return blurred
 
     def can_in_critical_region(self, detections: list[Detection]) -> bool:
         """
