@@ -5,6 +5,9 @@ from cv2.typing import MatLike
 from arenito_com_consts import *
 from interfaces.sim_interface import SimInterface
 from interfaces.jetson_interface import JetsonInterface
+import time
+
+# TODO: Benchmark as arg
 
 class ArenitoComms:
     """
@@ -44,8 +47,11 @@ class ArenitoComms:
         Gets the image from the front camera.
         """
 
+        t = time.time()
         if self.jetson_interface:
-            return self.jetson_interface.get_front_frame()
+            r = self.jetson_interface.get_front_frame()
+            print(f'got frame in: {time.time() - t}')
+            return r
         elif self.sim_interface:
             return self.sim_interface.get_front_frame()
         else:
@@ -68,8 +74,11 @@ class ArenitoComms:
         Returns proximity sensor reads. Only for Sim.
         """
 
+        t = time.time()
         if self.jetson_interface:
-            return self.jetson_interface.get_prox_sensors()
+            r = self.jetson_interface.get_prox_sensors()
+            print(f'got sensor feedback: {time.time() - t}')
+            return r
         elif self.sim_interface:
             return self.sim_interface.get_prox_sensors()
         else:
@@ -80,6 +89,7 @@ class ArenitoComms:
         Sends instruction to arduino board through serial interface.
         """
 
+        t = time.time()
         if self.jetson_interface:
             self.jetson_interface.send_instruction(instr)
         elif self.sim_interface:
@@ -87,7 +97,7 @@ class ArenitoComms:
         else:
             raise Exception('No valid interface.')
 
-        print(f'sent instruction {instr}')
+        print(f'sent instruction {instr}: {time.time() - t}')
 
     def dump_cans(self, ammount: int):
         """
