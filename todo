@@ -12,7 +12,7 @@ Físico:
         Cuando no sabe a dónde ir, checar hacia qué dirección hay más agua
         y girar al otro lado. Lo mismo con los obstáculos.
 
-    ☐ Noción de espacialidad
+    ✘ Noción de espacialidad @cancelled(24-04-10 03:02)
         El robot sabrá dónde está él y las cosas que busca, relativo a
         su posición inicial (0, 0).
         Con esto podría hacer una ruta desde su posición hasta el
@@ -32,9 +32,9 @@ Físico:
 
 IA:
     ✔ Clase ArenitoAI @done(24-03-25 21:16)
-    ☐ Mandar una serie de instrucciones en orden (ArenitoComms)
+    ✔ Mandar una serie de instrucciones en orden (ArenitoComms) @done(24-04-10 17:35)
         ArenitoComms.send_instruction_set(instrs: List[Instruction]) o algo así
-    ☐ ArenitoComms para Jetson
-    ☐ Eliminar ArenitoComms para Arduino
+    ✔ ArenitoComms para Jetson @done(24-04-10 03:02)
+    ✘ Eliminar ArenitoComms para Arduino @cancelled(24-04-10 03:02)
     ✔ Decisión de evadir obstáculos @done(24-03-26 17:21)
-    ☐ Rutina de deposito de latas
+    ✔ Rutina de deposito de latas @done(24-04-10 17:35)
