@@ -27,6 +27,7 @@ class ArenitoCameras:
         # https://stackoverflow.com/questions/57577445/list-available-cameras-opencv-python
         index = len(self.cameras)
         capture_device = cv2.VideoCapture(index)
+        capture_device.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         ok, _ = capture_device.read()
         if not ok or not capture_device.isOpened():
