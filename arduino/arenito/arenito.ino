@@ -3,9 +3,12 @@
 const int INSTRUCTION_EXECUTION_TIME = 200; // ms
 const int MOTOR_MOVE_TIME = 200; // ms
 const int MOTOR_PWM_ENABLE = 150;
-const int BACKDOOR_PWM_UP = 200;
+const int MOTOR_ROT_PWM_ENABLE = 100;
+const int BACKDOOR_PWM_UP = 180;
 const int BACKDOOR_PWM_DOWN = 100;
 const int BACKDOOR_TIMEOUT = 1000; // ms
+const int BACKDOOR_EXT_PWM_ENABLE = 255;
+const int BACKDOOR_EXT_TIME = 4000; // ms
 const int BRUSH_PWM_ENABLE = 185;
 
 // Don't use pin 13
@@ -13,6 +16,7 @@ IBT2 left = IBT2(12, 11);
 IBT2 right = IBT2(10, 9);
 L298N backdoor = L298N(8, 52, 53);
 L298N brush = L298N(7, 50, 51);
+L298N backdoor_ext = L298N(6, 48, 49);
 LimitSwitch ls_up = LimitSwitch(22);
 LimitSwitch ls_down = LimitSwitch(23);
 
@@ -34,6 +38,7 @@ enum InstructionMap {
     DumpCans = 'c',
     BrushOn = 'P',
     BrushOff = 'p',
+    ExtendBackdoor = 'e',
 };
 
 void setup() {
@@ -122,6 +127,19 @@ void moveRight(const int time) {
     // right.stop();
 }
 
+void extendBackdoor() {
+    backdoor_ext.clockwise(BACKDOOR_EXT_PWM_ENABLE);
+    timeout_repeat(BACKDOOR_EXT_TIME, []() {
+        return false;
+    });
+
+    backdoor_ext.counterClockwise(BACKDOOR_EXT_PWM_ENABLE);
+    timeout_repeat(BACKDOOR_EXT_TIME, []() {
+        return false;
+    });
+    backdoor_ext.stop();
+}
+
 void loop() {
     while (Serial.available() == 0) {
         brush.clockwise(brush_on ?  BRUSH_PWM_ENABLE : 0);
@@ -166,6 +184,10 @@ void loop() {
 
         case BrushOff:
             brush_on = false;
+            break;
+
+        case ExtendBackdoor:
+            extendBackdoor();
             break;
 
         default:
