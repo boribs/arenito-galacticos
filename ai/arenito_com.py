@@ -7,8 +7,6 @@ from interfaces.sim_interface import SimInterface
 from interfaces.jetson_interface import JetsonInterface
 import time
 
-# TODO: Benchmark as arg
-
 class ArenitoComms:
     """
     Interface between Arenito's AI and other devices.
@@ -20,6 +18,7 @@ class ArenitoComms:
     def __init__(self, mode: AIMode, args: Namespace):
         self.sim_interface: SimInterface | None = None
         self.jetson_interface: JetsonInterface | None = None
+        self.benchmark: bool = args.benchmark
 
         if mode == AIMode.Simulation:
             self.connect_simulation(args.filename)
@@ -50,7 +49,7 @@ class ArenitoComms:
         t = time.time()
         if self.jetson_interface:
             r = self.jetson_interface.get_front_frame()
-            print(f'got frame in: {time.time() - t}')
+            if self.benchmark: print(f'got frame in: {time.time() - t}')
             return r
         elif self.sim_interface:
             return self.sim_interface.get_front_frame()
@@ -77,7 +76,7 @@ class ArenitoComms:
         t = time.time()
         if self.jetson_interface:
             r = self.jetson_interface.get_prox_sensors()
-            print(f'got sensor feedback: {time.time() - t}')
+            if self.benchmark: print(f'got sensor feedback: {time.time() - t}')
             return r
         elif self.sim_interface:
             return self.sim_interface.get_prox_sensors()
@@ -97,7 +96,7 @@ class ArenitoComms:
         else:
             raise Exception('No valid interface.')
 
-        print(f'sent instruction {instr}: {time.time() - t}')
+        if self.benchmark: print(f'sent instruction {instr}: {time.time() - t}')
 
     def dump_cans(self, ammount: int):
         """
