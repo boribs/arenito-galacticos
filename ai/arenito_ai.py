@@ -41,8 +41,10 @@ class ArenitoAI:
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
-        self.args = args
+        self.no_move = args.no_move
         self.headless = args.headless
+        self.no_backdoor_extension = args.no_backdoor_extension
+
         self.com = ArenitoComms(mode, args)
         self.vis = ArenitoVision(mode, args)
 
@@ -102,8 +104,8 @@ class ArenitoAI:
         test_timer = ArenitoTimer().start()
 
         # drop backdoor
-        self.com.send_instruction(Instruction.ExtendBackdoor)
-        # TODO: Allow disabling this
+        if not self.no_backdoor_extension:
+            self.com.send_instruction(Instruction.ExtendBackdoor)
 
         while test_timer.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
             if cv2.waitKey(1) == 27:
@@ -134,7 +136,7 @@ class ArenitoAI:
             if not self.headless:
                 cv2.imshow('arenito pov', scan_results.original)
 
-            if self.args.no_move:
+            if self.no_move:
                 continue
 
             if min(scan_results.proximities[:2]) < ArenitoAI.MIN_PROX_REACT_RANGE:
