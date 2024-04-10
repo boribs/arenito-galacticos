@@ -1,12 +1,12 @@
 #include "ArenitoUtils.h"
 
-const int INSTRUCTION_EXECUTION_TIME = 1000; // ms
-const int MOTOR_MOVE_TIME = 500; // ms
+const int INSTRUCTION_EXECUTION_TIME = 200; // ms
+const int MOTOR_MOVE_TIME = 200; // ms
 const int MOTOR_PWM_ENABLE = 150;
-const int BACKDOOR_PWM_UP = 180;
+const int BACKDOOR_PWM_UP = 200;
 const int BACKDOOR_PWM_DOWN = 100;
 const int BACKDOOR_TIMEOUT = 1000; // ms
-const int BRUSH_PWM_ENABLE = 150;
+const int BRUSH_PWM_ENABLE = 185;
 
 // Don't use pin 13
 IBT2 left = IBT2(12, 11);
