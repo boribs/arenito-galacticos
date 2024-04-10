@@ -10,7 +10,7 @@ typedef bool (*bool_func)();
 typedef unsigned long ulong_t;
 
 const int PIN_UNSET = -1;
-const ulong_t PULSE_IN_TIMEOUT = 5000;
+const ulong_t PULSE_IN_TIMEOUT = 10000;
 
 ulong_t filterArray[10]; // array to store data samples from sensor
 
