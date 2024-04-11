@@ -2,7 +2,6 @@ from enum import Enum, auto
 
 class AIMode(Enum):
     Simulation = auto()
-    Real = auto() # don't like you
     Jetson = auto()
 
 class Instruction(Enum):
