@@ -9,6 +9,7 @@ from argparse import Namespace
 from typing import NamedTuple, Sequence
 from cv2.typing import MatLike, RotatedRect
 from arenito_com import AIMode
+from logging import Logger
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -151,7 +152,7 @@ class ArenitoVision:
         AIMode.Jetson : (512, 512),
     }
 
-    def __init__(self, mode: AIMode, args: Namespace):
+    def __init__(self, mode: AIMode, args: Namespace, logger: Logger):
         if mode == AIMode.Simulation or mode == AIMode.Jetson:
             res = ArenitoVision.RESOLUTIONS[mode]
         else:
@@ -165,6 +166,7 @@ class ArenitoVision:
             case other:
                 raise Exception(f'Unsupported algorithm {other}')
 
+        self.logger = logger
         self.img_counter = 0
         self.save_images: bool = args.save_images
 
@@ -355,7 +357,9 @@ class ArenitoVision:
         self.add_text(det_img, f'Time: {clock}', Point(10, 75))
 
         if self.save_images:
-            cv2.imwrite(f'img/markings_{self.img_counter}.jpg', det_img)
+            img_filename = f'img/markings_{self.img_counter}.jpg'
+            cv2.imwrite(img_filename, det_img)
+            self.logger.info(f'Saved image "{img_filename}"')
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -385,8 +389,12 @@ class ArenitoVision:
         white_px = np.count_nonzero(cross)
 
         if self.save_images:
-            cv2.imwrite(f'img/mask_{self.img_counter}.jpg', mask)
-            cv2.imwrite(f'img/reachable_{self.img_counter}.jpg', cross)
+            mask_filename = f'img/mask_{self.img_counter}.jpg'
+            reachable_filename = f'img/reachable_{self.img_counter}.jpg'
+            cv2.imwrite(mask_filename, mask)
+            cv2.imwrite(reachable_filename, cross)
+            self.logger.info(f'Saved image "{mask_filename}"')
+            self.logger.info(f'Saved image "{reachable_filename}"')
 
         return white_px < self.min_px_water
 
@@ -437,7 +445,9 @@ class ArenitoVision:
                     detections.append(det)
 
         if self.save_images:
-            cv2.imwrite(f'img/cans_{self.img_counter}.jpg', mask)
+            img_filename = f'img/cans_{self.img_counter}.jpg'
+            cv2.imwrite(img_filename, mask)
+            self.logger.info(f'Saved image "{img_filename}"')
 
         detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=True)
 

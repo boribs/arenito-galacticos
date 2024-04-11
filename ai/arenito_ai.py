@@ -1,7 +1,7 @@
 # pyright: strict
 
 from __future__ import annotations
-import cv2
+import cv2, time, logging
 from argparse import Namespace
 from cv2.typing import MatLike
 from dataclasses import dataclass
@@ -10,7 +10,6 @@ from arenito_com import *
 from arenito_vision import *
 from arenito_timer import ArenitoTimer
 from typing import Callable, Iterable
-import time
 
 @dataclass
 class ScanResult:
@@ -45,8 +44,16 @@ class ArenitoAI:
         self.headless = args.headless
         self.no_backdoor_extension = args.no_backdoor_extension
 
-        self.com = ArenitoComms(mode, args)
-        self.vis = ArenitoVision(mode, args)
+        self.create_logger(args.print_log)
+
+        args_str = '\n'.join(
+            f'    {arg}: {args.__dict__[arg]}'
+            for arg in args.__dict__
+        )
+        self.logger.info(f'Started AI with args [\n{args_str}\n]')
+
+        self.com = ArenitoComms(mode, args, self.logger)
+        self.vis = ArenitoVision(mode, args, self.logger)
 
         self.state = ArenitoState.LookingForCans
 
@@ -61,6 +68,24 @@ class ArenitoAI:
 
         # Clock
         self.clock = ArenitoTimer().start()
+
+    def create_logger(self, print_log: bool):
+        """
+        Creates a logger.
+        """
+
+        self.logger = logging.getLogger()
+        logging.basicConfig(
+            filename='arenito.log',
+            filemode='w',
+            encoding='utf-8',
+            level=logging.INFO
+        )
+
+        if print_log:
+            console = logging.StreamHandler()
+            console.setLevel(logging.INFO)
+            logging.getLogger().addHandler(console)
 
     def scan(self) -> ScanResult:
         """
@@ -86,6 +111,8 @@ class ArenitoAI:
         Determines Arenito's current state based on sensor scan results.
         """
 
+        prev_state = self.state
+
         if scan_results.detections:
             self.state = ArenitoState.GrabbingCan
             self.com.lcd_show('Recogiendo lata ', 1)
@@ -95,6 +122,9 @@ class ArenitoAI:
         else:
             self.state = ArenitoState.LookingForCans
             self.com.lcd_show('Buscando lata   ', 1)
+
+        if self.state != prev_state:
+            self.logger.info(f'New state: {self.state}')
 
     def main(self):
         """

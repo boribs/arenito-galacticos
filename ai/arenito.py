@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
     parser.add_argument('--headless', '-H', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--save_images', '-s', action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument('--benchmark', '-k', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--print_log', '-l', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--no_backdoor_extension', '-B', action=argparse.BooleanOptionalAction, default=False)
 
     args = parser.parse_args()

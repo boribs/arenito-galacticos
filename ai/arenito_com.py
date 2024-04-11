@@ -5,6 +5,7 @@ from cv2.typing import MatLike
 from arenito_com_consts import *
 from interfaces.sim_interface import SimInterface
 from interfaces.jetson_interface import JetsonInterface
+from logging import Logger
 import time
 
 class ArenitoComms:
@@ -15,10 +16,10 @@ class ArenitoComms:
     Also gets information from and to the simulation.
     """
 
-    def __init__(self, mode: AIMode, args: Namespace):
+    def __init__(self, mode: AIMode, args: Namespace, logger: Logger):
         self.sim_interface: SimInterface | None = None
         self.jetson_interface: JetsonInterface | None = None
-        self.benchmark: bool = args.benchmark
+        self.logger = logger
 
         if mode == AIMode.Simulation:
             self.connect_simulation(args.filename)
@@ -49,7 +50,7 @@ class ArenitoComms:
         t = time.time()
         if self.jetson_interface:
             r = self.jetson_interface.get_front_frame()
-            if self.benchmark: print(f'got frame in: {time.time() - t}')
+            self.logger.info(f'Got frame in: {time.time() - t}')
             return r
         elif self.sim_interface:
             return self.sim_interface.get_front_frame()
@@ -76,7 +77,7 @@ class ArenitoComms:
         t = time.time()
         if self.jetson_interface:
             r = self.jetson_interface.get_prox_sensors()
-            if self.benchmark: print(f'got sensor feedback: {time.time() - t}')
+            self.logger.info(f'Got sensor feedback: {time.time() - t}')
             return r
         elif self.sim_interface:
             return self.sim_interface.get_prox_sensors()
@@ -96,7 +97,7 @@ class ArenitoComms:
         else:
             raise Exception('No valid interface.')
 
-        if self.benchmark: print(f'sent instruction {instr}: {time.time() - t}')
+        self.logger.info(f'Sent instruction {instr}: {time.time() - t}')
 
     def dump_cans(self, ammount: int):
         """
