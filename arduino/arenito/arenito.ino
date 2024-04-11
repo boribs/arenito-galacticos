@@ -39,6 +39,7 @@ enum InstructionMap {
     BrushOn = 'P',
     BrushOff = 'p',
     ExtendBackdoor = 'e',
+    StopAll = 'S',
 };
 
 void setup() {
@@ -140,6 +141,13 @@ void extendBackdoor() {
     backdoor_ext.stop();
 }
 
+void stopAll() {
+    left.stop();
+    right.stop();
+    backdoor.stop();
+    brush.stop();
+}
+
 void loop() {
     while (Serial.available() == 0) {
         brush.clockwise(brush_on ?  BRUSH_PWM_ENABLE : 0);
@@ -192,6 +200,10 @@ void loop() {
 
         case ExtendBackdoor:
             extendBackdoor();
+            break;
+
+        case StopAll:
+            stopAll();
             break;
 
         default:

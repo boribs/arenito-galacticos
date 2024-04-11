@@ -18,6 +18,7 @@ class Instruction(Enum):
     BrushOn           = auto()
     BrushOff          = auto()
     ExtendBackdoor    = auto()
+    StopAll           = auto()
 
 INSTRUCTION_MAP = {
     Instruction.MoveForward      : 'a',
@@ -30,4 +31,5 @@ INSTRUCTION_MAP = {
     Instruction.BrushOn          : 'P',
     Instruction.BrushOff         : 'p',
     Instruction.ExtendBackdoor   : 'e',
+    Instruction.StopAll          : 'S',
 }

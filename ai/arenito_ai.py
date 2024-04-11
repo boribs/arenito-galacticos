@@ -375,6 +375,14 @@ class ArenitoAI:
                 aligned = True
 
             x = callback(*callback_args) # pyright: ignore[reportUnknownArgumentType]
+
+    def stop_all(self):
+        """
+        Stops everything
+        """
+
+        self.com.send_instruction(Instruction.StopAll)
+
     def print_stats(self):
         """
         Prints arenito stats.
