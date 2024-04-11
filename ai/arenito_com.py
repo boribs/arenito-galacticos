@@ -111,6 +111,8 @@ class ArenitoComms:
         else:
             raise Exception('No valid interface.')
 
+        self.logger.info(f'Dumped {ammount} cans.')
+
     def lcd_show(self, msg: str, line: int):
         """
         Shows a message on the LCD display. Only for JetsonInterface.
