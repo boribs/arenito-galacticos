@@ -131,13 +131,13 @@ class ArenitoAI:
         Main loop.
         """
 
-        test_timer = ArenitoTimer().start()
+        self.clock.start()
 
         # drop backdoor
         if not self.no_backdoor_extension:
             self.com.send_instruction(Instruction.ExtendBackdoor)
 
-        while test_timer.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
+        while self.clock.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
             if cv2.waitKey(1) == 27:
                 break
 
@@ -198,11 +198,6 @@ class ArenitoAI:
                 self.search_cans(scan_results)
 
             self.vis.img_counter += 1
-
-        # stats
-        print(f'Tiempo de ejecución: {test_timer.full()}')
-        print(f'Arenito depositó {self.dumped_can_counter} latas'
-              f', se quedó con {self.can_counter} latas dentro.')
 
     def get_can(self, scan_results: ScanResult):
         """
@@ -380,3 +375,13 @@ class ArenitoAI:
                 aligned = True
 
             x = callback(*callback_args) # pyright: ignore[reportUnknownArgumentType]
+    def print_stats(self):
+        """
+        Prints arenito stats.
+        """
+
+        self.logger.info(f'Tiempo de ejecución: {self.clock.full()}')
+        self.logger.info(
+            f'Arenito depositó {self.dumped_can_counter} latas'
+            f', se quedó con {self.can_counter} latas dentro.'
+        )
