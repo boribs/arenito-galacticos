@@ -155,33 +155,33 @@ void loop() {
 
     char instr = Serial.read();
     switch (instr) {
-        case MoveForward:
+        case InstructionMap::MoveForward:
             moveForward();
             break;
 
-        case MoveBack:
+        case InstructionMap::MoveBack:
             moveBackward();
             break;
 
-        case MoveLeft:
+        case InstructionMap::MoveLeft:
             moveLeft(MOTOR_MOVE_TIME);
             break;
 
-        case MoveRight:
+        case InstructionMap::MoveRight:
             moveRight(MOTOR_MOVE_TIME);
             break;
 
-        case MoveLongRight:
+        case InstructionMap::MoveLongRight:
             moveRight(MOTOR_MOVE_TIME * 4);
             break;
 
-        case DumpCans:
+        case InstructionMap::DumpCans:
             openBackdoor();
             delay(1500);
             closeBackdoor();
             break;
 
-        case RequestProxSensor:
+        case InstructionMap::RequestProxSensor:
             Serial.println(
                 String(u1.read()) + "," +
                 String(u2.read()) + "," +
@@ -190,19 +190,19 @@ void loop() {
             );
             break;
 
-        case BrushOn:
+        case InstructionMap::BrushOn:
             brush_on = true;
             break;
 
-        case BrushOff:
+        case InstructionMap::BrushOff:
             brush_on = false;
             break;
 
-        case ExtendBackdoor:
+        case InstructionMap::ExtendBackdoor:
             extendBackdoor();
             break;
 
-        case StopAll:
+        case InstructionMap::StopAll:
             stopAll();
             break;
 
