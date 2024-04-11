@@ -20,4 +20,14 @@ if __name__ == '__main__':
     parser.add_argument('--no_backdoor_extension', '-B', action=argparse.BooleanOptionalAction, default=False)
 
     args = parser.parse_args()
-    ArenitoAI(args).main()
+    arenito_ai = ArenitoAI(args)
+
+    try:
+        arenito_ai.main()
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}") # pyright: ignore[reportOptionalMemberAccess]
+    finally:
+        arenito_ai.stop_all()
+        arenito_ai.print_stats()
