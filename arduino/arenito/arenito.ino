@@ -8,7 +8,7 @@ const int BACKDOOR_PWM_UP = 180;
 const int BACKDOOR_PWM_DOWN = 100;
 const int BACKDOOR_TIMEOUT = 1000; // ms
 const int BACKDOOR_EXT_PWM_ENABLE = 255;
-const int BACKDOOR_EXT_TIME = 4000; // ms
+const int BACKDOOR_EXT_TIME = 6000; // ms
 const int BRUSH_PWM_ENABLE = 185;
 
 // Don't use pin 13
