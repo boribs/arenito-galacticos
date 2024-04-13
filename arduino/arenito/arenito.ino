@@ -145,7 +145,7 @@ void stopAll() {
     left.stop();
     right.stop();
     backdoor.stop();
-    brush.stop();
+    brush_on = false;
 }
 
 void loop() {
