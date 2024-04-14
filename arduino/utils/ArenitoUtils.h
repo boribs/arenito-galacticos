@@ -124,7 +124,6 @@ class Ultrasonic {
 
     const int maxdist = 100;
     const float mindist = 0.5;
-    
     double distance, duration;
     double kaldist;
 
@@ -152,36 +151,36 @@ class Ultrasonic {
         digitalWrite(this->trigger, LOW);
     }
 
-    ulong_t filterRead() {
-        // 1. TAKING MULTIPLE MEASUREMENTS AND STORE IN AN ARRAY
-        for (int sample = 0; sample < 10; sample++) {
-            filterArray[sample] = read();
-            delay(5); // to avoid untrasonic interfering
-        }
+    // ulong_t filterRead() {
+    //     // 1. TAKING MULTIPLE MEASUREMENTS AND STORE IN AN ARRAY
+    //     for (int sample = 0; sample < 10; sample++) {
+    //         filterArray[sample] = read();
+    //         delay(5); // to avoid untrasonic interfering
+    //     }
 
-        // 2. SORTING THE ARRAY IN ASCENDING ORDER
-        for (int i = 0; i < 10; i++) {
-            for (int j = i + 1; j < 10; j++) {
-                if (filterArray[i] > filterArray[j]) {
-                    ulong_t swap = filterArray[i];
-                    filterArray[i] = filterArray[j];
-                    filterArray[j] = swap;
-                }
-            }
-        }
+    //     // 2. SORTING THE ARRAY IN ASCENDING ORDER
+    //     for (int i = 0; i < 10; i++) {
+    //         for (int j = i + 1; j < 10; j++) {
+    //             if (filterArray[i] > filterArray[j]) {
+    //                 ulong_t swap = filterArray[i];
+    //                 filterArray[i] = filterArray[j];
+    //                 filterArray[j] = swap;
+    //             }
+    //         }
+    //     }
 
-        // 3. FILTERING NOISE
-        // + the five smallest samples are considered as noise -> ignore it
-        // + the five biggest  samples are considered as noise -> ignore it
-        // ----------------------------------------------------------------
-        // => get average of the 10 middle samples (from 5th to 14th)
-        ulong_t sum = 0;
-        for (int sample = 2; sample < 8; sample++) {
-            sum += filterArray[sample];
-        }
+    //     // 3. FILTERING NOISE
+    //     // + the five smallest samples are considered as noise -> ignore it
+    //     // + the five biggest  samples are considered as noise -> ignore it
+    //     // ----------------------------------------------------------------
+    //     // => get average of the 10 middle samples (from 5th to 14th)
+    //     ulong_t sum = 0;
+    //     for (int sample = 2; sample < 8; sample++) {
+    //         sum += filterArray[sample];
+    //     }
 
-        return sum / 6;
-    }
+    //     return sum / 6;
+    // }
 
     /*
      * Returns the distance in cm readout from this sensor.
@@ -212,20 +211,19 @@ class Ultrasonic {
     // }
 
     double kalman(double U) {
-      static const double R = 40;
-      static const double H = 1.00;
-      static double Q = 10;
-      static double P = 0;
-      static double U_hat = 0;
-      static double K = 0;
-      K = P * H / (H * P * H + R);
-      U_hat += +K * (U - H * U_hat);
-      P = (1 - K * H) * P + Q;
-      return U_hat;
+        static const double R = 40;
+        static const double H = 1.00;
+        static double Q = 10;
+        static double P = 0;
+        static double U_hat = 0;
+        static double K = 0;
+        K = P * H / (H * P * H + R);
+        U_hat += +K * (U - H * U_hat);
+        P = (1 - K * H) * P + Q;
+        return U_hat;
     }
 
-     ulong_t read() {
-        // I don't love this.
+    ulong_t kalmanRead() {
         digitalWrite(this->trigger, LOW);
         delayMicroseconds(2);
         digitalWrite(this->trigger, HIGH);
@@ -237,9 +235,6 @@ class Ultrasonic {
         kaldist = kalman(distance);
         return kaldist;
     }
-
-
-
 };
 
 class LimitSwitch {

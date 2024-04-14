@@ -183,10 +183,10 @@ void loop() {
 
         case InstructionMap::RequestProxSensor:
             Serial.println(
-                String(u1.read()) + "," +
-                String(u2.read()) + "," +
-                String(u3.read()) + "," +
-                String(u4.read())
+                String(u1.kalmanRead()) + "," +
+                String(u2.kalmanRead()) + "," +
+                String(u3.kalmanRead()) + "," +
+                String(u4.kalmanRead())
             );
             break;
 
