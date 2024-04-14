@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_images', '-s', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--print_log', '-l', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--no_backdoor_extension', '-B', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--no_lcd', '-L', action=argparse.BooleanOptionalAction, default=False)
 
     args = parser.parse_args()
     arenito_ai = ArenitoAI(args)

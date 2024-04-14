@@ -65,7 +65,6 @@ class JetsonInterface:
         args: Namespace,
         no_cam: bool = False,
         no_start: bool = False,
-        no_lcd: bool = False,
     ):
         GPIO.setmode(GPIO.BOARD) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         GPIO.setup( # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
@@ -75,9 +74,11 @@ class JetsonInterface:
 
         # LCD1602 with i2c shield
         # can be any LCD with i2c, though
-        if not no_lcd:
+        if not args.no_lcd:
             self.lcd = I2C_LCD_driver.lcd() # pyright: ignore[reportPossiblyUnboundVariable]
-            self.lcd.lcd_clear()
+            self.lcd_clear()
+        else:
+            self.lcd = None
 
         # Camera setup:
         # 1. Connect the front camera
@@ -90,12 +91,12 @@ class JetsonInterface:
 
         # Start button, required by rules.
         if not no_start:
-            self.lcd.lcd_clear()
+            self.lcd_clear()
             self.lcd_show('Esperando inicio', 1)
             self.lcd_show('Oprima el boton', 2)
 
             # GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-            self.lcd.lcd_clear()
+            self.lcd_clear()
 
         self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
 
@@ -104,8 +105,17 @@ class JetsonInterface:
         Displays some text on the mounted LCD display.
         """
 
-        self.lcd.lcd_display_string(msg, line) # pyright: ignore[reportUnknownMemberType]
         print(f'[INFO] {msg}')
+        if self.lcd:
+            self.lcd.lcd_display_string(msg, line) # pyright: ignore[reportUnknownMemberType]
+
+    def lcd_clear(self):
+        """
+        Clears lcd display.
+        """
+
+        if self.lcd:
+            self.lcd.lcd_clear()
 
     def init_cameras(self):
         """
