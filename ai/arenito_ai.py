@@ -167,6 +167,7 @@ class ArenitoAI:
                 cv2.imshow('arenito pov', scan_results.original)
 
             if self.no_move:
+                self.vis.img_counter += 1
                 continue
 
             if min(scan_results.proximities[:2]) < ArenitoAI.MIN_PROX_REACT_RANGE:
