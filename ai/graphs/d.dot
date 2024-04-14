@@ -1,0 +1,32 @@
+digraph G {
+    start [label = "Escaneo inicial"]
+    obst [shape = diamond; label = "¿Obstáculo en frente?"]
+    obsti [style = filled; shape = box; label = "obstáculo en frente"]
+    dep [shape = diamond; label = "¿Ve depósito?"]
+    depi [style = filled; shape = box; label = "encuentra depósito"]
+    lat [shape = diamond; label = "¿Ve latas?"]
+    lati [style = filled; shape = box; label = "encuentra lata"]
+    lato [style = filled; shape = box; label = "no encuentra lata"]
+
+    tmpa [shape = point, width = 0.01, height = 0.01];
+    tmpb [shape = point, width = 0.01, height = 0.01];
+    tmpc [shape = point, width = 0.01, height = 0.01];
+
+    start -> obst [tailport = w]
+    obst -> obsti [label = "Si"; tailport = w]
+    obsti -> tmpa [dir = none]
+    obst -> dep [label = "No"; tailport = e]
+
+    dep -> depi [label = "Si"; tailport = w]
+    depi -> tmpa [dir = none]
+
+    dep -> lat [label = "No"; tailport = e]
+    lat -> lati [label = "Si"; tailport = w]
+    lat -> lato [label = "No"; tailport = e]
+
+    lati, lato -> tmpb [dir = none]
+    tmpa, tmpb -> tmpc [dir = none]
+    tmpc -> start [headport = e]
+
+    // lati, lato, depi, obsti -> end
+}

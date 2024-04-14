@@ -1,6 +1,7 @@
 import serial
 
-ser = serial.Serial('/dev/ttyACM0', 115200, timeout=1)
+port = '/dev/cu.usbserial-14240'
+ser = serial.Serial(port, 115200)
 
 while True:
     msg = ser.readline().decode('utf-8').strip()
