@@ -5,10 +5,11 @@ const int MOTOR_MOVE_TIME = 200; // ms
 const int MOTOR_PWM_ENABLE = 150;
 const int MOTOR_ROT_PWM_ENABLE = 100;
 const int BACKDOOR_PWM_UP = 180;
-const int BACKDOOR_PWM_DOWN = 100;
+const int BACKDOOR_PWM_DOWN = 80;
 const int BACKDOOR_TIMEOUT = 1000; // ms
-const int BACKDOOR_EXT_PWM_ENABLE = 255;
-const int BACKDOOR_EXT_TIME = 6000; // ms
+const int BACKDOOR_EXT_PWM_ENABLE = 130;
+const int BACKDOOR_EXT_TIME_UP = 2000; // ms
+const int BACKDOOR_EXT_TIME_DOWN = 1600; // ms
 const int BRUSH_PWM_ENABLE = 185;
 
 // Don't use pin 13
@@ -26,6 +27,11 @@ Ultrasonic ufl = Ultrasonic(24, 25);
 Ultrasonic ufr = Ultrasonic(26, 27);
 Ultrasonic url = Ultrasonic(28, 29);
 Ultrasonic urr = Ultrasonic(30, 31);
+
+IrProx irfl = IrProx(33);
+IrProx irfr = IrProx(32);
+IrProx irrl = IrProx(35);
+IrProx irrr = IrProx(34);
 
 bool brush_on = false;
 
@@ -56,6 +62,11 @@ void setup() {
     ufr.setup();
     url.setup();
     urr.setup();
+
+    irfl.setup();
+    irfr.setup();
+    irrl.setup();
+    irrr.setup();
 
     Serial.begin(115200);
     Serial.setTimeout(0);
@@ -131,12 +142,12 @@ void moveRight(const int time) {
 
 void extendBackdoor() {
     backdoor_ext.clockwise(BACKDOOR_EXT_PWM_ENABLE);
-    timeout_repeat(BACKDOOR_EXT_TIME, []() {
+    timeout_repeat(BACKDOOR_EXT_TIME_UP, []() {
         return false;
     });
 
     backdoor_ext.counterClockwise(BACKDOOR_EXT_PWM_ENABLE);
-    timeout_repeat(BACKDOOR_EXT_TIME, []() {
+    timeout_repeat(BACKDOOR_EXT_TIME_DOWN, []() {
         return false;
     });
     backdoor_ext.stop();
@@ -184,10 +195,14 @@ void loop() {
 
         case InstructionMap::RequestProxSensor:
             Serial.println(
-                String(ufl.kalmanRead()) + "," +
-                String(ufr.kalmanRead()) + "," +
-                String(url.kalmanRead()) + "," +
-                String(urr.kalmanRead())
+                String(ufl.read()) + "," +
+                String(ufr.read()) + "," +
+                String(url.read()) + "," +
+                String(urr.read()) + "," +
+                String(irfl.inRange()) + "," +
+                String(irfr.inRange()) + "," +
+                String(irrl.inRange()) + "," +
+                String(irrr.inRange())
             );
             break;
 
