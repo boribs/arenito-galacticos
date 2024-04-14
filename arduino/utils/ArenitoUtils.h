@@ -185,30 +185,30 @@ class Ultrasonic {
     /*
      * Returns the distance in cm readout from this sensor.
      */
-    // ulong_t read() {
-    //     // I don't love this.
-    //     digitalWrite(this->trigger, LOW);
-    //     delayMicroseconds(2);
-    //     digitalWrite(this->trigger, HIGH);
-    //     delayMicroseconds(10);
-    //     digitalWrite(this->trigger, LOW);
+    ulong_t read() {
+        // I don't love this.
+        digitalWrite(this->trigger, LOW);
+        delayMicroseconds(2);
+        digitalWrite(this->trigger, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(this->trigger, LOW);
 
-    //     ulong_t duration = pulseIn(this->echo, HIGH, PULSE_IN_TIMEOUT);
-    //     ulong_t unfiltered = (duration / 2) / SPEED_OF_SOUND;
+        ulong_t duration = pulseIn(this->echo, HIGH, PULSE_IN_TIMEOUT);
+        ulong_t unfiltered = (duration / 2) / SPEED_OF_SOUND;
 
-    //     // https://github.com/MrNerdy404/HC-SR04_Filter/blob/master/SR04_Filter.ino
-    //     if (duration <= 8) duration = ((this->maxRange + 1) * SPEED_OF_SOUND * 2);
-    //     if (this->lastDuration == 0) this->lastDuration = duration;
-    //     if (duration > (5 * this->maxDuration)) duration = this->lastDuration;
-    //     if (duration > this->maxDuration) duration = this->maxDuration;
+        // https://github.com/MrNerdy404/HC-SR04_Filter/blob/master/SR04_Filter.ino
+        if (duration <= 8) duration = ((this->maxRange + 1) * SPEED_OF_SOUND * 2);
+        if (this->lastDuration == 0) this->lastDuration = duration;
+        if (duration > (5 * this->maxDuration)) duration = this->lastDuration;
+        if (duration > this->maxDuration) duration = this->maxDuration;
 
-    //     if ((duration - this->lastDuration) < (-1.0 * this->noiseReject * this->lastDuration)){
-    //         return (this->lastDuration / 2) / SPEED_OF_SOUND;
-    //     }
+        if ((duration - this->lastDuration) < (-1.0 * this->noiseReject * this->lastDuration)){
+            return (this->lastDuration / 2) / SPEED_OF_SOUND;
+        }
 
-    //     this->lastDuration = duration;
-    //     return (duration / 2) / SPEED_OF_SOUND;
-    // }
+        this->lastDuration = duration;
+        return (duration / 2) / SPEED_OF_SOUND;
+    }
 
     double kalman(double U) {
         static const double R = 40;
