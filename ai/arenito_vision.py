@@ -248,7 +248,7 @@ class ArenitoVision:
         # +------------------------+
 
         # Minimum size for a rect to be considered a can
-        self.min_can_area = 700
+        self.min_can_area = 100
         self.can_blob_detector = BlobDetector.can_detector(self.min_can_area)
 
         # Can critical region: The area with which will decide if a can was or not grabbed
@@ -351,6 +351,9 @@ class ArenitoVision:
             cv2.drawContours(det_img, [det.contour], -1, GREEN, 1, cv2.LINE_AA) # pyright: ignore
             cv2.drawContours(det_img, [det.box], -1, RED, 1, cv2.LINE_AA) # pyright: ignore
 
+        if detections:
+            cv2.circle(det_img, detections[0].center, 10, BLUE, 10)
+
         if dump:
             cv2.circle(det_img, dump.center, 10, ORANGE, 10)
 
@@ -449,7 +452,7 @@ class ArenitoVision:
             cv2.imwrite(img_filename, mask)
             self.logger.info(f'Saved image "{img_filename}"')
 
-        detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=True)
+        detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
 
         return detections
 
