@@ -379,10 +379,10 @@ class ArenitoVision:
         Determines if a detection is reachable. Returns true if possible, otherwise false.
         """
 
-        mask_azul = ColorFilter.filter(img_hsv, ColorFilter.BLUE)
+        mask_blue = ColorFilter.filter(img_hsv, ColorFilter.BLUE)
         mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
 
-        mask = cv2.bitwise_or(mask_azul, mask_red)
+        mask = cv2.bitwise_or(mask_blue, mask_red)
 
         line = np.zeros(shape=mask.shape, dtype=np.uint8)
         cv2.line(line, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
@@ -393,10 +393,16 @@ class ArenitoVision:
 
         if self.save_images:
             mask_filename = f'img/mask_{self.img_counter}.jpg'
+            mask_red_filename = f'img/mask_red_{self.img_counter}.jpg'
+            mask_blue_filename = f'img/mask_blue_{self.img_counter}.jpg'
             reachable_filename = f'img/reachable_{self.img_counter}.jpg'
             cv2.imwrite(mask_filename, mask)
+            cv2.imwrite(mask_red_filename, mask_red)
+            cv2.imwrite(mask_blue_filename, mask_blue)
             cv2.imwrite(reachable_filename, cross)
             self.logger.info(f'Saved image "{mask_filename}"')
+            self.logger.info(f'Saved image "{mask_red_filename}"')
+            self.logger.info(f'Saved image "{mask_blue_filename}"')
             self.logger.info(f'Saved image "{reachable_filename}"')
 
         return white_px < self.min_px_water
