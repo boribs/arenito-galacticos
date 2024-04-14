@@ -260,6 +260,29 @@ class LimitSwitch {
     }
 };
 
+class IrProx {
+    public:
+    int pin;
+
+    IrProx(int pin) {
+        this->pin = pin;
+    }
+
+    /*
+     * Configures input pin.
+     */
+    void setup() {
+        pinMode(this->pin, INPUT);
+    }
+
+    /*
+     * Returns true if obstacle in range.
+     */
+    bool inRange() {
+        return digitalRead(this->pin) == LOW;
+    }
+};
+
 /*
 class MPU6050 {
     public:
