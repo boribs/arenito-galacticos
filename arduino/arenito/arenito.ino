@@ -21,10 +21,11 @@ LimitSwitch ls_up = LimitSwitch(22);
 LimitSwitch ls_down = LimitSwitch(23);
 
 //                    trigger, echo
-Ultrasonic u1 = Ultrasonic(24, 25);
-Ultrasonic u2 = Ultrasonic(26, 27);
-Ultrasonic u3 = Ultrasonic(28, 29);
-Ultrasonic u4 = Ultrasonic(30, 31);
+// ultrasonic front/rear left/right
+Ultrasonic ufl = Ultrasonic(24, 25);
+Ultrasonic ufr = Ultrasonic(26, 27);
+Ultrasonic url = Ultrasonic(28, 29);
+Ultrasonic urr = Ultrasonic(30, 31);
 
 bool brush_on = false;
 
@@ -183,10 +184,10 @@ void loop() {
 
         case InstructionMap::RequestProxSensor:
             Serial.println(
-                String(u1.kalmanRead()) + "," +
-                String(u2.kalmanRead()) + "," +
-                String(u3.kalmanRead()) + "," +
-                String(u4.kalmanRead())
+                String(ufl.kalmanRead()) + "," +
+                String(ufr.kalmanRead()) + "," +
+                String(url.kalmanRead()) + "," +
+                String(urr.kalmanRead())
             );
             break;
 
