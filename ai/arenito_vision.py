@@ -367,7 +367,7 @@ class ArenitoVision:
             cv2.drawContours(det_img, [det.box], -1, RED, 1, cv2.LINE_AA) # pyright: ignore
 
         if detections:
-            cv2.circle(det_img, detections[0].center, 10, BLUE, 10)
+            cv2.circle(det_img, detections[0].center, 10, BLUE, 10) # pyright: ignore
 
         if dump:
             cv2.circle(det_img, dump.center, 10, ORANGE, 10)
