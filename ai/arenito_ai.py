@@ -299,6 +299,8 @@ class ArenitoAI:
 
         MAX_SEARCH_TIME = 20
 
+        self.com.send_instruction(Instruction.BrushOff)
+
         self.logger.info(f'Getting close to dump.')
         dump_x = scan_results.dumping_zone.center.x
         t = time.time()
