@@ -23,8 +23,9 @@ LimitSwitch ls_down = LimitSwitch(23);
 
 //                    trigger, echo
 // ultrasonic front/rear left/right
-Ultrasonic ufl = Ultrasonic(24, 25);
-Ultrasonic ufr = Ultrasonic(26, 27);
+// no more front ultrasonic sensors
+// Ultrasonic ufl = Ultrasonic(24, 25);
+// Ultrasonic ufr = Ultrasonic(26, 27);
 Ultrasonic url = Ultrasonic(28, 29);
 Ultrasonic urr = Ultrasonic(30, 31);
 
@@ -58,8 +59,8 @@ void setup() {
     ls_up.setup();
     ls_down.setup();
 
-    ufl.setup();
-    ufr.setup();
+    // ufl.setup();
+    // ufr.setup();
     url.setup();
     urr.setup();
 
@@ -195,8 +196,8 @@ void loop() {
 
         case InstructionMap::RequestProxSensor:
             Serial.println(
-                String(ufl.read()) + "," +
-                String(ufr.read()) + "," +
+                // String(ufl.read()) + "," +
+                // String(ufr.read()) + "," +
                 String(url.read()) + "," +
                 String(urr.read()) + "," +
                 String(irfl.inRange()) + "," +

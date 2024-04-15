@@ -34,7 +34,6 @@ class ArenitoAI:
     AI class, the brains of it all.
     """
 
-    MIN_PROX_REACT_RANGE = 14
     TEST_TIME_SECS = 3 * 60
     BRUSH_ON_SECS = 7
 
@@ -170,7 +169,8 @@ class ArenitoAI:
                 self.vis.img_counter += 1
                 continue
 
-            if min(scan_results.proximities[:2]) < ArenitoAI.MIN_PROX_REACT_RANGE:
+            close_to_obstacle = 1 in scan_results.proximities[2:4]
+            if close_to_obstacle:
                 self.evade()
                 continue
 
