@@ -501,7 +501,10 @@ class ArenitoVision:
         blurred = cv2.GaussianBlur(img, (51, 51), 0)
 
         if self.save_images:
-            cv2.imwrite(f'img/blurred{self.img_counter}.jpg', blurred)
+            img_filename = f'img/blurred_{self.img_counter}.jpg'
+            cv2.imwrite(img_filename, blurred)
+            self.logger.info(f'Saved image "{img_filename}"')
+            # self.logger.info(f'with brightness mean: {self.get_mean(blurred)}') # pyright: ignore
 
         return blurred
 
