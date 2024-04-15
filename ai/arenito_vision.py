@@ -175,17 +175,17 @@ class ArenitoVision:
         self.res_x, self.res_y = res
 
         # Bottom center of the image
-        # +------------------------+
-        # |                        |
-        # |                        |
-        # |                        |
-        # +------------X-----------+
+        # +-----------------------+
+        # |                       |
+        # |                       |
+        # |                       |
+        # +-----------X-----------+
         self.bottom_center = Point(self.res_x // 2, self.res_y)
 
         # How close to the water is the robot allowed to be.
         # When no cans are found, move forward until running into water, then rotate.
         # The robot determines that it's run into water when the point directly forward
-        # is reachable. This dot is called `r_dot`. If `r_dot` is reachable, the robot
+        # is reachable. This dot is called `blue_r_dot`. If `blue_r_dot` is reachable, the robot
         # can continue forward. Otherwise, the robot is by the edge of the traversable area
         # and, if it goes forward, it'll go out into the "water".
         # +------------------------+
@@ -194,8 +194,11 @@ class ArenitoVision:
         # |           ###          |
         # |           ###          |
         # +------------------------+
-        self.water_dist_from_center = 90
-        self.r_dot = Point(self.res_x // 2, self.res_y // 2 + self.water_dist_from_center)
+        self.water_dist_from_center = 100
+        self.blue_r_dot = Point(self.res_x // 2, self.res_y // 2 + self.water_dist_from_center)
+        # Theres also a `dump_r_dot`, for the dump...
+        self.dump_dist_from_center = 20
+        self.dump_r_dot = Point(self.res_x // 2, self.res_y // 2 + self.dump_dist_from_center)
 
         # Area limits where a detection is considered to be centered.
         # +------------------------+
@@ -250,7 +253,7 @@ class ArenitoVision:
         # +------------------------+
 
         # Minimum size for a rect to be considered a can
-        self.min_can_area = 100
+        self.min_can_area = 40
         self.can_blob_detector = BlobDetector.can_detector(self.min_can_area)
 
         # Can critical region: The area with which will decide if a can was or not grabbed
@@ -302,13 +305,22 @@ class ArenitoVision:
 
         t = self.vertical_line_thickness // 2
         a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
-        b1 = Point(a1.x, self.r_dot.y)
+        b1 = Point(a1.x, self.blue_r_dot.y)
         a2 = Point(self.bottom_center.x + t, self.bottom_center.y)
-        b2 = Point(a2.x, self.r_dot.y)
+        b2 = Point(a2.x, self.blue_r_dot.y)
 
-        cv2.line(det_img, a1, b1, WHITE)
-        cv2.line(det_img, a2, b2, WHITE)
-        cv2.ellipse(det_img, self.r_dot, (t, t), 0.0, 180.0, 360.0, WHITE, thickness=1)
+        cv2.line(det_img, a1, b1, BLUE)
+        cv2.line(det_img, a2, b2, BLUE)
+        cv2.ellipse(det_img, self.blue_r_dot, (t, t), 0.0, 180.0, 360.0, BLUE, thickness=1)
+
+        a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
+        b1 = Point(a1.x, self.dump_r_dot.y)
+        a2 = Point(self.bottom_center.x + t, self.bottom_center.y)
+        b2 = Point(a2.x, self.dump_r_dot.y)
+
+        cv2.line(det_img, a1, b1, RED)
+        cv2.line(det_img, a2, b2, RED)
+        cv2.ellipse(det_img, self.dump_r_dot, (t, t), 0.0, 180.0, 360.0, RED, thickness=1)
 
         cv2.rectangle(
             det_img,
@@ -337,14 +349,14 @@ class ArenitoVision:
             det_img,
             (self.can_threshold_x[0], 0),
             (self.can_threshold_x[0], self.res_y),
-            BLUE,
+            WHITE,
             thickness=1,
         )
         cv2.line(
             det_img,
             (self.can_threshold_x[1], 0),
             (self.can_threshold_x[1], self.res_y),
-            BLUE,
+            WHITE,
             thickness=1,
         )
 
@@ -376,7 +388,7 @@ class ArenitoVision:
 
         return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-    def reachable(self, img_hsv: MatLike, det: Point) -> bool:
+    def reachable_old(self, img_hsv: MatLike, det: Point) -> bool:
         """
         Determines if a detection is reachable. Returns true if possible, otherwise false.
         """
@@ -408,6 +420,54 @@ class ArenitoVision:
             self.logger.info(f'Saved image "{reachable_filename}"')
 
         return white_px < self.min_px_water
+
+    def reachable(
+        self,
+        img_hsv: MatLike,
+        det: Point,
+        filter_red: bool = True,
+        secondary_det: Point = Point(0, 0),
+    ) -> bool:
+        """
+        Determines if a detection is reachable. Returns true if possible, otherwise false.
+        """
+
+        mask_blue = ColorFilter.filter(img_hsv, ColorFilter.BLUE)
+        line_blue = np.zeros(shape=mask_blue.shape, dtype=np.uint8)
+        cv2.line(line_blue, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
+        cv2.rectangle(line_blue, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
+
+        cross = cv2.bitwise_and(mask_blue, line_blue)
+        white_px_blue = np.count_nonzero(cross)
+
+        if self.save_images:
+            mask_blue_filename = f'img/mask_blue_{self.img_counter}.jpg'
+            reachable_blue_filename = f'img/reachable_blue_{self.img_counter}.jpg'
+            cv2.imwrite(mask_blue_filename, mask_blue)
+            cv2.imwrite(reachable_blue_filename, cross)
+            self.logger.info(f'Saved image "{mask_blue_filename}"')
+            self.logger.info(f'Saved image "{reachable_blue_filename}"')
+
+        if filter_red:
+            mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
+            line_red = np.zeros(shape=mask_red.shape, dtype=np.uint8)
+            cv2.line(line_red, self.bottom_center, secondary_det, WHITE, thickness=self.vertical_line_thickness)
+            cv2.rectangle(line_red, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
+
+            cross = cv2.bitwise_and(mask_red, line_red)
+            white_px_red = np.count_nonzero(cross)
+
+            if self.save_images:
+                mask_red_filename = f'img/mask_red_{self.img_counter}.jpg'
+                reachable_red_filename = f'img/reachable_red_{self.img_counter}.jpg'
+                cv2.imwrite(mask_red_filename, mask_red)
+                cv2.imwrite(reachable_red_filename, cross)
+                self.logger.info(f'Saved image "{mask_red_filename}"')
+                self.logger.info(f'Saved image "{reachable_red_filename}"')
+
+            return (white_px_blue + white_px_red) < self.min_px_water
+        else:
+            return white_px_blue < self.min_px_water
 
     def min_rect_method(self, img: MatLike) -> list[Detection]:
         """
@@ -452,7 +512,7 @@ class ArenitoVision:
                 # discard really long rectangles
                 if w / h < 0.5: continue
 
-                if self.reachable(img_hsv, det.center):
+                if self.reachable(img_hsv, det.center, secondary_det=det.center):
                     detections.append(det)
 
         if self.save_images:
@@ -523,16 +583,17 @@ class ArenitoVision:
         Filters out red color and returns a point indicating where it is.
         """
 
-        img_hsv = ColorFilter.filter(cv2.cvtColor(blurred_img, cv2.COLOR_BGR2HSV), ColorFilter.RED)
-
-        contours, _ = cv2.findContours(img_hsv, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        img_hsv = cv2.cvtColor(blurred_img, cv2.COLOR_BGR2HSV)
+        filter_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
+        contours, _ = cv2.findContours(filter_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         if not contours: return None
 
         rect = cv2.minAreaRect(contours[0])
         det = Detection(rect, contours[0])
 
-        if cv2.waitKey(1) == 27:
+        self.logger.info(f'Detecting dump')
+        if not self.reachable(img_hsv, det.center, filter_red=False):
             return None
 
         return det

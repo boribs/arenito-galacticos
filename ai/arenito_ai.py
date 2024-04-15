@@ -235,7 +235,7 @@ class ArenitoAI:
         if self.can_search_timer.elapsed_time() > MAX_SEARCH_SECONDS:
             self.com.send_instruction(Instruction.MoveLongRight)
             self.can_search_timer.reset()
-        elif self.vis.reachable(hsv, self.vis.r_dot):
+        elif self.vis.reachable(hsv, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
             self.com.send_instruction(Instruction.MoveForward)
         else:
             self.com.send_instruction(Instruction.MoveRight)
@@ -249,7 +249,7 @@ class ArenitoAI:
             # Don't go back if on the border
             img = self.com.get_rear_frame()
             img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            if not self.vis.reachable(img, self.vis.r_dot):
+            if not self.vis.reachable(img, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
                 break
 
             self.com.send_instruction(Instruction.MoveBack)
