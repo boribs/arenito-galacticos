@@ -5,7 +5,7 @@ from cv2.typing import MatLike
 from arenito_com_consts import *
 from interfaces.sim_interface import SimInterface
 from interfaces.jetson_interface import JetsonInterface
-from logging import Logger
+from arenito_logger import ArenitoLogger
 import time
 
 class ArenitoComms:
@@ -16,10 +16,10 @@ class ArenitoComms:
     Also gets information from and to the simulation.
     """
 
-    def __init__(self, mode: AIMode, args: Namespace, logger: Logger):
+    def __init__(self, mode: AIMode, args: Namespace, logger: ArenitoLogger):
         self.sim_interface: SimInterface | None = None
         self.jetson_interface: JetsonInterface | None = None
-        self.logger = logger
+        self.log = logger
 
         if mode == AIMode.Simulation:
             self.connect_simulation(args.filename)
@@ -50,7 +50,7 @@ class ArenitoComms:
         t = time.time()
         if self.jetson_interface:
             r = self.jetson_interface.get_front_frame()
-            self.logger.info(f'Got frame in: {time.time() - t}')
+            self.log.info(f'Got frame in: {time.time() - t}')
             return r
         elif self.sim_interface:
             return self.sim_interface.get_front_frame()
@@ -77,7 +77,7 @@ class ArenitoComms:
         t = time.time()
         if self.jetson_interface:
             r = self.jetson_interface.get_prox_sensors()
-            self.logger.info(f'Got sensor feedback: {time.time() - t}')
+            self.log.info(f'Got sensor feedback: {time.time() - t}')
             return r
         elif self.sim_interface:
             return self.sim_interface.get_prox_sensors()
@@ -97,7 +97,7 @@ class ArenitoComms:
         else:
             raise Exception('No valid interface.')
 
-        self.logger.info(f'Sent instruction {instr}: {time.time() - t}')
+        self.log.info(f'Sent instruction {instr}: {time.time() - t}')
 
     def dump_cans(self, ammount: int):
         """
@@ -111,7 +111,7 @@ class ArenitoComms:
         else:
             raise Exception('No valid interface.')
 
-        self.logger.info(f'Dumped {ammount} cans.')
+        self.log.info(f'Dumped {ammount} cans.')
 
     def lcd_show(self, msg: str, line: int):
         """

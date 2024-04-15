@@ -1,7 +1,7 @@
 # pyright: strict
 
 from __future__ import annotations
-import cv2, time, logging
+import cv2, time
 from argparse import Namespace
 from cv2.typing import MatLike
 from dataclasses import dataclass
@@ -9,6 +9,7 @@ from enum import Enum, auto
 from arenito_com import *
 from arenito_vision import *
 from arenito_timer import ArenitoTimer
+from arenito_logger import ArenitoLogger
 from typing import Callable, Iterable
 
 @dataclass
@@ -35,7 +36,7 @@ class ArenitoAI:
     """
 
     TEST_TIME_SECS = 5 * 60
-    BRUSH_ON_SECS = 7
+    BRUSH_ON_SECS = 5
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
@@ -43,16 +44,16 @@ class ArenitoAI:
         self.headless = args.headless
         self.no_backdoor_extension = args.no_backdoor_extension
 
-        self.create_logger(args.print_log)
+        self.log = ArenitoLogger(args)
 
         args_str = '\n'.join(
             f'    {arg}: {args.__dict__[arg]}'
             for arg in args.__dict__
         )
-        self.logger.info(f'Started AI with args [\n{args_str}\n]')
+        self.log.info(f'Started AI with args [\n{args_str}\n]')
 
-        self.com = ArenitoComms(mode, args, self.logger)
-        self.vis = ArenitoVision(mode, args, self.logger)
+        self.com = ArenitoComms(mode, args, self.log)
+        self.vis = ArenitoVision(mode, args, self.log)
 
         self.state = ArenitoState.LookingForCans
 
@@ -68,24 +69,6 @@ class ArenitoAI:
         # Clock
         self.clock = ArenitoTimer().start()
 
-    def create_logger(self, print_log: bool):
-        """
-        Creates a logger.
-        """
-
-        self.logger = logging.getLogger()
-        logging.basicConfig(
-            filename='arenito.log',
-            filemode='w',
-            encoding='utf-8',
-            level=logging.INFO
-        )
-
-        if print_log:
-            console = logging.StreamHandler()
-            console.setLevel(logging.INFO)
-            logging.getLogger().addHandler(console)
-
     def scan(self) -> ScanResult:
         """
         Gets data from every sensor.
@@ -95,7 +78,7 @@ class ArenitoAI:
         blurred = self.vis.blur(original)
         detections = self.vis.find_cans(blurred)
         proximities = self.com.get_prox_sensors()
-        dumping_zone = self.vis.detect_dumping_zone(blurred)
+        dumping_zone = self.vis.detect_dumping_zone(blurred, False)
 
         return ScanResult(
             original=original,
@@ -123,7 +106,7 @@ class ArenitoAI:
             self.com.lcd_show('Buscando lata   ', 1)
 
         if self.state != prev_state:
-            self.logger.info(f'New state: {self.state}')
+            self.log.info(f'New state: {self.state}')
 
     def main(self):
         """
@@ -221,6 +204,13 @@ class ArenitoAI:
             can_aligner,
             [self]
         )
+        # tmin, tmax = self.vis.can_threshold_x
+        # x = scan_results.detections[0].center.x
+        # if tmax <= x:
+        #     self.com.send_instruction(Instruction.MoveRight)
+        # elif tmin >= x:
+        #     self.com.send_instruction(Instruction.MoveLeft)
+        # else:
         self.com.send_instruction(Instruction.MoveForward)
 
     def search_cans(self, scan_results: ScanResult):
@@ -245,7 +235,7 @@ class ArenitoAI:
         Evasion routine.
         """
 
-        self.logger.info('Evading!')
+        self.log.info('Evading!')
         for _ in range(10):
             # Don't go back if on the border
             img = self.com.get_rear_frame()
@@ -262,9 +252,9 @@ class ArenitoAI:
         Can-dumping routine.
         """
 
-        def get_dump(ai: ArenitoAI, frame: MatLike) -> Detection | None:
+        def get_dump(ai: ArenitoAI, frame: MatLike, rear: bool = False) -> Detection | None:
             img = ai.vis.blur(frame)
-            return ai.vis.detect_dumping_zone(img)
+            return ai.vis.detect_dumping_zone(img, rear)
 
         def front_cam_align(ai: ArenitoAI) -> int:
             dump = get_dump(ai, ai.com.get_front_frame())
@@ -273,7 +263,7 @@ class ArenitoAI:
             return dump.center.x
 
         def rear_cam_align(ai: ArenitoAI) -> int:
-            dump = get_dump(ai, ai.com.get_rear_frame())
+            dump = get_dump(ai, ai.com.get_rear_frame(), True)
             if not dump:
                 return 256
             return dump.center.x
@@ -301,7 +291,7 @@ class ArenitoAI:
 
         self.com.send_instruction(Instruction.BrushOff)
 
-        self.logger.info(f'Getting close to dump.')
+        self.log.info(f'Getting close to dump.')
         dump_x = scan_results.dumping_zone.center.x
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
@@ -322,11 +312,11 @@ class ArenitoAI:
             else:
                 dump_x = dump.center.x
 
-        self.logger.info(f'Aligning with rear cam.')
+        self.log.info(f'Aligning with rear cam.')
         # align (rear cam)
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
-            dump = get_dump(self, self.com.get_rear_frame())
+            dump = get_dump(self, self.com.get_rear_frame(), True)
             if dump:
                 dump_x = dump.center.x
                 break
@@ -341,7 +331,7 @@ class ArenitoAI:
             [self]
         )
 
-        self.logger.info(f'Getting close with proximity sensors.')
+        self.log.info(f'Getting close with proximity sensors.')
         # get close (sensors)
         # MAX_SENSOR_DIST = 4
 
@@ -361,7 +351,7 @@ class ArenitoAI:
             lu, ru = reads[0:2]
             ir, il = reads[5:7]
 
-            self.logger.info(f'Read {reads}. U:{lu}{ru}, Ir:{il}{ir}')
+            self.log.info(f'Read {reads}. U:{lu}{ru}, Ir:{il}{ir}')
 
             if (lu < 10 and ru < 10) or (ir == 1 or il == 1):
                 break
@@ -386,7 +376,7 @@ class ArenitoAI:
         time.sleep(0.2)
 
         # dump cans
-        self.logger.info(f'Dumping {self.can_counter} cans.')
+        self.log.info(f'Dumping {self.can_counter} cans.')
         self.com.dump_cans(self.can_counter)
         self.dumped_can_counter += self.can_counter
         self.can_counter = 0
@@ -430,8 +420,8 @@ class ArenitoAI:
         Prints arenito stats.
         """
 
-        self.logger.info(f'Tiempo de ejecución: {self.clock.full()}')
-        self.logger.info(
+        self.log.info(f'Tiempo de ejecución: {self.clock.full()}')
+        self.log.info(
             f'Arenito depositó {self.dumped_can_counter} latas'
             f', se quedó con {self.can_counter} latas dentro.'
         )

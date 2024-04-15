@@ -9,7 +9,7 @@ from argparse import Namespace
 from typing import NamedTuple, Sequence
 from cv2.typing import MatLike, RotatedRect
 from arenito_com import AIMode
-from logging import Logger
+from arenito_logger import ArenitoLogger
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -154,7 +154,7 @@ class ArenitoVision:
         AIMode.Jetson : (512, 512),
     }
 
-    def __init__(self, mode: AIMode, args: Namespace, logger: Logger):
+    def __init__(self, mode: AIMode, args: Namespace, logger: ArenitoLogger):
         if mode == AIMode.Simulation or mode == AIMode.Jetson:
             res = ArenitoVision.RESOLUTIONS[mode]
         else:
@@ -168,9 +168,10 @@ class ArenitoVision:
             case other:
                 raise Exception(f'Unsupported algorithm {other}')
 
-        self.logger = logger
+        self.log = logger
         self.img_counter = 0
         self.save_images: bool = args.save_images
+        self.dump_img_counter = 0
 
         self.res_x, self.res_y = res
 
@@ -222,7 +223,7 @@ class ArenitoVision:
         # there are between the robot and that point.
         # This is the minimum ammount of blue pixels necessary between the robot
         # and any given point for it to be considered `unreachable`.
-        self.min_px_water = 50
+        self.min_px_water = 1000
 
         # This limits the bottom collision-with-blue area
         # +------------------------+
@@ -253,7 +254,7 @@ class ArenitoVision:
         # +------------------------+
 
         # Minimum size for a rect to be considered a can
-        self.min_can_area = 100
+        self.min_can_area = 1
         self.min_dump_area = 600
         self.can_blob_detector = BlobDetector.can_detector(self.min_can_area)
 
@@ -376,9 +377,7 @@ class ArenitoVision:
         self.add_text(det_img, f'Time: {clock}', Point(10, 75))
 
         if self.save_images:
-            img_filename = f'img/markings_{self.img_counter}.jpg'
-            cv2.imwrite(img_filename, det_img)
-            self.logger.info(f'Saved image "{img_filename}"')
+            self.log.img(det_img, f'markings_{self.img_counter}')
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -408,18 +407,10 @@ class ArenitoVision:
         white_px = np.count_nonzero(cross)
 
         if self.save_images:
-            mask_filename = f'img/mask_{self.img_counter}.jpg'
-            mask_red_filename = f'img/mask_red_{self.img_counter}.jpg'
-            mask_blue_filename = f'img/mask_blue_{self.img_counter}.jpg'
-            reachable_filename = f'img/reachable_{self.img_counter}.jpg'
-            cv2.imwrite(mask_filename, mask)
-            cv2.imwrite(mask_red_filename, mask_red)
-            cv2.imwrite(mask_blue_filename, mask_blue)
-            cv2.imwrite(reachable_filename, cross)
-            self.logger.info(f'Saved image "{mask_filename}"')
-            self.logger.info(f'Saved image "{mask_red_filename}"')
-            self.logger.info(f'Saved image "{mask_blue_filename}"')
-            self.logger.info(f'Saved image "{reachable_filename}"')
+            self.log.img(mask, f'mask_{self.img_counter}')
+            self.log.img(mask_red, f'mask_red_{self.img_counter}')
+            self.log.img(mask_blue, f'mask_blue_{self.img_counter}')
+            self.log.img(cross, f'reachable_{self.img_counter}')
 
         return white_px < self.min_px_water
 
@@ -443,12 +434,8 @@ class ArenitoVision:
         white_px_blue = np.count_nonzero(cross)
 
         if self.save_images:
-            mask_blue_filename = f'img/mask_blue_{self.img_counter}.jpg'
-            reachable_blue_filename = f'img/reachable_blue_{self.img_counter}.jpg'
-            cv2.imwrite(mask_blue_filename, mask_blue)
-            cv2.imwrite(reachable_blue_filename, cross)
-            self.logger.info(f'Saved image "{mask_blue_filename}"')
-            self.logger.info(f'Saved image "{reachable_blue_filename}"')
+            self.log.img(mask_blue, f'mask_blue_{self.img_counter}')
+            self.log.img(cross, f'reachable_blue_{self.img_counter}')
 
         if filter_red:
             mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
@@ -460,12 +447,8 @@ class ArenitoVision:
             white_px_red = np.count_nonzero(cross)
 
             if self.save_images:
-                mask_red_filename = f'img/mask_red_{self.img_counter}.jpg'
-                reachable_red_filename = f'img/reachable_red_{self.img_counter}.jpg'
-                cv2.imwrite(mask_red_filename, mask_red)
-                cv2.imwrite(reachable_red_filename, cross)
-                self.logger.info(f'Saved image "{mask_red_filename}"')
-                self.logger.info(f'Saved image "{reachable_red_filename}"')
+                self.log.img(mask_red, f'mask_red_{self.img_counter}')
+                self.log.img(cross, f'reachable_red_{self.img_counter}')
 
             return (white_px_blue + white_px_red) < self.min_px_water
         else:
@@ -512,15 +495,16 @@ class ArenitoVision:
                 det = Detection(rect, cnt)
 
                 # discard really long rectangles
-                if w / h < 0.5: continue
+                # if w / h < 0.5: continue
 
                 if self.reachable(img_hsv, det.center, secondary_det=det.center):
                     detections.append(det)
 
         if self.save_images:
-            img_filename = f'img/cans_{self.img_counter}.jpg'
-            cv2.imwrite(img_filename, mask)
-            self.logger.info(f'Saved image "{img_filename}"')
+            can_cont = img.copy()
+            cv2.drawContours(can_cont, contours, -1, BLACK, 1, cv2.LINE_AA)
+            self.log.img(mask, f'cans_{self.img_counter}')
+            self.log.img(can_cont, f'can_cont_{self.img_counter}')
 
         detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
 
@@ -538,12 +522,14 @@ class ArenitoVision:
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         black_mask = ColorFilter.filter(hsv, ColorFilter.BLACK)
         detection_points = self.can_blob_detector.points(black_mask)
-
-        return [
+        detections = [
             Detection.from_point(point)
             for point in detection_points
-            if self.reachable(hsv, point)
+            if self.reachable(hsv, point, secondary_det=point)
         ]
+
+        detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
+        return detections
 
     def find_cans(self, img: MatLike) -> list[Detection]:
         """
@@ -563,10 +549,8 @@ class ArenitoVision:
         blurred = cv2.GaussianBlur(img, (51, 51), 0)
 
         if self.save_images:
-            img_filename = f'img/blurred_{self.img_counter}.jpg'
-            cv2.imwrite(img_filename, blurred)
-            self.logger.info(f'Saved image "{img_filename}"')
             # self.logger.info(f'with brightness mean: {self.get_mean(blurred)}') # pyright: ignore
+            self.log.img(blurred, f'blurred_{self.img_counter}')
 
         return blurred
 
@@ -580,7 +564,7 @@ class ArenitoVision:
 
         return self.can_critical_region.point_inside(detections[0].center)
 
-    def detect_dumping_zone(self, blurred_img: MatLike) -> None | Detection:
+    def detect_dumping_zone(self, blurred_img: MatLike, rear: bool) -> None | Detection:
         """
         Filters out red color and returns a point indicating where it is.
         """
@@ -588,6 +572,12 @@ class ArenitoVision:
         img_hsv = cv2.cvtColor(blurred_img, cv2.COLOR_BGR2HSV)
         filter_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
         contours, _ = cv2.findContours(filter_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
+        if self.save_images and rear:
+            self.log.img(blurred_img, f'rear_align_raw_{self.dump_img_counter}')
+            self.log.img(filter_red, f'rear_align_red_{self.dump_img_counter}')
+
+            self.dump_img_counter += 1
 
         if not contours: return None
 
@@ -606,7 +596,11 @@ class ArenitoVision:
 
         detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
 
-        self.logger.info(f'Detecting dump')
+        if self.save_images and rear:
+            cv2.drawContours(blurred_img, contours, -1, RED, 1, cv2.LINE_AA)
+            self.log.img(blurred_img, f'rear_align_detections_{self.dump_img_counter}')
+
+        self.log.info(f'Detecting dump')
         if not self.reachable(img_hsv, detections[0].center, filter_red=False):
             return None
 
