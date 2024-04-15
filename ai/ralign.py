@@ -17,8 +17,8 @@ ji = JetsonInterface(
 while True:
     reads = ji.get_prox_sensors()
     time.sleep(0.2)
-    lu, ru = reads[2:4]
-    ir, il = reads[6:8]
+    lu, ru = reads[0:2]
+    ir, il = reads[5:7]
 
     print(reads, ir, il)
 

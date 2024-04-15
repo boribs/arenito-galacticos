@@ -15,7 +15,7 @@ const int BRUSH_PWM_ENABLE = 185;
 // Don't use pin 13
 IBT2 left = IBT2(12, 11);
 IBT2 right = IBT2(10, 9);
-L298N backdoor = L298N(8, 52, 53);
+L298N backdoor = L298N(8, 46, 47);
 L298N brush = L298N(7, 50, 51);
 L298N backdoor_ext = L298N(6, 48, 49);
 LimitSwitch ls_up = LimitSwitch(22);
@@ -30,6 +30,7 @@ Ultrasonic url = Ultrasonic(28, 29);
 Ultrasonic urr = Ultrasonic(30, 31);
 
 IrProx irfl = IrProx(33);
+IrProx irfm = IrProx(36);
 IrProx irfr = IrProx(32);
 IrProx irrl = IrProx(35);
 IrProx irrr = IrProx(34);
@@ -65,6 +66,7 @@ void setup() {
     urr.setup();
 
     irfl.setup();
+    irfm.setup();
     irfr.setup();
     irrl.setup();
     irrr.setup();
@@ -201,6 +203,7 @@ void loop() {
                 String(url.read()) + "," +
                 String(urr.read()) + "," +
                 String(irfl.inRange()) + "," +
+                String(irfm.inRange()) + "," +
                 String(irfr.inRange()) + "," +
                 String(irrl.inRange()) + "," +
                 String(irrr.inRange())
