@@ -117,7 +117,7 @@ class ColorFilter:
     """
 
     BLUE = (
-        np.array([85, 0, 110]),   # lower
+        np.array([39, 76, 110]),   # lower
         np.array([175, 255, 255]), # upper
         # np.array([75, 160, 88]),   # lower
         # np.array([175, 255, 255]), # upper
@@ -125,8 +125,10 @@ class ColorFilter:
         # np.array([118, 255, 210]), # upper
     )
     RED = (
-        np.array([0, 176, 0]),
-        np.array([78, 255, 255]),
+        # np.array([0, 176, 0]),
+        # np.array([78, 255, 255]),
+        np.array([0, 107, 44]),
+        np.array([179, 255, 144]),
     )
     BLACK = (
         np.array([0, 0, 69]),      # lower
