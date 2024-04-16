@@ -65,6 +65,9 @@ class Detection:
         rect = cv2.minAreaRect(cnt)
         return Detection(rect, cnt)
 
+    def __repr__(self):
+        return f'Detection({self.center.x}, {self.center.y})'
+
 class BlobDetector:
     """
     My blob detector class.
@@ -221,7 +224,8 @@ class ArenitoVision:
         # there are between the robot and that point.
         # This is the minimum ammount of blue pixels necessary between the robot
         # and any given point for it to be considered `unreachable`.
-        self.min_px_water = 1000
+        self.min_px_water = 4000
+        self.min_px_dump = 500
 
         # This limits the bottom collision-with-blue area
         # +------------------------+
@@ -252,7 +256,7 @@ class ArenitoVision:
         # +------------------------+
 
         # Minimum size for a rect to be considered a can
-        self.min_can_area = 1
+        self.min_can_area = 500
         self.min_dump_area = 600
         self.can_blob_detector = BlobDetector.can_detector(self.min_can_area)
 
