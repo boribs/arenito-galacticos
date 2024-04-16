@@ -224,8 +224,8 @@ class ArenitoVision:
         # there are between the robot and that point.
         # This is the minimum ammount of blue pixels necessary between the robot
         # and any given point for it to be considered `unreachable`.
-        self.min_px_water = 4000
-        self.min_px_dump = 500
+        self.min_px_water = 3000
+        self.min_px_dump = 200
 
         # This limits the bottom collision-with-blue area
         # +------------------------+
@@ -234,7 +234,7 @@ class ArenitoVision:
         # |- - - - - - - - - - - - | <- This line
         # +------------------------+
         # previously 380 - 20, where 380 = res_y
-        self.bottom_line_y = int(self.res_y * 0.9473)
+        self.bottom_line_y = int(self.res_y * 0.9573)
 
         # This limits the vertical collision-with-blue area
         # +------------------------+
@@ -256,8 +256,8 @@ class ArenitoVision:
         # +------------------------+
 
         # Minimum size for a rect to be considered a can
-        self.min_can_area = 500
-        self.min_dump_area = 600
+        self.min_can_area = 200
+        self.min_dump_area = 700
         self.can_blob_detector = BlobDetector.can_detector(self.min_can_area)
 
         # Can critical region: The area with which will decide if a can was or not grabbed
@@ -464,7 +464,7 @@ class ArenitoVision:
 
             return white_px_blue < self.min_px_water and white_px_red < self.min_px_dump
         else:
-            return white_px_blue < self.min_px_water
+            return white_px_blue < self.min_px_dump
 
     def min_rect_method(self, img: MatLike) -> list[Detection]:
         """
