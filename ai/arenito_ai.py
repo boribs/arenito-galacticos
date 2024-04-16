@@ -188,17 +188,17 @@ class ArenitoAI:
         Can-getter routine.
         """
 
-        def can_aligner(ai: ArenitoAI) -> int:
+        def can_aligner(ai: ArenitoAI) -> Point:
             original = self.com.get_front_frame()
             blurred = self.vis.blur(original)
             detections = self.vis.find_cans(blurred)
 
             if not detections:
-                return 256
-            return detections[0].center.x
+                return Point(256, 0)
+            return detections[0].center
 
         self.align( # pyright: ignore[reportUnknownMemberType]
-            scan_results.detections[0].center.x,
+            scan_results.detections[0].center,
             self.vis.can_threshold_x,
             15,
             can_aligner,
@@ -256,19 +256,19 @@ class ArenitoAI:
             img = ai.vis.blur(frame)
             return ai.vis.detect_dumping_zone(img, rear)
 
-        def front_cam_align(ai: ArenitoAI) -> int:
+        def front_cam_align(ai: ArenitoAI) -> Point:
             dump = get_dump(ai, ai.com.get_front_frame())
             ai.log.advance_gen()
             if not dump:
-                return 256
-            return dump.center.x
+                return Point(256, 0)
+            return dump.center
 
-        def rear_cam_align(ai: ArenitoAI) -> int:
+        def rear_cam_align(ai: ArenitoAI) -> Point:
             dump = get_dump(ai, ai.com.get_rear_frame(), True)
             ai.log.advance_gen()
             if not dump:
-                return 256
-            return dump.center.x
+                return Point(256, 0)
+            return dump.center
 
         # def rear_sensor_align() -> tuple[int, int]:
         #     # SENSOR_ALIGN_THRESHOLD = 10
@@ -289,30 +289,38 @@ class ArenitoAI:
         # get close (front cam)
         if not scan_results.dumping_zone: return
 
-        MAX_SEARCH_TIME = 20
-
-        self.com.send_instruction(Instruction.BrushOff)
+        MAX_SEARCH_TIME = 10
 
         self.log.info(f'Getting close to dump.')
-        dump_x = scan_results.dumping_zone.center.x
+        dump_pos = scan_results.dumping_zone.center
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
             self.align( # pyright: ignore[reportUnknownMemberType]
-                dump_x,
+                dump_pos,
                 self.vis.can_threshold_x,
                 15,
                 front_cam_align,
                 [self]
             )
             self.com.send_instruction(Instruction.MoveForward)
-            dump = get_dump(self, self.com.get_front_frame())
+            front = self.com.get_front_frame()
+
+            # don't go for dump if you see cans!
+            if self.vis.find_cans(front):
+                return
+
+            dump = get_dump(self, front)
 
             if not dump:
                 break
             elif self.vis.deposit_critical_region.point_inside(dump.center):
+                self.com.send_instruction(Instruction.BrushOff)
                 break
             else:
-                dump_x = dump.center.x
+                dump = dump.center.x
+
+        self.com.send_instruction(Instruction.StopAll)
+        time.sleep(0.5)
 
         self.log.info(f'Aligning with rear cam.')
         # align (rear cam)
@@ -321,13 +329,13 @@ class ArenitoAI:
             dump = get_dump(self, self.com.get_rear_frame(), True)
             self.log.advance_gen()
             if dump:
-                dump_x = dump.center.x
+                dump_pos = dump.center
                 break
 
             self.com.send_instruction(Instruction.MoveRight)
 
         self.align( # pyright: ignore[reportUnknownMemberType]
-            dump_x,
+            dump_pos,
             self.vis.deposit_threshold_x,
             15,
             rear_cam_align,
@@ -386,30 +394,35 @@ class ArenitoAI:
 
     def align(
         self,
-        initial_x: int,
-        threshold: tuple[int, int],
+        det: Point,
+        threshold: list[tuple[int, int]],
         timeout: int,
-        callback: Callable[[ArenitoAI], int],
+        callback: Callable[[ArenitoAI], Point],
         callback_args: Iterable[any] # pyright: ignore
     ):
         """
         Alignment function. Calls callback to update x value.
         """
 
-        tmin, tmax = threshold
-        x = initial_x
+        bottom_x, top_x = threshold
+        a, b = top_x
+        c, d = bottom_x
+
+        tmin = a - ((a - c) * det.y) / 512
+        tmax = b - ((b - d) * det.y) / 512
+
         aligned = False
         t = time.time()
         while not aligned and time.time() - t < timeout:
             # mínimo y máximo como parámetro
-            if tmax <= x:
+            if tmax <= det.x:
                 self.com.send_instruction(Instruction.MoveRight)
-            elif tmin >= x:
+            elif tmin >= det.x:
                 self.com.send_instruction(Instruction.MoveLeft)
             else:
                 aligned = True
 
-            x = callback(*callback_args) # pyright: ignore[reportUnknownArgumentType]
+            det = callback(*callback_args) # pyright: ignore[reportUnknownArgumentType]
 
     def stop_all(self):
         """

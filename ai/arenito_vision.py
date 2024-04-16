@@ -209,16 +209,30 @@ class ArenitoVision:
         # |          |   |         |
         # |          |   |         |
         # +------------------------+
-        margin_x = int(self.res_x * 0.2)
-        self.can_threshold_x = (
-            self.res_x // 2 - margin_x, # min
-            self.res_x // 2 + margin_x  # max
-        )
-        margin_x = int(self.res_x * 0.04)
-        self.deposit_threshold_x = (
-            self.res_x // 2 - margin_x, # min
-            self.res_x // 2 + margin_x  # max
-        )
+        margin_x_min = int(self.res_x * 0.22)
+        margin_x_max = int(self.res_x * 0.3)
+        self.can_threshold_x = [
+            ( # bottom x
+                self.res_x // 2 - margin_x_min, # min
+                self.res_x // 2 + margin_x_min  # max
+            ),
+            ( # top x
+                self.res_x // 2 - margin_x_max, # min
+                self.res_x // 2 + margin_x_max  # max
+            ),
+        ]
+        margin_x_min = int(self.res_x * 0.04)
+        margin_x_max = int(self.res_x * 0.07)
+        self.deposit_threshold_x = [
+            ( # bottom x
+                self.res_x // 2 - margin_x_min, # min
+                self.res_x // 2 + margin_x_min  # max
+            ),
+            ( # top x
+                self.res_x // 2 - margin_x_max, # min
+                self.res_x // 2 + margin_x_max  # max
+            ),
+        ]
 
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
@@ -351,15 +365,15 @@ class ArenitoVision:
         )
         cv2.line(
             det_img,
-            (self.can_threshold_x[0], 0),
-            (self.can_threshold_x[0], self.res_y),
+            (self.can_threshold_x[1][0], 0),
+            (self.can_threshold_x[0][0], self.res_y),
             WHITE,
             thickness=1,
         )
         cv2.line(
             det_img,
-            (self.can_threshold_x[1], 0),
-            (self.can_threshold_x[1], self.res_y),
+            (self.can_threshold_x[1][1], 0),
+            (self.can_threshold_x[0][1], self.res_y),
             WHITE,
             thickness=1,
         )
