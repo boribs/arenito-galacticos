@@ -1,16 +1,15 @@
 #include "ArenitoUtils.h"
 
-const int INSTRUCTION_EXECUTION_TIME = 200; // ms
-const int MOTOR_MOVE_TIME = 200; // ms
+const int INSTRUCTION_EXECUTION_TIME = 100; // ms
 const int MOTOR_PWM_ENABLE = 150;
 const int MOTOR_ROT_PWM_ENABLE = 100;
 const int BACKDOOR_PWM_UP = 120;
-const int BACKDOOR_PWM_DOWN = 80;
+const int BACKDOOR_PWM_DOWN = 50;
 const int BACKDOOR_TIMEOUT = 1000; // ms
 const int BACKDOOR_EXT_PWM_ENABLE = 130;
 const int BACKDOOR_EXT_TIME_UP = 2000; // ms
 const int BACKDOOR_EXT_TIME_DOWN = 1600; // ms
-const int BRUSH_PWM_ENABLE = 185;
+const int BRUSH_PWM_ENABLE = 220;
 
 // Don't use pin 13
 IBT2 left = IBT2(12, 11);
@@ -179,15 +178,15 @@ void loop() {
             break;
 
         case InstructionMap::MoveLeft:
-            moveLeft(MOTOR_MOVE_TIME);
+            moveLeft(INSTRUCTION_EXECUTION_TIME);
             break;
 
         case InstructionMap::MoveRight:
-            moveRight(MOTOR_MOVE_TIME);
+            moveRight(INSTRUCTION_EXECUTION_TIME);
             break;
 
         case InstructionMap::MoveLongRight:
-            moveRight(MOTOR_MOVE_TIME * 4);
+            moveRight(INSTRUCTION_EXECUTION_TIME * 4);
             break;
 
         case InstructionMap::DumpCans:
