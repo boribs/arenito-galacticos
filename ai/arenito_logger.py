@@ -16,10 +16,20 @@ class ArenitoLogger:
             level=logging.INFO
         )
 
-        if args.pring_log:
+        if args.print_log:
             console = logging.StreamHandler()
             console.setLevel(logging.INFO)
             logging.getLogger().addHandler(console)
+
+        self.classes: dict[str, int] = {}
+        self.generation = 0
+
+    def add_classname(self, classname: str):
+        """
+        Adds a name to the class dict.
+        """
+
+        self.classes[classname] = 0
 
     def info(self, msg: str):
         """
@@ -28,10 +38,25 @@ class ArenitoLogger:
 
         self.l.info(msg)
 
-    def img(self, img: MatLike, filename: str):
+    def img(self, img: MatLike, classname: str):
         """
         Logs an immage.
         """
 
+        if self.classes.get(classname, None) is None:
+            self.add_classname(classname)
+
+        filename = f'{classname}_{self.generation}_{self.classes[classname]}'
         self.l.info(f'Saved image "{filename}".')
         cv2.imwrite(f'img/{filename}.jpg', img)
+
+        self.classes[classname] += 1
+
+    def advance_gen(self):
+        """
+        Advances loggger generation.
+        """
+
+        self.generation += 1
+        for key in self.classes:
+            self.classes[key] = 0

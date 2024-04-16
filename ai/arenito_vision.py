@@ -169,9 +169,7 @@ class ArenitoVision:
                 raise Exception(f'Unsupported algorithm {other}')
 
         self.log = logger
-        self.img_counter = 0
         self.save_images: bool = args.save_images
-        self.dump_img_counter = 0
 
         self.res_x, self.res_y = res
 
@@ -377,7 +375,7 @@ class ArenitoVision:
         self.add_text(det_img, f'Time: {clock}', Point(10, 75))
 
         if self.save_images:
-            self.log.img(det_img, f'markings_{self.img_counter}')
+            self.log.img(det_img, f'markings')
 
     def dist_from_center(self, det: Point) -> float:
         """
@@ -407,10 +405,10 @@ class ArenitoVision:
         white_px = np.count_nonzero(cross)
 
         if self.save_images:
-            self.log.img(mask, f'mask_{self.img_counter}')
-            self.log.img(mask_red, f'mask_red_{self.img_counter}')
-            self.log.img(mask_blue, f'mask_blue_{self.img_counter}')
-            self.log.img(cross, f'reachable_{self.img_counter}')
+            self.log.img(mask, 'o_rednblue')
+            self.log.img(mask_red, 'o_mask_red')
+            self.log.img(mask_blue, 'o_mask_blue')
+            self.log.img(cross, 'o_reachable')
 
         return white_px < self.min_px_water
 
@@ -434,8 +432,13 @@ class ArenitoVision:
         white_px_blue = np.count_nonzero(cross)
 
         if self.save_images:
-            self.log.img(mask_blue, f'mask_blue_{self.img_counter}')
-            self.log.img(cross, f'reachable_blue_{self.img_counter}')
+            self.log.img(mask_blue, 'mask_blue')
+            self.log.img(cross, 'reachable_blue')
+            self.log.info(
+                f'reachable_blue_{self.log.generation}_{self.log.classes["reachable_blue"] - 1} ' +
+                f'detection: {det} ' +
+                f'has {white_px_blue} white pixels.'
+            )
 
         if filter_red:
             mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
@@ -447,10 +450,15 @@ class ArenitoVision:
             white_px_red = np.count_nonzero(cross)
 
             if self.save_images:
-                self.log.img(mask_red, f'mask_red_{self.img_counter}')
-                self.log.img(cross, f'reachable_red_{self.img_counter}')
+                self.log.img(mask_red, 'mask_red')
+                self.log.img(cross, 'reachable_red')
+                self.log.info(
+                    f'reachable_red_{self.log.generation}_{self.log.classes["reachable_red"] - 1} ' +
+                    f'detection: {det} ' +
+                    f'has {white_px_red} white pixels.'
+                )
 
-            return (white_px_blue + white_px_red) < self.min_px_water
+            return white_px_blue < self.min_px_water and white_px_red < self.min_px_dump
         else:
             return white_px_blue < self.min_px_water
 
@@ -503,8 +511,8 @@ class ArenitoVision:
         if self.save_images:
             can_cont = img.copy()
             cv2.drawContours(can_cont, contours, -1, BLACK, 1, cv2.LINE_AA)
-            self.log.img(mask, f'cans_{self.img_counter}')
-            self.log.img(can_cont, f'can_cont_{self.img_counter}')
+            self.log.img(mask, 'black_filter')
+            self.log.img(can_cont, 'can_cont')
 
         detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
 
@@ -550,7 +558,7 @@ class ArenitoVision:
 
         if self.save_images:
             # self.logger.info(f'with brightness mean: {self.get_mean(blurred)}') # pyright: ignore
-            self.log.img(blurred, f'blurred_{self.img_counter}')
+            self.log.img(blurred, f'blurred')
 
         return blurred
 
@@ -574,10 +582,8 @@ class ArenitoVision:
         contours, _ = cv2.findContours(filter_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         if self.save_images and rear:
-            self.log.img(blurred_img, f'rear_align_raw_{self.dump_img_counter}')
-            self.log.img(filter_red, f'rear_align_red_{self.dump_img_counter}')
-
-            self.dump_img_counter += 1
+            self.log.img(blurred_img, 'rear_align_raw')
+            self.log.img(filter_red, 'rear_align_red')
 
         if not contours: return None
 
@@ -598,7 +604,7 @@ class ArenitoVision:
 
         if self.save_images and rear:
             cv2.drawContours(blurred_img, contours, -1, RED, 1, cv2.LINE_AA)
-            self.log.img(blurred_img, f'rear_align_detections_{self.dump_img_counter}')
+            self.log.img(blurred_img, 'rear_align_detections')
 
         self.log.info(f'Detecting dump')
         if not self.reachable(img_hsv, detections[0].center, filter_red=False):

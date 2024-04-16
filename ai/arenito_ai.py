@@ -149,7 +149,7 @@ class ArenitoAI:
                 cv2.imshow('arenito pov', scan_results.original)
 
             if self.no_move:
-                self.vis.img_counter += 1
+                self.log.advance_gen()
                 continue
 
             close_to_obstacle = 1 in scan_results.proximities[2:5]
@@ -181,7 +181,7 @@ class ArenitoAI:
                     self.can_search_timer.start()
                 self.search_cans(scan_results)
 
-            self.vis.img_counter += 1
+            self.log.advance_gen()
 
     def get_can(self, scan_results: ScanResult):
         """
@@ -258,12 +258,14 @@ class ArenitoAI:
 
         def front_cam_align(ai: ArenitoAI) -> int:
             dump = get_dump(ai, ai.com.get_front_frame())
+            ai.log.advance_gen()
             if not dump:
                 return 256
             return dump.center.x
 
         def rear_cam_align(ai: ArenitoAI) -> int:
             dump = get_dump(ai, ai.com.get_rear_frame(), True)
+            ai.log.advance_gen()
             if not dump:
                 return 256
             return dump.center.x
@@ -317,6 +319,7 @@ class ArenitoAI:
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
             dump = get_dump(self, self.com.get_rear_frame(), True)
+            self.log.advance_gen()
             if dump:
                 dump_x = dump.center.x
                 break
