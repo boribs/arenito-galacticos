@@ -36,7 +36,7 @@ class ArenitoAI:
     """
 
     TEST_TIME_SECS = 5 * 60
-    BRUSH_ON_SECS = 5
+    BRUSH_ON_SECS = 7
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
