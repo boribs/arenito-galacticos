@@ -474,3 +474,11 @@ class ArenitoAI:
             f'Arenito depositó {self.dumped_can_counter} latas'
             f', se quedó con {self.can_counter} latas dentro.'
         )
+
+    def dump_too_close(self, dump: Detection | None) -> bool:
+        """
+        Returns True when the dump is too close.
+        """
+
+        if not dump: return False
+        return self.vis.dist_from_center(dump.center) < ArenitoAI.BRUSH_OFF_DIST
