@@ -133,6 +133,7 @@ class ArenitoAI:
 
             if self.brush_on_timer.elapsed_time() >= ArenitoAI.BRUSH_ON_SECS:
                 self.brush_on_timer.reset()
+                self.log.info('Brush timed out, turning off.')
                 self.com.send_instruction(Instruction.BrushOff)
 
             self.vis.add_markings(
@@ -167,7 +168,8 @@ class ArenitoAI:
                 self.get_can(scan_results)
                 self.can_search_timer.reset()
 
-                if not self.brush_on_timer.clock:
+                # better log: separate actions
+                if not self.brush_on_timer.clock and not self.dump_too_close(scan_results.dumping_zone):
                     self.com.send_instruction(Instruction.BrushOn)
 
                 self.brush_on_timer.start()
@@ -180,6 +182,11 @@ class ArenitoAI:
                 if not self.can_search_timer.clock:
                     self.can_search_timer.start()
                 self.search_cans(scan_results)
+
+            # Turn brush off if too close to dump
+            if self.dump_too_close(scan_results.dumping_zone):
+                self.log.info('Dump too close, turning off.')
+                self.com.send_instruction(Instruction.BrushOff)
 
             self.log.advance_gen()
 
@@ -241,6 +248,7 @@ class ArenitoAI:
             img = self.com.get_rear_frame()
             img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
             if not self.vis.reachable(img, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
+                self.log.info('Can\'t go back anymore, turning.')
                 break
 
             self.com.send_instruction(Instruction.MoveBack)
@@ -258,6 +266,7 @@ class ArenitoAI:
 
         def front_cam_align(ai: ArenitoAI) -> Point:
             dump = get_dump(ai, ai.com.get_front_frame())
+            self.log.info(f'Aligning with front cam: {dump}')
             ai.log.advance_gen()
             if not dump:
                 return Point(256, 0)
@@ -265,6 +274,7 @@ class ArenitoAI:
 
         def rear_cam_align(ai: ArenitoAI) -> Point:
             dump = get_dump(ai, ai.com.get_rear_frame(), True)
+            self.log.info(f'Aligning with rear cam: {dump}')
             ai.log.advance_gen()
             if not dump:
                 return Point(256, 0)
@@ -289,6 +299,7 @@ class ArenitoAI:
         # get close (front cam)
         if not scan_results.dumping_zone: return
 
+        self.com.send_instruction(Instruction.BrushOff)
         MAX_SEARCH_TIME = 10
 
         self.log.info(f'Getting close to dump.')
@@ -305,16 +316,19 @@ class ArenitoAI:
             self.com.send_instruction(Instruction.MoveForward)
             front = self.com.get_front_frame()
 
-            # don't go for dump if you see cans!
-            if self.vis.find_cans(front):
-                return
+            # don't go for dump if cans visible?
+            # if self.vis.find_cans(front):
+                # maybe go back a little?
+                # return
 
             dump = get_dump(self, front)
 
             if not dump:
+                self.log.info('Lost dump? This shouldn\'t happen')
                 break
             elif self.vis.deposit_critical_region.point_inside(dump.center):
-                self.com.send_instruction(Instruction.BrushOff)
+                self.log.info('Front aligned.')
+                # TODO: if too close, go back a little
                 break
             else:
                 dump = dump.center.x
@@ -322,13 +336,14 @@ class ArenitoAI:
         self.com.send_instruction(Instruction.StopAll)
         time.sleep(0.5)
 
-        self.log.info(f'Aligning with rear cam.')
+        self.log.info('Aligning with rear cam.')
         # align (rear cam)
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
             dump = get_dump(self, self.com.get_rear_frame(), True)
             self.log.advance_gen()
             if dump:
+                self.log.info('Dump found with rear cam.')
                 dump_pos = dump.center
                 break
 
@@ -364,7 +379,8 @@ class ArenitoAI:
 
             self.log.info(f'Read {reads}. U:{lu}{ru}, Ir:{il}{ir}')
 
-            if (lu < 10 and ru < 10) or (ir == 1 or il == 1):
+            if (lu < 10 and ru < 10) or (ir == 1 and il == 1):
+                self.log.info('Aligned with proximity sensors.')
                 break
 
             if abs(lu - ru) > 10:
@@ -379,6 +395,7 @@ class ArenitoAI:
             self.com.send_instruction(Instruction.StopAll)
             time.sleep(0.1)
 
+        self.log.info('Tiny step back.')
         self.com.send_instruction(Instruction.StopAll)
         time.sleep(0.2)
         self.com.send_instruction(Instruction.MoveBack)
@@ -391,6 +408,10 @@ class ArenitoAI:
         self.com.dump_cans(self.can_counter)
         self.dumped_can_counter += self.can_counter
         self.can_counter = 0
+
+        self.com.send_instruction(Instruction.MoveForward)
+        time.sleep(0.7)
+        self.log.info('Done dumping.')
 
     def align(
         self,
