@@ -337,6 +337,18 @@ class ArenitoAI:
         time.sleep(0.5)
 
         self.log.info('Aligning with rear cam.')
+
+        # step back, if possible
+        rear = self.com.get_rear_frame()
+        rear_hsv = cv2.cvtColor(rear, cv2.COLOR_BGR2HSV)
+        if self.vis.reachable(rear_hsv, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
+            self.log.info('Enough space in back, stepping back.')
+            self.com.send_instruction(Instruction.MoveBack)
+            time.sleep(0.7)
+
+        self.com.send_instruction(Instruction.StopAll)
+        time.sleep(0.2)
+
         # align (rear cam)
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
