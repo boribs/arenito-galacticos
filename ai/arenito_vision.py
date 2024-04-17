@@ -172,7 +172,12 @@ class ArenitoVision:
                 raise Exception(f'Unsupported algorithm {other}')
 
         self.log = logger
-        self.save_images: bool = args.save_images
+        self.save_markings: bool     = 'm' in args.save_images
+        self.save_reachable: bool    = 'r' in args.save_images
+        self.save_black_filter: bool = 'b' in args.save_images
+        self.save_can_contours: bool = 'c' in args.save_images
+        self.save_blurred: bool      = 'B' in args.save_images
+        self.save_rear: bool         = 'R' in args.save_images
 
         self.res_x, self.res_y = res
 
@@ -392,7 +397,7 @@ class ArenitoVision:
 
         self.add_text(det_img, f'Time: {clock}', Point(10, 75))
 
-        if self.save_images:
+        if self.save_markings:
             self.log.img(det_img, f'markings')
 
     def dist_from_center(self, det: Point) -> float:
@@ -422,7 +427,7 @@ class ArenitoVision:
         cross = cv2.bitwise_and(mask, line)
         white_px = np.count_nonzero(cross)
 
-        if self.save_images:
+        if self.save_reachable:
             self.log.img(mask, 'o_rednblue')
             self.log.img(mask_red, 'o_mask_red')
             self.log.img(mask_blue, 'o_mask_blue')
@@ -449,7 +454,7 @@ class ArenitoVision:
         cross = cv2.bitwise_and(mask_blue, line_blue)
         white_px_blue = np.count_nonzero(cross)
 
-        if self.save_images:
+        if self.save_reachable:
             self.log.img(mask_blue, 'mask_blue')
             self.log.img(cross, 'reachable_blue')
             self.log.info(
@@ -467,7 +472,7 @@ class ArenitoVision:
             cross = cv2.bitwise_and(mask_red, line_red)
             white_px_red = np.count_nonzero(cross)
 
-            if self.save_images:
+            if self.save_reachable:
                 self.log.img(mask_red, 'mask_red')
                 self.log.img(cross, 'reachable_red')
                 self.log.info(
@@ -526,10 +531,11 @@ class ArenitoVision:
                 if self.reachable(img_hsv, det.center, secondary_det=det.center):
                     detections.append(det)
 
-        if self.save_images:
+        if self.save_black_filter:
+            self.log.img(mask, 'black_filter')
+        if self.save_can_contours:
             can_cont = img.copy()
             cv2.drawContours(can_cont, contours, -1, BLACK, 1, cv2.LINE_AA)
-            self.log.img(mask, 'black_filter')
             self.log.img(can_cont, 'can_cont')
 
         detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
@@ -574,7 +580,7 @@ class ArenitoVision:
         # this seems to be the best compromise between performance and results
         blurred = cv2.GaussianBlur(img, (51, 51), 0)
 
-        if self.save_images:
+        if self.save_blurred:
             # self.logger.info(f'with brightness mean: {self.get_mean(blurred)}') # pyright: ignore
             self.log.img(blurred, f'blurred')
 
@@ -599,7 +605,7 @@ class ArenitoVision:
         filter_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
         contours, _ = cv2.findContours(filter_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
-        if self.save_images and rear:
+        if rear and self.save_rear:
             self.log.img(blurred_img, 'rear_align_raw')
             self.log.img(filter_red, 'rear_align_red')
 
@@ -620,7 +626,7 @@ class ArenitoVision:
 
         detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
 
-        if self.save_images and rear:
+        if rear and self.save_rear:
             cv2.drawContours(blurred_img, contours, -1, RED, 1, cv2.LINE_AA)
             self.log.img(blurred_img, 'rear_align_detections')
 
