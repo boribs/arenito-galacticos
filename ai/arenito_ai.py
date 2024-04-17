@@ -37,6 +37,7 @@ class ArenitoAI:
 
     TEST_TIME_SECS = 5 * 60
     BRUSH_ON_SECS = 7
+    BRUSH_OFF_DIST = 100
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
@@ -225,7 +226,7 @@ class ArenitoAI:
         Can-search routine.
         """
 
-        MAX_SEARCH_SECONDS = 20
+        MAX_SEARCH_SECONDS = 10
 
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
@@ -361,6 +362,8 @@ class ArenitoAI:
 
             self.com.send_instruction(Instruction.MoveRight)
 
+         # TODO: Don't dump if rear search timed out
+
         self.align( # pyright: ignore[reportUnknownMemberType]
             dump_pos,
             self.vis.deposit_threshold_x,
@@ -383,6 +386,7 @@ class ArenitoAI:
 
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
+            # this can be its own function
             reads = self.com.get_prox_sensors()
             time.sleep(0.2)
 
