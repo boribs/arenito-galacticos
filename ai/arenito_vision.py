@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as ntp
 from argparse import Namespace
 from typing import NamedTuple, Sequence
-from cv2.typing import MatLike, RotatedRect
+from cv2.typing import MatLike, RotatedRect, MatShape
 from arenito_com import AIMode
 from arenito_logger import ArenitoLogger
 
@@ -147,6 +147,57 @@ class ColorFilter:
         lower, upper = color
         return cv2.inRange(img_hsv, lower, upper)
 
+class ReachableShape:
+    """
+    Abstract class simulation that deals with determining whether certain point is reachable or not.
+    """
+
+    def __init__(self, bottom_center: Point):
+        self.bottom_center = bottom_center
+
+    def line(self, shape: MatShape, det: Point) -> MatLike:
+        """
+        Generates the image with the minimum-area-path required to get
+        to some arbitrary point.
+        """
+
+        raise Exception('Not implemented')
+
+class OgReachable(ReachableShape):
+    def __init__(
+        self,
+        bottom_center: Point,
+        line_thickness: int,
+        bottom_line_y: int,
+    ):
+        super().__init__(bottom_center)
+
+        # This limits the bottom collision-with-blue area
+        # +------------------------+
+        # |                        |
+        # |                        |
+        # |- - - - - - - - - - - - | <- This line
+        # +------------------------+
+        # previously 380 - 20, where 380 = res_y
+        self.bottom_line_y = bottom_line_y
+        self.line_thickness = line_thickness
+
+        # Combining both bottom_line and vertical_line gives us the mask
+        # of the collision-with-blue area.
+        # +------------------------+
+        # |                        |
+        # |           __           |
+        # |          |  |          |
+        # |----------|--|----------|
+        # +------------------------+
+
+    def line(self, shape: MatShape, det: Point) -> MatLike:
+        img = np.zeros(shape=shape, dtype=np.uint8)
+        cv2.line(img, self.bottom_center, det, WHITE, thickness=self.line_thickness)
+        cv2.rectangle(img, (0, self.bottom_line_y), (512, 512), WHITE, thickness=-1)
+
+        return img
+
 class ArenitoVision:
     """
     This is where every vision-related operation will be handled.
@@ -235,8 +286,8 @@ class ArenitoVision:
                 self.res_x // 2 + margin_x_max  # max
             ),
         ]
-        margin_x_min = int(self.res_x * 0.04)
-        margin_x_max = int(self.res_x * 0.07)
+        margin_x_min = int(self.res_x * 0.1)
+        margin_x_max = int(self.res_x * 0.17)
         self.deposit_threshold_x = [
             ( # bottom x
                 self.res_x // 2 - margin_x_min, # min
@@ -255,33 +306,12 @@ class ArenitoVision:
         self.min_px_water = 3000
         self.min_px_dump = 200
 
-        # This limits the bottom collision-with-blue area
-        # +------------------------+
-        # |                        |
-        # |                        |
-        # |- - - - - - - - - - - - | <- This line
-        # +------------------------+
-        # previously 380 - 20, where 380 = res_y
-        self.bottom_line_y = int(self.res_y * 0.9573)
-
-        # This limits the vertical collision-with-blue area
-        # +------------------------+
-        # |                        |
-        # |           __           |
-        # |          |  |          |
-        # |          |  |          |
-        # +------------------------+
-        # previously 140
-        self.vertical_line_thickness = int(self.res_x * 0.21875)
-
-        # Combining both bottom_line and vertical_line gives us the mask
-        # of the collision-with-blue area.
-        # +------------------------+
-        # |                        |
-        # |           __           |
-        # |          |  |          |
-        # |----------|--|----------|
-        # +------------------------+
+        # The thing with which will determine if a point is reachable or not.
+        self.reachable_shape = OgReachable(
+            self.bottom_center,
+            line_thickness=int(self.res_x * 0.21875),
+            bottom_line_y=int(self.res_y * 0.9573)
+        )
 
         # Minimum size for a rect to be considered a can
         self.min_can_area = 200
@@ -303,7 +333,7 @@ class ArenitoVision:
         )
         # Same for deposit's critial region
         self.deposit_critical_region = Rect(
-            Point(int(self.res_x * 0.23), int(self.res_y * 0.6)),
+            Point(int(self.res_x * 0.23), int(self.res_y * 0.55)),
             Point(int(self.res_x * 0.77), int(self.res_y)),
         )
 
@@ -335,25 +365,6 @@ class ArenitoVision:
         self.add_text(det_img, can_counter_str, Point(10, 35))
         self.add_text(det_img, state, Point(10, 55))
 
-        t = self.vertical_line_thickness // 2
-        a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
-        b1 = Point(a1.x, self.blue_r_dot.y)
-        a2 = Point(self.bottom_center.x + t, self.bottom_center.y)
-        b2 = Point(a2.x, self.blue_r_dot.y)
-
-        cv2.line(det_img, a1, b1, BLUE)
-        cv2.line(det_img, a2, b2, BLUE)
-        cv2.ellipse(det_img, self.blue_r_dot, (t, t), 0.0, 180.0, 360.0, BLUE, thickness=1)
-
-        a1 = Point(self.bottom_center.x - t, self.bottom_center.y)
-        b1 = Point(a1.x, self.dump_r_dot.y)
-        a2 = Point(self.bottom_center.x + t, self.bottom_center.y)
-        b2 = Point(a2.x, self.dump_r_dot.y)
-
-        cv2.line(det_img, a1, b1, RED)
-        cv2.line(det_img, a2, b2, RED)
-        cv2.ellipse(det_img, self.dump_r_dot, (t, t), 0.0, 180.0, 360.0, RED, thickness=1)
-
         cv2.rectangle(
             det_img,
             self.can_critical_region.a,
@@ -368,14 +379,6 @@ class ArenitoVision:
             self.deposit_critical_region.b,
             ORANGE,
             1
-        )
-
-        cv2.line(
-            det_img,
-            (0, self.bottom_line_y),
-            (self.res_x, self.bottom_line_y),
-            WHITE,
-            thickness=1
         )
         cv2.line(
             det_img,
@@ -419,30 +422,30 @@ class ArenitoVision:
 
         return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-    def reachable_old(self, img_hsv: MatLike, det: Point) -> bool:
-        """
-        Determines if a detection is reachable. Returns true if possible, otherwise false.
-        """
+    # def reachable_old(self, img_hsv: MatLike, det: Point) -> bool:
+    #     """
+    #     Determines if a detection is reachable. Returns true if possible, otherwise false.
+    #     """
 
-        mask_blue = ColorFilter.filter(img_hsv, ColorFilter.BLUE)
-        mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
+    #     mask_blue = ColorFilter.filter(img_hsv, ColorFilter.BLUE)
+    #     mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
 
-        mask = cv2.bitwise_or(mask_blue, mask_red)
+    #     mask = cv2.bitwise_or(mask_blue, mask_red)
 
-        line = np.zeros(shape=mask.shape, dtype=np.uint8)
-        cv2.line(line, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
-        cv2.rectangle(line, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
+    #     line = np.zeros(shape=mask.shape, dtype=np.uint8)
+    #     cv2.line(line, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
+    #     cv2.rectangle(line, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
 
-        cross = cv2.bitwise_and(mask, line)
-        white_px = np.count_nonzero(cross)
+    #     cross = cv2.bitwise_and(mask, line)
+    #     white_px = np.count_nonzero(cross)
 
-        if self.save_reachable:
-            self.log.img(mask, 'o_rednblue')
-            self.log.img(mask_red, 'o_mask_red')
-            self.log.img(mask_blue, 'o_mask_blue')
-            self.log.img(cross, 'o_reachable')
+    #     if self.save_reachable:
+    #         self.log.img(mask, 'o_rednblue')
+    #         self.log.img(mask_red, 'o_mask_red')
+    #         self.log.img(mask_blue, 'o_mask_blue')
+    #         self.log.img(cross, 'o_reachable')
 
-        return white_px < self.min_px_water
+    #     return white_px < self.min_px_water
 
     def reachable(
         self,
@@ -456,14 +459,12 @@ class ArenitoVision:
         """
 
         mask_blue = ColorFilter.filter(img_hsv, ColorFilter.BLUE)
-        line_blue = np.zeros(shape=mask_blue.shape, dtype=np.uint8)
-        cv2.line(line_blue, self.bottom_center, det, WHITE, thickness=self.vertical_line_thickness)
-        cv2.rectangle(line_blue, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
-
+        line_blue = self.reachable_shape.line(mask_blue.shape, det)
         cross = cv2.bitwise_and(mask_blue, line_blue)
         white_px_blue = np.count_nonzero(cross)
 
         if self.save_reachable:
+            self.log.img(line_blue, 'line_blue')
             self.log.img(mask_blue, 'mask_blue')
             self.log.img(cross, 'reachable_blue')
             self.log.info(
@@ -474,14 +475,12 @@ class ArenitoVision:
 
         if filter_red:
             mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
-            line_red = np.zeros(shape=mask_red.shape, dtype=np.uint8)
-            cv2.line(line_red, self.bottom_center, secondary_det, WHITE, thickness=self.vertical_line_thickness)
-            cv2.rectangle(line_red, (0, self.bottom_line_y), (self.res_x, self.res_y), WHITE, thickness=-1)
-
+            line_red = self.reachable_shape.line(mask_red.shape, secondary_det)
             cross = cv2.bitwise_and(mask_red, line_red)
             white_px_red = np.count_nonzero(cross)
 
             if self.save_reachable:
+                self.log.img(line_red, 'line_red')
                 self.log.img(mask_red, 'mask_red')
                 self.log.img(cross, 'reachable_red')
                 self.log.info(
