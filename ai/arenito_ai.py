@@ -207,7 +207,7 @@ class ArenitoAI:
 
         self.align( # pyright: ignore[reportUnknownMemberType]
             scan_results.detections[0].center,
-            self.vis.can_threshold_x,
+            self.vis.can_threshold,
             15,
             can_aligner,
             [self]
@@ -309,7 +309,7 @@ class ArenitoAI:
         while time.time() - t < MAX_SEARCH_TIME:
             self.align( # pyright: ignore[reportUnknownMemberType]
                 dump_pos,
-                self.vis.can_threshold_x,
+                self.vis.can_threshold,
                 15,
                 front_cam_align,
                 [self]
@@ -366,7 +366,7 @@ class ArenitoAI:
 
         self.align( # pyright: ignore[reportUnknownMemberType]
             dump_pos,
-            self.vis.deposit_threshold_x,
+            self.vis.deposit_threshold,
             15,
             rear_cam_align,
             [self]

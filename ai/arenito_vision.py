@@ -293,7 +293,7 @@ class ArenitoVision:
         # +------------------------+
         margin_x_min = int(self.res_x * 0.22)
         margin_x_max = int(self.res_x * 0.3)
-        self.can_threshold_x = Threshold(
+        self.can_threshold = Threshold(
             self.res_x // 2 - margin_x_max,
             self.res_x // 2 + margin_x_max,
             self.res_x // 2 - margin_x_min,
@@ -302,7 +302,7 @@ class ArenitoVision:
 
         margin_x_min = int(self.res_x * 0.1)
         margin_x_max = int(self.res_x * 0.17)
-        self.deposit_threshold_x = Threshold(
+        self.deposit_threshold = Threshold(
             self.res_x // 2 - margin_x_max,
             self.res_x // 2 + margin_x_max,
             self.res_x // 2 - margin_x_min,
@@ -392,15 +392,15 @@ class ArenitoVision:
         )
         cv2.line(
             det_img,
-            (self.can_threshold_x.a, 0),
-            (self.can_threshold_x.c, self.res_y),
+            (self.can_threshold.a, 0),
+            (self.can_threshold.c, self.res_y),
             WHITE,
             thickness=1,
         )
         cv2.line(
             det_img,
-            (self.can_threshold_x.b, 0),
-            (self.can_threshold_x.d, self.res_y),
+            (self.can_threshold.b, 0),
+            (self.can_threshold.d, self.res_y),
             WHITE,
             thickness=1,
         )
