@@ -145,6 +145,8 @@ class ColorFilter:
         # np.array([118, 255, 210]), # upper
     )
     RED = (
+        # np.array([0, 75, 0]),
+        # np.array([179, 255, 167]),
         np.array([0, 176, 0]),
         np.array([78, 255, 255]),
         # np.array([0, 107, 44]),
@@ -661,19 +663,24 @@ class ArenitoVision:
             # return None
                 continue
 
-            detections.append(Detection(rect, c))
+            det = Detection(rect, c)
+            if self.reachable(img_hsv, det.center, filter_red=False):
+                detections.append(det)
 
         if not detections:
             return None
 
-        detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
+        # sort by closeness and size?
+        detections.sort(
+            key=lambda n:
+                # self.dist_from_center(n.center) + ,
+                n.rect[1][0] * n.rect[1][1], # + 512 - self.dist_from_center(n.center),
+            reverse=True
+        )
 
         if rear and self.save_rear:
-            cv2.drawContours(blurred_img, contours, -1, RED, 1, cv2.LINE_AA)
-            self.log.img(blurred_img, 'rear_align_detections')
-
-        self.log.info(f'Detecting dump')
-        if not self.reachable(img_hsv, detections[0].center, filter_red=False):
-            return None
+            img = blurred_img.copy()
+            cv2.drawContours(img, contours, -1, RED, 1, cv2.LINE_AA)
+            self.log.img(img, 'rear_align_detections')
 
         return detections[0]
