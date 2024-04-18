@@ -361,22 +361,26 @@ class ArenitoAI:
 
         # align (rear cam)
         t = time.time()
-        while time.time() - t < MAX_SEARCH_TIME:
+        while True:
+            if time.time() - t >= MAX_SEARCH_TIME:
+                self.log.info('Rear cam align timed out, exiting.')
+                return
+
             dump = get_dump(self, self.com.get_rear_frame(), True)
             self.log.advance_gen()
             if dump:
                 self.log.info('Dump found with rear cam.')
                 dump_pos = dump.center
                 break
+            else:
+                self.com.send_instruction(Instruction.MoveRight)
 
-            self.com.send_instruction(Instruction.MoveRight)
-
-         # TODO: Don't dump if rear search timed out
+        self.com.send_instruction(Instruction.StopAll)
 
         self.align( # pyright: ignore[reportUnknownMemberType]
             dump_pos,
             self.vis.deposit_threshold,
-            15,
+            15, # TODO: Make this a constant
             rear_cam_align,
             [self]
         )
