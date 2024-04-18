@@ -9,6 +9,7 @@ parser.add_argument('port', nargs='?', type=str, default=None)
 parser.add_argument('baudrate', nargs='?', type=int, default=115200)
 parser.add_argument('--no_lcd', action=argparse.BooleanOptionalAction, default=True)
 parser.add_argument('--exposure', '-e', type=str, default='auto')
+parser.add_argument('--no-button', default=False)
 args = parser.parse_args()
 
 instr = eval(f'Instruction.{args.instr}')

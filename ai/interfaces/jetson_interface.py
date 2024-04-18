@@ -75,6 +75,7 @@ class JetsonInterface:
         )
 
         self.log = logger
+        self.no_button: bool = args.no_button
 
         # LCD1602 with i2c shield
         # can be any LCD with i2c, though
@@ -99,7 +100,8 @@ class JetsonInterface:
             self.lcd_show('Esperando inicio', 1)
             self.lcd_show('Oprima el boton', 2)
 
-            GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+            if not self.no_button:
+                GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
             self.lcd_clear()
 
         self.serial_interface = SerialInterface(args.port, args.baudrate) # pyright: ignore[reportPossiblyUnboundVariable]
@@ -131,7 +133,9 @@ class JetsonInterface:
         time.sleep(0.5)
         self.lcd_show('Conecte cam. T.', 1)
         self.lcd_show('Oprima el boton', 2)
-        GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+
+        if not self.no_button:
+            GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         self.cameras.add_video_capture()
 
         # shutter speed
@@ -141,7 +145,7 @@ class JetsonInterface:
             subprocess.check_call(f'v4l2-ctl -d /dev/video0 -c exposure_auto=1 -c exposure_absolute={exp}', shell=True)
             subprocess.check_call(f'v4l2-ctl -d /dev/video0 -c exposure_auto=1 -c exposure_absolute={exp}', shell=True)
         except Exception:
-            self.log.info(f'Can\'t set exposure to "{exposure}"')
+            self.log.info(f'Can\'t set exposure_absolute to "{exposure}"')
 
         # maybe don't do this?
         cv2.imwrite('frontal.png', self.cameras.get_front_frame())
