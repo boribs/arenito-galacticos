@@ -164,6 +164,7 @@ class ArenitoAI:
             elif self.can_in_critical_region:
                 self.can_in_critical_region = False
                 self.can_counter += 1
+                self.log.info('Recogio lata')
 
             if self.state == ArenitoState.GrabbingCan:
                 self.get_can(scan_results)
@@ -249,7 +250,8 @@ class ArenitoAI:
             img = self.com.get_rear_frame()
             img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
             if not self.vis.reachable(img, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
-                self.log.info('Can\'t go back anymore, turning.')
+                # self.log.info('Can\'t go back anymore, turning.')
+                self.com.lcd_show('Evadiendo       ', 1)
                 break
 
             self.com.send_instruction(Instruction.MoveBack)
