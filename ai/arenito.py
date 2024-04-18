@@ -13,16 +13,16 @@ if __name__ == '__main__':
 
     parser.add_argument('filename', nargs='?', type=str, default='../sim/file.mmap')
     parser.add_argument('--mode', '-m', type=str, default='s')
-    parser.add_argument('--no_move', default=False)
+    parser.add_argument('--no_move', action='store_true', default=False)
     parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
-    parser.add_argument('--headless', '-H', default=False)
+    parser.add_argument('--headless', '-H', action='store_true', default=False)
     parser.add_argument('--save_images', '-s', type=str, default='',
                         choices=list(ArenitoVision.SAVE_IMAGE_OPTIONS.values()))
-    parser.add_argument('--print_log', '-l', default=False)
-    parser.add_argument('--no_backdoor_extension', '-B', default=False)
-    parser.add_argument('--no_lcd', '-L', default=False)
+    parser.add_argument('--print_log', '-l', action='store_true', default=False)
+    parser.add_argument('--no_backdoor_extension', '-B', action='store_true', default=False)
+    parser.add_argument('--no_lcd', '-L', action='store_true', default=False)
     parser.add_argument('--exposure', '-e', type=str, default='auto')
-    parser.add_argument('--no-button', default=False)
+    parser.add_argument('--no-button', action='store_true', default=False)
 
     args = parser.parse_args()
     arenito_ai = ArenitoAI(args)
