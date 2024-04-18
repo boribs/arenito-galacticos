@@ -2,6 +2,7 @@
 
 import argparse
 from arenito_ai import ArenitoAI
+from arenito_vision import ArenitoVision
 
 # Cuenta cuantas instrucciones lleva buscando latas
 
@@ -14,11 +15,8 @@ if __name__ == '__main__':
     parser.add_argument('--mode', '-m', type=str, default='s')
     parser.add_argument('--no_move', '-n', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
-    parser.add_argument('--headless', '-H', action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument('--save_images', '-s', type=str, default='')
-    parser.add_argument('--print_log', '-l', action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument('--no_backdoor_extension', '-B', action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument('--no_lcd', '-L', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--save_images', '-s', type=str, default='',
+                        choices=list(ArenitoVision.SAVE_IMAGE_OPTIONS.values()))
 
     args = parser.parse_args()
     arenito_ai = ArenitoAI(args)

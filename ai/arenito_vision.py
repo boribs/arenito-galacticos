@@ -157,6 +157,15 @@ class ArenitoVision:
         AIMode.Jetson : (512, 512),
     }
 
+    SAVE_IMAGE_OPTIONS = {
+        'markings'     : 'm',
+        'reachable'    : 'r',
+        'black_filter' : 'b',
+        'can_contours' : 'c',
+        'blurred'      : 'B',
+        'rear'         : 'R',
+    }
+
     def __init__(self, mode: AIMode, args: Namespace, logger: ArenitoLogger):
         if mode == AIMode.Simulation or mode == AIMode.Jetson:
             res = ArenitoVision.RESOLUTIONS[mode]
@@ -172,12 +181,12 @@ class ArenitoVision:
                 raise Exception(f'Unsupported algorithm {other}')
 
         self.log = logger
-        self.save_markings: bool     = 'm' in args.save_images
-        self.save_reachable: bool    = 'r' in args.save_images
-        self.save_black_filter: bool = 'b' in args.save_images
-        self.save_can_contours: bool = 'c' in args.save_images
-        self.save_blurred: bool      = 'B' in args.save_images
-        self.save_rear: bool         = 'R' in args.save_images
+        self.save_markings: bool     = ArenitoVision.SAVE_IMAGE_OPTIONS['markings'] in args.save_images
+        self.save_reachable: bool    = ArenitoVision.SAVE_IMAGE_OPTIONS['reachable'] in args.save_images
+        self.save_black_filter: bool = ArenitoVision.SAVE_IMAGE_OPTIONS['black_filter'] in args.save_images
+        self.save_can_contours: bool = ArenitoVision.SAVE_IMAGE_OPTIONS['can_contours'] in args.save_images
+        self.save_blurred: bool      = ArenitoVision.SAVE_IMAGE_OPTIONS['blurred'] in args.save_images
+        self.save_rear: bool         = ArenitoVision.SAVE_IMAGE_OPTIONS['rear'] in args.save_images
 
         self.res_x, self.res_y = res
 
