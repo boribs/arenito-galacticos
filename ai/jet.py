@@ -1,15 +1,18 @@
 from interfaces.jetson_interface import JetsonInterface
 from arenito_com_consts import *
+from arenito_logger import ArenitoLogger
 import argparse, time
 from PIL import Image
 
 parser = argparse.ArgumentParser()
-parser.add_argument('instr', type=str, default=None)
 parser.add_argument('port', nargs='?', type=str, default=None)
+parser.add_argument('instr', type=str, default=None)
 parser.add_argument('baudrate', nargs='?', type=int, default=115200)
-parser.add_argument('--no_lcd', action=argparse.BooleanOptionalAction, default=True)
+parser.add_argument('--no_lcd', '-L', action='store_true', default=True)
 parser.add_argument('--exposure', '-e', type=str, default='auto')
-parser.add_argument('--no-button', default=False)
+parser.add_argument('--no-button', action='store_true', default=False)
+parser.add_argument('--save_images', '-s', type=str, default='')
+parser.add_argument('--print_log', '-l', action='store_true', default=False)
 args = parser.parse_args()
 
 instr = eval(f'Instruction.{args.instr}')
@@ -18,6 +21,7 @@ cam = instr in (Instruction.RequestFrontCam, Instruction.RequestRearCam)
 jetson_init = time.time()
 ji = JetsonInterface(
     args,
+    ArenitoLogger(args),
     no_cam=not cam,
     no_start=True,
 )
