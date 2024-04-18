@@ -317,22 +317,31 @@ class ArenitoAI:
             self.com.send_instruction(Instruction.MoveForward)
             front = self.com.get_front_frame()
 
-            # don't go for dump if cans visible?
-            # if self.vis.find_cans(front):
-                # maybe go back a little?
-                # return
-
             dump = get_dump(self, front)
 
             if not dump:
                 self.log.info('Lost dump? This shouldn\'t happen')
                 break
             elif self.vis.deposit_critical_region.point_inside(dump.center):
+                if self.dump_too_close(dump):
+                    self.log.info('Dump too close, stepping back.')
+                    self.com.send_instruction(Instruction.MoveBack)
+                    time.sleep(0.4)
+                    self.com.send_instruction(Instruction.StopAll)
+
                 self.log.info('Front aligned.')
-                # TODO: if too close, go back a little
                 break
             else:
-                dump = dump.center.x
+                # don't go for dump if cans visible?
+                detections = self.vis.find_cans(front)
+                if detections:
+                    det_dist = self.vis.dist_from_center(detections[0].center)
+                    dump_dist = self.vis.dist_from_center(dump.center)
+
+                    if det_dist < dump_dist:
+                        return
+
+                dump_pos = dump.center
 
         self.com.send_instruction(Instruction.StopAll)
         time.sleep(0.5)
