@@ -39,6 +39,23 @@ class Rect(NamedTuple):
         y = self.a.y <= point.y <= self.b.y
         return x and y
 
+class Threshold:
+    """
+    A class that stores a full-height area limited by four points.
+    """
+
+    def __init__(self, a: int, b: int, c: int, d: int):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+
+    def minmax(self, det: Point) -> tuple[int, int]:
+        return (
+            int(self.a - ((self.a - self.c) * det.y) / 512),
+            int(self.b - ((self.b - self.d) * det.y) / 512),
+        )
+
 class Detection:
     """
     Stores detection data.
@@ -276,28 +293,21 @@ class ArenitoVision:
         # +------------------------+
         margin_x_min = int(self.res_x * 0.22)
         margin_x_max = int(self.res_x * 0.3)
-        self.can_threshold_x = [
-            ( # bottom x
-                self.res_x // 2 - margin_x_min, # min
-                self.res_x // 2 + margin_x_min  # max
-            ),
-            ( # top x
-                self.res_x // 2 - margin_x_max, # min
-                self.res_x // 2 + margin_x_max  # max
-            ),
-        ]
+        self.can_threshold_x = Threshold(
+            self.res_x // 2 - margin_x_max,
+            self.res_x // 2 + margin_x_max,
+            self.res_x // 2 - margin_x_min,
+            self.res_x // 2 + margin_x_min,
+        )
+
         margin_x_min = int(self.res_x * 0.1)
         margin_x_max = int(self.res_x * 0.17)
-        self.deposit_threshold_x = [
-            ( # bottom x
-                self.res_x // 2 - margin_x_min, # min
-                self.res_x // 2 + margin_x_min  # max
-            ),
-            ( # top x
-                self.res_x // 2 - margin_x_max, # min
-                self.res_x // 2 + margin_x_max  # max
-            ),
-        ]
+        self.deposit_threshold_x = Threshold(
+            self.res_x // 2 - margin_x_max,
+            self.res_x // 2 + margin_x_max,
+            self.res_x // 2 - margin_x_min,
+            self.res_x // 2 + margin_x_min,
+        )
 
         # When finding out if a point is reachable, counts how many blue pixels
         # there are between the robot and that point.
@@ -382,15 +392,15 @@ class ArenitoVision:
         )
         cv2.line(
             det_img,
-            (self.can_threshold_x[1][0], 0),
-            (self.can_threshold_x[0][0], self.res_y),
+            (self.can_threshold_x.a, 0),
+            (self.can_threshold_x.c, self.res_y),
             WHITE,
             thickness=1,
         )
         cv2.line(
             det_img,
-            (self.can_threshold_x[1][1], 0),
-            (self.can_threshold_x[0][1], self.res_y),
+            (self.can_threshold_x.b, 0),
+            (self.can_threshold_x.d, self.res_y),
             WHITE,
             thickness=1,
         )

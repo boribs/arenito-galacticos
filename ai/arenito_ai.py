@@ -432,7 +432,7 @@ class ArenitoAI:
     def align(
         self,
         det: Point,
-        threshold: list[tuple[int, int]],
+        threshold: Threshold,
         timeout: int,
         callback: Callable[[ArenitoAI], Point],
         callback_args: Iterable[any] # pyright: ignore
@@ -441,12 +441,7 @@ class ArenitoAI:
         Alignment function. Calls callback to update x value.
         """
 
-        bottom_x, top_x = threshold
-        a, b = top_x
-        c, d = bottom_x
-
-        tmin = a - ((a - c) * det.y) / 512
-        tmax = b - ((b - d) * det.y) / 512
+        tmin, tmax = threshold.minmax(det)
 
         aligned = False
         t = time.time()
