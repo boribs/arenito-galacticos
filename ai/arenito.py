@@ -15,7 +15,7 @@ if __name__ == '__main__':
     parser.add_argument('--no_move', action='store_true', default=False)
     parser.add_argument('--algorithm', '-a', type=str, default='min-rect')
     parser.add_argument('--headless', '-H', action='store_true', default=False)
-    parser.add_argument('--save_images', '-s', type=str)
+    parser.add_argument('--save_images', '-s', type=str, default='')
     parser.add_argument('--print_log', '-l', action='store_true', default=False)
     parser.add_argument('--no_backdoor_extension', '-B', action='store_true', default=False)
     parser.add_argument('--no_lcd', '-L', action='store_true', default=False)
