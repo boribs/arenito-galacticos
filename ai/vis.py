@@ -13,12 +13,19 @@ args = parser.parse_args()
 vis = ArenitoVision(AIMode.Jetson, args, ArenitoLogger(args))
 image = cv2.imread(args.image)
 detections = vis.find_cans(image)
+front_dump = vis.detect_dumping_zone(image, False)
+
 print(detections)
 for det in detections:
     cv2.circle(image, det.center, 10, WHITE, 10)
 cv2.imwrite('img/adetections.jpg', image)
 
-print(
-    'Dump:',
-    vis.detect_dumping_zone(image, True)
+vis.add_markings(
+    image,
+    detections,
+    '',
+    0,
+    False,
+    front_dump,
+    ''
 )
