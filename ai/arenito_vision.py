@@ -215,11 +215,34 @@ class OgReachable(ReachableShape):
 
         return img
 
+class FullWidthReachable(ReachableShape):
+    def __init__(self, bottom_center: Point):
+        super().__init__(bottom_center)
+        self.widths = (
+            200,
+            512,
+        )
+
+    def line(self, shape: MatShape, det: Point) -> MatLike:
+        img = np.zeros(shape=shape, dtype=np.uint8)
+        w = int(((self.widths[1] - det.y) / 512) + (self.widths[0] * (512 - det.y)) / 512)
+        pts = np.array([
+            (0, 512),
+            (det.x - (w // 2), det.y),
+            (det.x + (w // 2), det.y),
+            (512, 512),
+        ])
+        cv2.fillPoly(img, [pts], WHITE)
+
+        return img
+
+
 class ArenitoVision:
     """
     This is where every vision-related operation will be handled.
     """
 
+    # This is useless
     RESOLUTIONS = {
         AIMode.Simulation : (512, 512),
         AIMode.Jetson : (512, 512),
@@ -313,15 +336,16 @@ class ArenitoVision:
         # there are between the robot and that point.
         # This is the minimum ammount of blue pixels necessary between the robot
         # and any given point for it to be considered `unreachable`.
-        self.min_px_water = 3000
+        self.min_px_water = 1800
         self.min_px_dump = 200
 
         # The thing with which will determine if a point is reachable or not.
-        self.reachable_shape = OgReachable(
-            self.bottom_center,
-            line_thickness=int(self.res_x * 0.21875),
-            bottom_line_y=int(self.res_y * 0.9573)
-        )
+        # self.reachable_shape = OgReachable(
+        #     self.bottom_center,
+        #     line_thickness=int(self.res_x * 0.21875),
+        #     bottom_line_y=int(self.res_y * 0.9573)
+        # )
+        self.reachable_shape = FullWidthReachable(self.bottom_center)
 
         # Minimum size for a rect to be considered a can
         self.min_can_area = 200
