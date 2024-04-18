@@ -21,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--print_log', '-l', default=False)
     parser.add_argument('--no_backdoor_extension', '-B', default=False)
     parser.add_argument('--no_lcd', '-L', default=False)
+    parser.add_argument('--exposure', '-e', type=str, default='auto')
 
     args = parser.parse_args()
     arenito_ai = ArenitoAI(args)

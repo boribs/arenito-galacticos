@@ -1,8 +1,9 @@
 # pyright: strict
 
 from arenito_com_consts import *
+from arenito_logger import ArenitoLogger
 from cv2.typing import MatLike
-import cv2, os, time
+import cv2, os, time, subprocess
 from argparse import Namespace
 
 if os.getenv('IS_JETSON'):
@@ -63,6 +64,7 @@ class JetsonInterface:
     def __init__(
         self,
         args: Namespace,
+        logger: ArenitoLogger,
         no_cam: bool = False,
         no_start: bool = False,
     ):
@@ -71,6 +73,8 @@ class JetsonInterface:
             JetsonInterface.BUTTON_IN,
             GPIO.IN # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         )
+
+        self.log = logger
 
         # LCD1602 with i2c shield
         # can be any LCD with i2c, though
@@ -87,7 +91,7 @@ class JetsonInterface:
         # 4. Press camera config button
         if not no_cam:
             self.cameras = ArenitoCameras()
-            self.init_cameras()
+            self.init_cameras(args.exposure)
 
         # Start button, required by rules.
         if not no_start:
@@ -117,7 +121,7 @@ class JetsonInterface:
         if self.lcd:
             self.lcd.lcd_clear()
 
-    def init_cameras(self):
+    def init_cameras(self, exposure: str):
         """
         Camera initialization routine: first camera -> front camera, second camera -> rear camera.
         """
@@ -129,6 +133,15 @@ class JetsonInterface:
         self.lcd_show('Oprima el boton', 2)
         GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
         self.cameras.add_video_capture()
+
+        # shutter speed
+        try:
+            exp = int(exposure)
+            # make subprocess part of logger?
+            subprocess.check_call(f'v4l2-ctl -d /dev/video0 -c exposure_auto=1 -c exposure_absolute={exp}', shell=True)
+            subprocess.check_call(f'v4l2-ctl -d /dev/video0 -c exposure_auto=1 -c exposure_absolute={exp}', shell=True)
+        except Exception:
+            self.log.info(f'Can\'t set exposure to "{exposure}"')
 
         # maybe don't do this?
         cv2.imwrite('frontal.png', self.cameras.get_front_frame())

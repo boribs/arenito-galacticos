@@ -33,7 +33,7 @@ class ArenitoComms:
         Initializes JetsonInterface.
         """
 
-        self.jetson_interface = JetsonInterface(args)
+        self.jetson_interface = JetsonInterface(args, self.log)
 
     def connect_simulation(self, filename: str):
         """
