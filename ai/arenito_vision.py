@@ -368,7 +368,7 @@ class ArenitoVision:
         )
         # Same for deposit's critial region
         self.deposit_critical_region = Rect(
-            Point(int(self.res_x * 0.23), int(self.res_y * 0.7)),
+            Point(int(self.res_x * 0.23), int(self.res_y * 0.6)),
             Point(int(self.res_x * 0.77), int(self.res_y)),
         )
 
