@@ -185,3 +185,8 @@ class JetsonInterface:
         """
 
         self.serial_interface.dump_cans()
+
+    def check_pause(self):
+        """"""
+
+        return GPIO.input(JetsonInterface.BUTTON_IN) == 0 # pyright: ignore

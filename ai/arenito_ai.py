@@ -70,6 +70,9 @@ class ArenitoAI:
         # Clock
         self.clock = ArenitoTimer().start()
 
+        # pause mode
+        self.pause = False
+
     def scan(self) -> ScanResult:
         """
         Gets data from every sensor.
@@ -123,6 +126,26 @@ class ArenitoAI:
         while self.clock.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
             if cv2.waitKey(1) == 27:
                 break
+
+            self.check_pause()
+            if self.pause:
+                self.com.lcd_show('En pausa        ', 1)
+                self.com.send_instruction(Instruction.StopAll)
+                time.sleep(3)
+
+            while self.pause:
+                time.sleep(0.2)
+                self.can_counter = 0
+                self.check_pause()
+
+                if not self.pause:
+                    c = 5
+                    self.com.lcd_show('Continuando...  ', 1)
+                    while c > 0:
+                        time.sleep(1)
+                        self.com.lcd_show(str(c), 2)
+                        c -= 1
+                    break
 
             scan_results = self.scan()
 
@@ -496,3 +519,10 @@ class ArenitoAI:
 
         if not dump: return False
         return self.vis.dist_from_center(dump.center) < ArenitoAI.BRUSH_OFF_DIST
+
+    def check_pause(self):
+        """"""
+
+        if self.com.jetson_interface:
+            if self.com.jetson_interface.check_pause():
+                self.pause = not self.pause
