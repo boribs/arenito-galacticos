@@ -325,7 +325,7 @@ class ArenitoAI:
         # get close (front cam)
         if not scan_results.dumping_zone: return
 
-        self.com.send_instruction(Instruction.BrushOff)
+        self.com.send_instruction(Instruction.BrushOn)
         MAX_SEARCH_TIME = 10
 
         self.log.info(f'Getting close to dump.')
@@ -355,6 +355,7 @@ class ArenitoAI:
                     self.com.send_instruction(Instruction.StopAll)
 
                 self.log.info('Front aligned.')
+                self.com.send_instruction(Instruction.BrushOff)
                 break
             else:
                 # don't go for dump if cans visible?
