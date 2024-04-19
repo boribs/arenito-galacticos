@@ -389,7 +389,7 @@ class ArenitoAI:
         t = time.time()
         while True:
             if time.time() - t >= MAX_SEARCH_TIME:
-                self.log.info('Rear cam align timed out, exiting.')
+                self.log.info('Rear cam align timed out, terminating deposit routine.')
                 return
 
             dump = get_dump(self, self.com.get_rear_frame(), True)
@@ -424,8 +424,11 @@ class ArenitoAI:
         #         self.com.send_instruction(Instruction.MoveBack)
 
         t = time.time()
-        while time.time() - t < MAX_SEARCH_TIME:
-            # this can be its own function
+        while True:
+            if time.time() - t >= MAX_SEARCH_TIME:
+                self.log.info('Rear sensor align timeout, terminating deposit routine.')
+                return
+
             reads = self.com.get_prox_sensors()
             time.sleep(0.2)
 
