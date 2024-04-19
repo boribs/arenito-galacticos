@@ -186,12 +186,14 @@ void loop() {
             break;
 
         case InstructionMap::MoveLongRight:
-            moveRight(INSTRUCTION_EXECUTION_TIME * 4);
+            moveRight(INSTRUCTION_EXECUTION_TIME * 25);
             break;
 
         case InstructionMap::DumpCans:
             openBackdoor();
             delay(1500);
+            moveForward();
+            delay(300);
             closeBackdoor();
             break;
 
