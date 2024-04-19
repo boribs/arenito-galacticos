@@ -141,10 +141,9 @@ class ArenitoAI:
 
                 if not self.pause:
                     c = 5
-                    self.com.lcd_show('Continuando...  ', 1)
                     while c > 0:
+                        self.com.lcd_show(f'Continuando: {c}', 1)
                         time.sleep(1)
-                        self.com.lcd_show(str(c), 2)
                         c -= 1
                     break
 
