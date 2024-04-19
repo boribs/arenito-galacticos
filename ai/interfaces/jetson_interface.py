@@ -127,16 +127,20 @@ class JetsonInterface:
         """
         Camera initialization routine: first camera -> front camera, second camera -> rear camera.
         """
+        try:
+            self.cameras.add_video_capture()
 
-        self.cameras.add_video_capture()
+            time.sleep(0.5)
+            self.lcd_show('Conecte cam. T.', 1)
+            self.lcd_show('Oprima el boton', 2)
 
-        time.sleep(0.5)
-        self.lcd_show('Conecte cam. T.', 1)
-        self.lcd_show('Oprima el boton', 2)
-
-        if not self.no_button:
-            GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
-        self.cameras.add_video_capture()
+            if not self.no_button:
+                GPIO.wait_for_edge(JetsonInterface.BUTTON_IN, GPIO.FALLING) # pyright: ignore[reportUnknownMemberType, reportPossiblyUnboundVariable]
+            self.cameras.add_video_capture()
+        except Exception:
+            self.lcd_show('No enctra. cam 0', 1)
+            self.lcd_show('Cncte. diferente', 2)
+            exit(2)
 
         # shutter speed
         try:
