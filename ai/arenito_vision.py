@@ -238,7 +238,6 @@ class FullWidthReachable(ReachableShape):
 
         return img
 
-
 class ArenitoVision:
     """
     This is where every vision-related operation will be handled.
@@ -310,13 +309,13 @@ class ArenitoVision:
         self.dump_r_dot = Point(self.res_x // 2, self.res_y // 2 + self.dump_dist_from_center)
 
         # Area limits where a detection is considered to be centered.
-        # +------------------------+
+        # +----------a---b---------+
         # |          |   |         |
         # |          |   |         |
         # |          |   |         |
         # |          |   |         |
-        # +------------------------+
-        margin_x_min = int(self.res_x * 0.22)
+        # +----------c---d---------+
+        margin_x_min = int(self.res_x * 0.18)
         margin_x_max = int(self.res_x * 0.3)
         self.can_threshold = Threshold(
             self.res_x // 2 - margin_x_max,
@@ -364,12 +363,12 @@ class ArenitoVision:
         # Arenito will remember if a can is visible within this area, the moment it stopps
         # being visible, that can most probably was grabbed.
         self.can_critical_region = Rect(
-            Point(int(self.res_x * 0.2), int(self.res_y * 0.83)),
+            Point(int(self.res_x * 0.2), int(self.res_y * 0.78)),
             Point(int(self.res_x * 0.8), int(self.res_y)),
         )
         # Same for deposit's critial region
         self.deposit_critical_region = Rect(
-            Point(int(self.res_x * 0.23), int(self.res_y * 0.55)),
+            Point(int(self.res_x * 0.23), int(self.res_y * 0.7)),
             Point(int(self.res_x * 0.77), int(self.res_y)),
         )
 
