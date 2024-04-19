@@ -72,6 +72,7 @@ class ArenitoAI:
 
         # pause mode
         self.pause = False
+        self.turn_dir = Instruction.MoveRight if args.turn_dir == 'right' else Instruction.MoveLeft
 
     def scan(self) -> ScanResult:
         """
@@ -250,7 +251,7 @@ class ArenitoAI:
         Can-search routine.
         """
 
-        MAX_SEARCH_SECONDS = 10
+        MAX_SEARCH_SECONDS = 30
 
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
@@ -260,7 +261,7 @@ class ArenitoAI:
         elif self.vis.reachable(hsv, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
             self.com.send_instruction(Instruction.MoveForward)
         else:
-            self.com.send_instruction(Instruction.MoveRight)
+            self.com.send_instruction(self.turn_dir)
 
     def evade(self):
         """

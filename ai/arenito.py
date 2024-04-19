@@ -21,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--no_lcd', '-L', action='store_true', default=False)
     parser.add_argument('--exposure', '-e', type=str, default='auto')
     parser.add_argument('--no-button', action='store_true', default=False)
+    parser.add_argument('--turn-dir', type=str, default='right', choices=['left', 'right'])
 
     args = parser.parse_args()
     arenito_ai = ArenitoAI(args)
