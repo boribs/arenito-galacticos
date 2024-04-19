@@ -35,3 +35,6 @@ if __name__ == '__main__':
     finally:
         arenito_ai.stop_all()
         arenito_ai.print_stats()
+
+        if arenito_ai.com.jetson_interface:
+            arenito_ai.com.jetson_interface.lcd_clear()
