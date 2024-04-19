@@ -324,8 +324,8 @@ class ArenitoVision:
             self.res_x // 2 + margin_x_min,
         )
 
-        margin_x_min = int(self.res_x * 0.1)
-        margin_x_max = int(self.res_x * 0.17)
+        margin_x_min = int(self.res_x * 0.12)
+        margin_x_max = int(self.res_x * 0.26)
         self.deposit_threshold = Threshold(
             self.res_x // 2 - margin_x_max,
             self.res_x // 2 + margin_x_max,
