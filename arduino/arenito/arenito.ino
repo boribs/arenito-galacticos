@@ -217,6 +217,9 @@ void loop() {
 
         case InstructionMap::BrushOff:
             brush_on = false;
+            brush.counterClockwise(BRUSH_PWM_ENABLE);
+            delay(200);
+            brush.stop();
             break;
 
         case InstructionMap::ExtendBackdoor:
