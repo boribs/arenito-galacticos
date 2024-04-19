@@ -35,9 +35,9 @@ class ArenitoAI:
     AI class, the brains of it all.
     """
 
-    TEST_TIME_SECS = 5 * 60
+    TEST_TIME_SECS = 5 * 60 + 30
     BRUSH_ON_SECS = 7
-    BRUSH_OFF_DIST = 100
+    BRUSH_OFF_DIST = 80
 
     def __init__(self, args: Namespace):
         mode = MODE_DICT[args.mode]
@@ -357,17 +357,17 @@ class ArenitoAI:
                 self.log.info('Front aligned.')
                 self.com.send_instruction(Instruction.BrushOff)
                 break
-            else:
+            # else:
                 # don't go for dump if cans visible?
-                detections = self.vis.find_cans(front)
-                if detections:
-                    det_dist = self.vis.dist_from_center(detections[0].center)
-                    dump_dist = self.vis.dist_from_center(dump.center)
+                # detections = self.vis.find_cans(front)
+                # if detections:
+                #     det_dist = self.vis.dist_from_center(detections[0].center)
+                #     dump_dist = self.vis.dist_from_center(dump.center)
 
-                    if det_dist < dump_dist:
-                        return
+                #     if det_dist < dump_dist:
+                #         return
 
-                dump_pos = dump.center
+                # dump_pos = dump.center
 
         self.com.send_instruction(Instruction.StopAll)
         time.sleep(0.5)
