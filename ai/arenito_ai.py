@@ -294,6 +294,11 @@ class ArenitoAI:
             dump = get_dump(ai, ai.com.get_front_frame())
             self.log.info(f'Aligning with front cam: {dump}')
             ai.log.advance_gen()
+
+            self.check_pause()
+            if self.pause:
+                return Point(256, 0)
+
             if not dump:
                 return Point(256, 0)
             return dump.center
@@ -304,6 +309,10 @@ class ArenitoAI:
             ai.log.advance_gen()
             if not dump:
                 return Point(256, 0)
+
+            self.check_pause()
+            if self.pause:
+                Point(256, 0)
             return dump.center
 
         # def rear_sensor_align() -> tuple[int, int]:
@@ -332,15 +341,23 @@ class ArenitoAI:
         dump_pos = scan_results.dumping_zone.center
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
+
+            self.check_pause()
+            if self.pause:
+                return
+
             self.align( # pyright: ignore[reportUnknownMemberType]
                 dump_pos,
-                self.vis.can_threshold,
+                self.vis.deposit_threshold,
                 15,
                 front_cam_align,
                 [self]
             )
             self.com.send_instruction(Instruction.MoveForward)
             front = self.com.get_front_frame()
+
+            if self.pause:
+                return
 
             dump = get_dump(self, front)
 
@@ -392,6 +409,10 @@ class ArenitoAI:
                 self.log.info('Rear cam align timed out, terminating deposit routine.')
                 return
 
+            self.check_pause()
+            if self.pause:
+                return
+
             dump = get_dump(self, self.com.get_rear_frame(), True)
             self.log.advance_gen()
             if dump:
@@ -429,13 +450,17 @@ class ArenitoAI:
                 self.log.info('Rear sensor align timeout, terminating deposit routine.')
                 return
 
+            self.check_pause()
+            if self.pause:
+                return
+
             reads = self.com.get_prox_sensors()
             time.sleep(0.2)
 
             lu, ru = reads[0:2]
             ir, il = reads[5:7]
 
-            self.log.info(f'Read {reads}. U:{lu}{ru}, Ir:{il}{ir}')
+            self.log.info(f'Read {reads}. U:{lu},{ru}, Ir:{il},{ir}')
 
             if (lu < 10 and ru < 10) or (ir == 1 and il == 1):
                 self.log.info('Aligned with proximity sensors.')
@@ -460,6 +485,10 @@ class ArenitoAI:
         time.sleep(0.1)
         self.com.send_instruction(Instruction.StopAll)
         time.sleep(0.2)
+
+        self.check_pause()
+        if self.pause:
+            return
 
         # dump cans
         self.log.info(f'Dumping {self.can_counter} cans.')
