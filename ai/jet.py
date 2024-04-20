@@ -5,7 +5,7 @@ import argparse, time
 from PIL import Image
 
 parser = argparse.ArgumentParser()
-parser.add_argument('port', nargs='?', type=str, default=None)
+parser.add_argument('port', nargs='?', type=str, default='/dev/ttyUSB0')
 parser.add_argument('instr', type=str, default=None)
 parser.add_argument('baudrate', nargs='?', type=int, default=115200)
 parser.add_argument('--no_lcd', '-L', action='store_true', default=True)

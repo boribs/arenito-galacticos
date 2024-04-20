@@ -7,7 +7,7 @@ from arenito_ai import ArenitoAI
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('port', nargs='?', type=str, default=None)
+    parser.add_argument('port', nargs='?', type=str, default='/dev/ttyUSB0')
     parser.add_argument('baudrate', nargs='?', type=int, default=115200)
 
     parser.add_argument('filename', nargs='?', type=str, default='../sim/file.mmap')
