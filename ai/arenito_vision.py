@@ -144,13 +144,17 @@ class ColorFilter:
         # np.array([57, 76, 77]),   # lower
         # np.array([118, 255, 210]), # upper
     )
-    RED = (
+    RED_A = (
+        np.array([0, 165, 29]),
+        np.array([179, 255, 255]),
         # np.array([0, 96, 54]),
         # np.array([43, 55, 150]),
-        np.array([0, 176, 0]),
-        np.array([78, 255, 255]),
         # np.array([0, 107, 44]),
         # np.array([179, 255, 144]),
+    )
+    RED_B = (
+        np.array([0, 176, 0]),
+        np.array([78, 255, 255]),
     )
     BLACK = (
         np.array([0, 0, 69]),      # lower
@@ -509,7 +513,9 @@ class ArenitoVision:
             )
 
         if filter_red:
-            mask_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
+            mask_red_a = ColorFilter.filter(img_hsv, ColorFilter.RED_A)
+            mask_red_b = ColorFilter.filter(img_hsv, ColorFilter.RED_B)
+            mask_red = cv2.bitwise_or(mask_red_a, mask_red_b)
             line_red = self.reachable_shape.line(mask_red.shape, secondary_det)
             cross = cv2.bitwise_and(mask_red, line_red)
             white_px_red = np.count_nonzero(cross)
@@ -645,7 +651,9 @@ class ArenitoVision:
         """
 
         img_hsv = cv2.cvtColor(blurred_img, cv2.COLOR_BGR2HSV)
-        filter_red = ColorFilter.filter(img_hsv, ColorFilter.RED)
+        filter_red_a = ColorFilter.filter(img_hsv, ColorFilter.RED_A)
+        filter_red_b = ColorFilter.filter(img_hsv, ColorFilter.RED_B)
+        filter_red = cv2.bitwise_or(filter_red_a, filter_red_b)
         contours, _ = cv2.findContours(filter_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         if rear and self.save_rear:
@@ -670,12 +678,7 @@ class ArenitoVision:
             return None
 
         # sort by closeness and size?
-        detections.sort(
-            key=lambda n:
-                # self.dist_from_center(n.center) + ,
-                n.rect[1][0] * n.rect[1][1], # + 512 - self.dist_from_center(n.center),
-            reverse=True
-        )
+        detections.sort(key=lambda n: self.dist_from_center(n.center), reverse=False)
 
         if rear and self.save_rear:
             img = blurred_img.copy()
