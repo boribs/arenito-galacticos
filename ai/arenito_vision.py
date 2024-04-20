@@ -145,8 +145,8 @@ class ColorFilter:
         # np.array([118, 255, 210]), # upper
     )
     RED = (
-        # np.array([0, 75, 0]),
-        # np.array([179, 255, 167]),
+        # np.array([0, 96, 54]),
+        # np.array([43, 55, 150]),
         np.array([0, 176, 0]),
         np.array([78, 255, 255]),
         # np.array([0, 107, 44]),
@@ -363,12 +363,12 @@ class ArenitoVision:
         # Arenito will remember if a can is visible within this area, the moment it stopps
         # being visible, that can most probably was grabbed.
         self.can_critical_region = Rect(
-            Point(int(self.res_x * 0.2), int(self.res_y * 0.78)),
+            Point(int(self.res_x * 0.2), int(self.res_y * 0.7)),
             Point(int(self.res_x * 0.8), int(self.res_y)),
         )
         # Same for deposit's critial region
         self.deposit_critical_region = Rect(
-            Point(int(self.res_x * 0.23), int(self.res_y * 0.6)),
+            Point(int(self.res_x * 0.23), int(self.res_y * 0.5)),
             Point(int(self.res_x * 0.77), int(self.res_y)),
         )
 
@@ -500,7 +500,7 @@ class ArenitoVision:
 
         if self.save_reachable:
             self.log.img(line_blue, 'line_blue')
-            self.log.img(mask_blue, 'mask_blue')
+            self.log.img(mask_blue, 'mask_blue', True)
             self.log.img(cross, 'reachable_blue')
             self.log.info(
                 f'reachable_blue_{self.log.generation}_{self.log.classes["reachable_blue"] - 1} ' +
@@ -516,7 +516,7 @@ class ArenitoVision:
 
             if self.save_reachable:
                 self.log.img(line_red, 'line_red')
-                self.log.img(mask_red, 'mask_red')
+                self.log.img(mask_red, 'mask_red', True)
                 self.log.img(cross, 'reachable_red')
                 self.log.info(
                     f'reachable_red_{self.log.generation}_{self.log.classes["reachable_red"] - 1} ' +

@@ -38,13 +38,15 @@ class ArenitoLogger:
 
         self.l.info(msg)
 
-    def img(self, img: MatLike, classname: str):
+    def img(self, img: MatLike, classname: str, single: bool = True):
         """
         Logs an immage.
         """
 
         if self.classes.get(classname, None) is None:
             self.add_classname(classname)
+        elif single and self.classes[classname] != 0:
+            return
 
         filename = f'{classname}_{self.generation}_{self.classes[classname]}'
         self.l.info(f'Saved image "{filename}".')
