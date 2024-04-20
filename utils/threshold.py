@@ -2,6 +2,8 @@ import cv2
 import sys
 import argparse
 import numpy as np
+import math
+from PIL import Image
 
 def nothing(x):
     pass
@@ -28,67 +30,36 @@ phMin = psMin = pvMin = phMax = psMax = pvMax = 0
 
 waitTime = 33
 
-def image_loop(path: str):
+def img_matrix(path):
+    w = h = math.ceil(math.sqrt(len(path)))
+    total_width = total_height = 512 * w
+    image = Image.new(Image.open(path[0]).mode, (total_width, total_height))
+
+    done = False
+    i = 0
+    for y in range(h):
+        for x in range(w):
+            image.paste(Image.open(path[i]), (x * 512, y * 512))
+            i += 1
+            if i == len(path):
+                done = True
+                break
+        if done:
+            break
+
+    if image.size[0] > 1000:
+        image = image.resize((1000, 1000))
+
+    return image
+
+def image_loop(img):
     global hMin, sMin, vMin, hMax, sMax, vMax
     global phMin, psMin, pvMin, phMax, psMax, pvMax
 
-
-    img = cv2.imread(path)
-
-    while True:
-        # get current positions of all trackbars
-        hMin = cv2.getTrackbarPos('HMin', 'image')
-        sMin = cv2.getTrackbarPos('SMin', 'image')
-        vMin = cv2.getTrackbarPos('VMin', 'image')
-
-        hMax = cv2.getTrackbarPos('HMax', 'image')
-        sMax = cv2.getTrackbarPos('SMax', 'image')
-        vMax = cv2.getTrackbarPos('VMax', 'image')
-
-        # Set minimum and max HSV values to display
-        lower = np.array([hMin, sMin, vMin])
-        upper = np.array([hMax, sMax, vMax])
-
-        # Create HSV Image and threshold into a range.
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower, upper)
-        output = cv2.bitwise_and(img, img, mask=mask)
-
-        # Print if there is a change in HSV value
-        if ((phMin != hMin) |
-            (psMin != sMin) |
-            (pvMin != vMin) |
-            (phMax != hMax) |
-            (psMax != sMax) |
-            (pvMax != vMax)):
-            print("(hMin = %d, sMin = %d, vMin = %d), (hMax = %d, sMax = %d, vMax = %d)" % (hMin, sMin, vMin, hMax, sMax, vMax))
-            phMin = hMin
-            psMin = sMin
-            pvMin = vMin
-            phMax = hMax
-            psMax = sMax
-            pvMax = vMax
-
-        cv2.imshow('image', output)
-
-        if cv2.waitKey(waitTime) & 0xFF == ord('q'):
-            break
-
-    cv2.destroyAllWindows()
-
-def video_loop(cam: int):
-    global hMin, sMin, vMin, hMax, sMax, vMax
-    global phMin, psMin, pvMin, phMax, psMax, pvMax
-
-    cap = cv2.VideoCapture(cam)
+    img = np.array(img)
+    img = img[:, :, ::-1]
 
     while True:
-        ok, img = cap.read()
-
-        if not ok:
-            print('err!')
-            break
-
         # get current positions of all trackbars
         hMin = cv2.getTrackbarPos('HMin', 'image')
         sMin = cv2.getTrackbarPos('SMin', 'image')
@@ -131,11 +102,8 @@ def video_loop(cam: int):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('path', nargs='?')
-    parser.add_argument('-c', '--cam', nargs='?', default=0)
+    parser.add_argument('path', nargs='*')
     args = parser.parse_args()
 
-    if args.path:
-        image_loop(args.path)
-    else:
-        video_loop(args.cam)
+    image = img_matrix(args.path)
+    image_loop(image)
