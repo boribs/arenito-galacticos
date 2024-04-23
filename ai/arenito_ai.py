@@ -122,6 +122,7 @@ class ArenitoAI:
 
         # drop backdoor
         if not self.no_backdoor_extension:
+            self.com.lcd_show('Extendiendo tapa', 1)
             self.com.send_instruction(Instruction.ExtendBackdoor)
 
         while self.clock.elapsed_time() < ArenitoAI.TEST_TIME_SECS:
@@ -255,7 +256,21 @@ class ArenitoAI:
         hsv = cv2.cvtColor(scan_results.blurred, cv2.COLOR_BGR2HSV)
 
         if self.can_search_timer.elapsed_time() > MAX_SEARCH_SECONDS:
-            self.com.send_instruction(Instruction.MoveLongRight)
+            self.log.info(f'Didn\'t find anything in {MAX_SEARCH_SECONDS}, beginning search routine.')
+            self.com.lcd_show('Buscando latas', 1)
+
+            for _ in range(24):
+                for _ in range(10):
+                    self.com.send_instruction(Instruction.MoveRight)
+                scan_results = self.scan()
+
+                if scan_results.detections:
+                    self.log.info('Found can.')
+                    return
+                if scan_results.dumping_zone:
+                    self.log.info('Found dump.')
+                    return
+
             self.can_search_timer.reset()
         elif self.vis.reachable(hsv, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
             self.com.send_instruction(Instruction.MoveForward)
@@ -338,6 +353,7 @@ class ArenitoAI:
         MAX_SEARCH_TIME = 10
 
         self.log.info(f'Getting close to dump.')
+        dump = None
         dump_pos = scan_results.dumping_zone.center
         t = time.time()
         while time.time() - t < MAX_SEARCH_TIME:
@@ -394,7 +410,10 @@ class ArenitoAI:
         # step back, if possible
         rear = self.com.get_rear_frame()
         rear_hsv = cv2.cvtColor(rear, cv2.COLOR_BGR2HSV)
-        if self.vis.reachable(rear_hsv, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
+        if not dump:
+            self.com.send_instruction(Instruction.MoveBack)
+            time.sleep(2)
+        elif self.vis.reachable(rear_hsv, self.vis.blue_r_dot, secondary_det=self.vis.dump_r_dot):
             self.log.info('Enough space in back, stepping back.')
             self.com.send_instruction(Instruction.MoveBack)
             time.sleep(0.7)
@@ -446,7 +465,7 @@ class ArenitoAI:
 
         t = time.time()
         while True:
-            if time.time() - t >= MAX_SEARCH_TIME:
+            if time.time() - t >= 17:
                 self.log.info('Rear sensor align timeout, terminating deposit routine.')
                 return
 
@@ -467,9 +486,9 @@ class ArenitoAI:
                 break
 
             if abs(lu - ru) > 10:
-                if lu > ru:
+                if (lu > ru) or (il > ir):
                     self.com.send_instruction(Instruction.MoveRight)
-                else:
+                elif (lu < ru) or (il < ir):
                     self.com.send_instruction(Instruction.MoveLeft)
             else:
                 self.com.send_instruction(Instruction.MoveBack)

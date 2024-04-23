@@ -5,6 +5,7 @@ from arenito_logger import ArenitoLogger
 from cv2.typing import MatLike
 import cv2, os, time, subprocess
 from argparse import Namespace
+import numpy as np
 
 if os.getenv('IS_JETSON'):
     import Jetson.GPIO as GPIO # pyright: ignore
@@ -50,7 +51,10 @@ class ArenitoCameras:
         """
 
         _, frame = self.cameras[1].read()
-        return cv2.resize(frame, (512, 512))
+        frame = cv2.resize(frame, (512, 512))
+        mask = np.zeros(shape=frame.shape, dtype=np.uint8)
+        cv2.rectangle(mask, (0, 512  // 4), (512, 512), (255, 255, 255), thickness=-1)
+        return cv2.bitwise_and(frame, mask)
 
 class JetsonInterface:
     """

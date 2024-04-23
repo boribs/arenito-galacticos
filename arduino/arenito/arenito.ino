@@ -1,14 +1,14 @@
 #include "ArenitoUtils.h"
 
 const int INSTRUCTION_EXECUTION_TIME = 100; // ms
-const int MOTOR_PWM_ENABLE = 250;
+const int MOTOR_PWM_ENABLE = 220;
 const int MOTOR_ROT_PWM_ENABLE = 230;
 const int BACKDOOR_PWM_UP = 120;
 const int BACKDOOR_PWM_DOWN = 75;
 const int BACKDOOR_TIMEOUT = 1000; // ms
 const int BACKDOOR_EXT_PWM_ENABLE = 130;
-const int BACKDOOR_EXT_TIME_UP = 2000; // ms
-const int BACKDOOR_EXT_TIME_DOWN = 1600; // ms
+const int BACKDOOR_EXT_TIME_UP = 1500; // ms
+const int BACKDOOR_EXT_TIME_DOWN = 1000; // ms
 const int BRUSH_PWM_ENABLE = 200;
 
 // Don't use pin 13
@@ -16,7 +16,7 @@ IBT2 left = IBT2(12, 11);
 IBT2 right = IBT2(10, 9);
 L298N backdoor = L298N(8, 46, 47);
 L298N brush = L298N(7, 50, 51);
-L298N backdoor_ext = L298N(6, 48, 49);
+L298N backdoor_ext = L298N(6, 38, 39);
 LimitSwitch ls_up = LimitSwitch(22);
 LimitSwitch ls_down = LimitSwitch(23);
 
