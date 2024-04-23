@@ -42,7 +42,7 @@ IA:
     ✔ Detener robot al matar IA @done(24-04-11 11:31)
 
 General:
-    ☐ Reinicio con un botón
+    ✔ Reinicio con un botón @done(24-04-19 11:53)
     ✔ Logger params - no siempre quiero todas las imágenes @done(24-04-17 12:29)
     ☐ ArenitoAI.align() que no sea un ciclo -> ArenitoAI.align_step()
     ✔ Mejor máscara para ArenitoVision.reachable() @done(24-04-17 23:15)
@@ -53,5 +53,9 @@ General:
 Depósito:
     ✔ Si no encuentra depósito, al acomodarse, no tirar latas @done(24-04-18 02:36)
     ✔ Si decidió que va a depositar y está demasiado cerca, que se haga para atrás @done(24-04-18 02:36)
-    ☐ Si ve latas mientras va a depositar, en vez de cancelar el depósito, que elija la acción más cercana
-    ☐ Si la lata está muy cerca del depósito que la ignore
+    ✘ Si ve latas mientras va a depositar, en vez de cancelar el depósito, que elija la acción más cercana @cancelled(24-04-19 16:41)
+    ✔ Si la lata está muy cerca del depósito que la ignore @done(24-04-19 16:41)
+    ✘ Mientras se acomoda con los sensores de proximidad, si se sale del agua terminar rutina @cancelled(24-04-19 16:41)
+    ✘ Iniciar arenito.py al prender la jetson @cancelled(24-04-19 09:27)
+    ✔ Conección alámbrica con jetson @done(24-04-19 09:56)
+        sudo ip ad add x.x.x.x dev eth0
