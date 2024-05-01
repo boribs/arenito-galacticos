@@ -161,11 +161,19 @@ fn arenito_ai_mover(
                         SimInstruction::ProxSensorReads => {
                             let mut sensor_reads = vec![0_u8; AISimMem::MAX_PROXIMITY_SENSOR_COUNT];
                             for sensor in proximity_sensors.iter() {
-                                sensor_reads[sensor.index] = (sensor.range * 10.0) as u8;
-                                if sensor_reads[sensor.index] == 30 {
-                                    sensor_reads[sensor.index] = 255; // not sure about this
-                                }
+                                sensor_reads[sensor.index] = (sensor.range * 33.0) as u8;
                             }
+                            // mock "real" sensor setup
+                            // first two are rear ultrasonics
+                            // then infrared front left, middle, right
+                            // lastly infrared rear left, right
+                            // then rear left, right
+                            // sim setup is: rear left, right then front left, middle
+                            for i in 2..AISimMem::MAX_PROXIMITY_SENSOR_COUNT {
+                                sensor_reads[i] = (sensor_reads[i] < 50) as u8;
+                            }
+                            sensor_reads[5] = (sensor_reads[0] < 8) as u8;
+                            sensor_reads[6] = (sensor_reads[1] < 8) as u8;
                             aisim.export_sensor_reads(sensor_reads);
                         }
                         SimInstruction::DumpCans(n) => {
@@ -483,10 +491,13 @@ impl Arenito {
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
             proximity_sensor_offsets: vec![
-                Transform::from_xyz(0.74, 1.3, 0.5).with_rotation(front_sensor_rot),
-                Transform::from_xyz(0.74, 1.3, -0.5).with_rotation(front_sensor_rot),
+                // rear
                 Transform::from_xyz(-0.64, -0.03, 0.5).with_rotation(rear_sensor_rot),
                 Transform::from_xyz(-0.64, -0.03, -0.5).with_rotation(rear_sensor_rot),
+                // front
+                Transform::from_xyz(0.74, 1.3, 0.5).with_rotation(front_sensor_rot),
+                Transform::from_xyz(0.74, 1.3, 0.0).with_rotation(front_sensor_rot),
+                Transform::from_xyz(0.74, 1.3, -0.5).with_rotation(front_sensor_rot),
             ],
             brush_speed: config.brush_speed,
             initial_pos: config.initial_pos,

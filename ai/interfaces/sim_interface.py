@@ -27,7 +27,7 @@ class SimInterface:
     INCOMING_IMAGE_RES = (512, 512)
     IMAGE_SIZE = 786_432
     SENSOR_COUNT_SIZE = 1
-    MAX_PROXIMITY_SENSOR_COUNT = 5
+    MAX_PROXIMITY_SENSOR_COUNT = 7
 
     def __init__(self, filename: str):
         self.attach(filename)

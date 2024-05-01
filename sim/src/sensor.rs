@@ -204,7 +204,7 @@ impl AISimMem {
     // distances are a single byte: distance until collision, in cm
     // when sending sensor data, another byte, before sensor data
     // is set that indicates how many sensors there are.
-    pub const MAX_PROXIMITY_SENSOR_COUNT: usize = 5;
+    pub const MAX_PROXIMITY_SENSOR_COUNT: usize = 7;
     // total required memory
     pub const REQUIRED_MEMORY: usize = Self::SYNC_SIZE + Self::IMG_SIZE;
     pub const MMAP_FILENAME: &'static str = "file.mmap";
