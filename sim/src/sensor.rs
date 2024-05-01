@@ -107,6 +107,7 @@ pub enum SimInstruction {
     DumpCans(u8),
     BrushOn,
     BrushOff,
+    StopAll,
 }
 
 /// Wrapper struct to store raw pointers to shared memory.
@@ -192,6 +193,7 @@ impl AISimMem {
     const MOV_RIGHT: u8 = b'd';
     const MOV_BACK: u8 = b'r';
     const MOV_LONG_RIGHT: u8 = b'D';
+    const STOP_ALL: u8 = b'S';
 
     // memory footprint
     // how much memory is used for synchronization
@@ -300,6 +302,7 @@ impl AISimMem {
                 AISimMem::MOV_RIGHT => Some(SimInstruction::MoveRight),
                 AISimMem::MOV_LONG_RIGHT => Some(SimInstruction::MoveLongRight),
                 AISimMem::MOV_BACK => Some(SimInstruction::MoveBack),
+                AISimMem::STOP_ALL => Some(SimInstruction::StopAll),
                 other => {
                     println!("Unrecognized movement instruction '{}'", other);
                     None

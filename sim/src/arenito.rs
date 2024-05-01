@@ -181,7 +181,7 @@ fn arenito_ai_mover(
                             arenito.brush_on = true;
                             aisim.confirm_instruction();
                         }
-                        SimInstruction::BrushOff => {
+                        SimInstruction::BrushOff | SimInstruction::StopAll => {
                             arenito.brush_on = false;
                             aisim.confirm_instruction();
                         }
