@@ -173,8 +173,11 @@ pub fn compute_hulls(
     meshes: Res<Assets<Mesh>>,
 ) {
     for (mut obstacle, mesh_handle, transform) in obstacles.iter_mut() {
-        let mesh = meshes.get(mesh_handle).unwrap();
-        obstacle.hull = obstacle.compute_hull(mesh, transform);
+        let mesh = meshes.get(mesh_handle);
+        obstacle.hull = match mesh {
+            None => Vec::new(),
+            Some(h) => obstacle.compute_hull(h, transform),
+        };
     }
 }
 
