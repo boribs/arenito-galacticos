@@ -85,7 +85,7 @@ class SimInterface:
         raw_img = self.mem[1 : SimInterface.IMAGE_SIZE + 1]
         im = Image.frombytes('RGB', SimInterface.INCOMING_IMAGE_RES, raw_img) # pyright: ignore[reportUnknownMemberType]
 
-        # for some reason blue and red channels are swapped?
+        # cv2 uses BGR, whereas PIL uses RGB
         # r, g, b = im.split()
         # return np.array(Image.merge('RGB', (b, g, r)))
         return cv2.cvtColor(np.array(im), cv2.COLOR_BGR2RGB)
