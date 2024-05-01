@@ -161,11 +161,19 @@ fn arenito_ai_mover(
                         SimInstruction::ProxSensorReads => {
                             let mut sensor_reads = vec![0_u8; AISimMem::MAX_PROXIMITY_SENSOR_COUNT];
                             for sensor in proximity_sensors.iter() {
-                                sensor_reads[sensor.index] = (sensor.range * 10.0) as u8;
-                                if sensor_reads[sensor.index] == 30 {
-                                    sensor_reads[sensor.index] = 255; // not sure about this
-                                }
+                                sensor_reads[sensor.index] = (sensor.range * 33.0) as u8;
                             }
+                            // mock "real" sensor setup
+                            // first two are rear ultrasonics
+                            // then infrared front left, middle, right
+                            // lastly infrared rear left, right
+                            // then rear left, right
+                            // sim setup is: rear left, right then front left, middle
+                            for i in 2..AISimMem::MAX_PROXIMITY_SENSOR_COUNT {
+                                sensor_reads[i] = (sensor_reads[i] < 50) as u8;
+                            }
+                            sensor_reads[5] = (sensor_reads[0] < 8) as u8;
+                            sensor_reads[6] = (sensor_reads[1] < 8) as u8;
                             aisim.export_sensor_reads(sensor_reads);
                         }
                         SimInstruction::DumpCans(n) => {
@@ -181,7 +189,7 @@ fn arenito_ai_mover(
                             arenito.brush_on = true;
                             aisim.confirm_instruction();
                         }
-                        SimInstruction::BrushOff => {
+                        SimInstruction::BrushOff | SimInstruction::StopAll => {
                             arenito.brush_on = false;
                             aisim.confirm_instruction();
                         }
@@ -260,7 +268,7 @@ fn draw_camera_area(arenito: Query<(&Arenito, &Transform)>, mut gizmos: Gizmos) 
     draw_area(arenito.rear_cam_data.points.clone(), transform, &mut gizmos);
 
     // This should not be here
-    arenito.draw_sphere(transform, Color::WHITE, &mut gizmos);
+    //arenito.draw_sphere(transform, Color::WHITE, &mut gizmos);
 }
 /* --------------------------/Arenito Plugin---------------------------- */
 
@@ -483,10 +491,13 @@ impl Arenito {
             instruction_handler: InstructionHandler::default(),
             control_mode: ControlMode::AI,
             proximity_sensor_offsets: vec![
-                Transform::from_xyz(0.74, 1.3, 0.5).with_rotation(front_sensor_rot),
-                Transform::from_xyz(0.74, 1.3, -0.5).with_rotation(front_sensor_rot),
+                // rear
                 Transform::from_xyz(-0.64, -0.03, 0.5).with_rotation(rear_sensor_rot),
                 Transform::from_xyz(-0.64, -0.03, -0.5).with_rotation(rear_sensor_rot),
+                // front
+                Transform::from_xyz(0.74, 1.3, 0.5).with_rotation(front_sensor_rot),
+                Transform::from_xyz(0.74, 1.4, 0.0).with_rotation(front_sensor_rot),
+                Transform::from_xyz(0.74, 1.3, -0.5).with_rotation(front_sensor_rot),
             ],
             brush_speed: config.brush_speed,
             initial_pos: config.initial_pos,
@@ -516,7 +527,7 @@ impl Arenito {
             .spawn((
                 PbrBundle {
                     mesh: asset_server.load("models/arenito.obj"),
-                    material: materials.add(Color::rgb_u8(235, 64, 52).into()),
+                    material: materials.add(Color::rgb_u8(70, 70, 70).into()),
                     transform: self.initial_pos,
                     ..default()
                 },
@@ -532,7 +543,7 @@ impl Arenito {
                 let lwheel_offsets = [Vec3::new(WOX, WOY, -WOZ), Vec3::new(-WOX, WOY, -WOZ)];
 
                 let wheel_mesh = asset_server.load("models/rueda.obj");
-                let wheel_material = materials.add(Color::rgb(0.8, 0.3, 0.6).into());
+                let wheel_material = materials.add(Color::rgb(0.96, 0.96, 0.96).into());
 
                 for wheel_offset in rwheel_offsets.iter() {
                     let t = CENTER + *wheel_offset;

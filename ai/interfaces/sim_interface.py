@@ -27,7 +27,7 @@ class SimInterface:
     INCOMING_IMAGE_RES = (512, 512)
     IMAGE_SIZE = 786_432
     SENSOR_COUNT_SIZE = 1
-    MAX_PROXIMITY_SENSOR_COUNT = 5
+    MAX_PROXIMITY_SENSOR_COUNT = 7
 
     def __init__(self, filename: str):
         self.attach(filename)
@@ -139,6 +139,8 @@ class SimInterface:
             self.set_sync_byte(SimInterface.AI_PROX_SENSOR_READ_REQUEST)
         elif instr == Instruction.DumpCans:
             raise Exception('Must use proper dump_cans() method!')
+        elif instr == Instruction.ExtendBackdoor:
+            return
         else:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
