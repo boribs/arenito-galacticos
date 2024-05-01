@@ -139,6 +139,8 @@ class SimInterface:
             self.set_sync_byte(SimInterface.AI_PROX_SENSOR_READ_REQUEST)
         elif instr == Instruction.DumpCans:
             raise Exception('Must use proper dump_cans() method!')
+        elif instr == Instruction.ExtendBackdoor:
+            return
         else:
             self.set_sync_byte(SimInterface.AI_MOVE_INSTRUCTION)
             self.set_mov_instruction(ord(INSTRUCTION_MAP[instr]))
