@@ -1,4 +1,4 @@
-# Arenito 4.0
+# Arenito 5.0
 
 Una versión mejorada de Arenito, ganador del primer lugar en el TMR 2024.
 
