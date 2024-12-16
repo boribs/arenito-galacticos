@@ -16,6 +16,9 @@ Este último punto fue el foco principal: La simulación y el robot real usan la
 La inteligencia artificial de Arenito es un modelo reactivo que reacciona según lo que vea la cámara (latas, depósito, agua) y los obstáculos que detecten los sensores de proximidad. Y sigue las siguientes reglas:
 
 <!-- Diagrama de flujo de algoritmo general -->
+![](readme-images/ai-diagram.png)
+
+Una explicación sobre la región crítica se da en esta sección: [IA: Relcolección de latas](#ia-recolección-de-latas)
 
 La IA está dividia en tres módulos:
 - Toma de decisiones [**[arenito_ai.py](ai/arenito_ai.py)**]: Acomodarse con el depósito, esquivar agua, recoger lata, etc.
@@ -58,7 +61,7 @@ Otra situación común es cuando el robot no ve ningún objetivo. En este caso b
 
 ## IA: Recolección de latas
 
-Para determinar si recogió una lata se implementó una región crítica. Se registra caundo una lata está dentro de la región crítica y cuando deja de ser visible, entonces se considera que la recogió.
+Para determinar si recogió una lata se implementó una región crítica. Se registra caundo una lata está dentro de la región crítica y cuando deja de ser visible, entonces se considera que la recogió. Dicha región crítica está delimitada por el *rectángulo negro*.
 
 <!-- Imagen simulación mostrando campo de visión, imagen procesada con lata dentro de región crítica, imagen después de lata en región crítica -->
 ![](readme-images/markings-example.png)
