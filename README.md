@@ -1,71 +1,60 @@
 # Arenito 5.0
 
-Una versión mejorada de Arenito, ganador del primer lugar en el TMR 2024.
+The improved Arenito – 1st place winner of the 2024 Mexican Robotics Tournament.
 
-# Simulación
+# Simulation
 
-Antes de tener el robot físico y probar cosas con éste, se creó una herramienta que permite desarrollar la IA sin la necesidad de un robot. Es una aplicación independiente que emula sensores y al mismo Arenito en un entorno virtual y que **tiene comunicación directa con la IA**.
+A simulation was developed prior to hardware deployment. It enabled early development of the robot’s AI. The simulation is an independent application that emulates Arenito and its sensors in a virtual environment, communicating directly with the AI through shared memory.
 
-<!-- Imgen de la simulación -->
 ![](readme-images/sim-presentation.png)
 
-Este último punto fue el foco principal: La simulación y el robot real usan las mismas *rutinas* y siguen el mismo *tren de pensamiento*.
+# Artificial Intelligence
 
-# Inteligencia Artificial
+Arenito's artificial intelligence makes decisions based on what the camera detects (cans, dump zone, water) and proximity sensor data.
 
-La inteligencia artificial de Arenito es un modelo reactivo que reacciona según lo que vea la cámara (latas, depósito, agua) y los obstáculos que detecten los sensores de proximidad. Y sigue las siguientes reglas:
-
-<!-- Diagrama de flujo de algoritmo general -->
 ![](readme-images/ai-diagram.png)
 
-Una explicación sobre la región crítica se da en esta sección: [IA: Relcolección de latas](#ia-recolección-de-latas)
+An explanation of the critical region is provided in this section: [IA: Recolección de latas](#ia-recolección-de-latas)
 
-La IA está dividia en tres módulos:
-- Toma de decisiones [**[arenito_ai.py](ai/arenito_ai.py)**]: Acomodarse con el depósito, esquivar agua, recoger lata, etc.
-- Análisis de imágenes [**[arenito_vision.py](ai/arenito_vision.py)**]: Detectar depósito, latas, agua, determinar si puede llegar a dichas detecciones.
-- Comunicación [**[arenito_com.py](ai/arenito_com.py)**]: Mandar instrucciones a arduino/simulación, leer sensores.
+The AI is divided into three modules:
+- Decision-making [**[arenito_ai.py](ai/arenito_ai.py)**]: Align with the dump zone, avoid water, collect cans, etc.
+- Image analysis [**[arenito_vision.py](ai/arenito_vision.py)**]: Detect the dump zone, cans, water, and assess reachability.
+- Communication [**[arenito_com.py](ai/arenito_com.py)**]: Send instructions to the Arduino/simulator, and read sensors.
 
-## IA: Reconocimiento del entorno
+## AI: Environmental Awareness
 
-Lo primero que hace Arenito antes de moverse es **recopilar información de su entorno**: tomar una imagen de lo que tiene en frente y distinguir los diferentes elementos visibles y leer sensores de proximidad.
+Before moving, the robot first **gathers information about its environment**: it captures an image of what’s ahead and identifies visible elements, along with reading proximity sensor data.
 
-Para distinguir diferentes elementos aplica filtros de color: negro para las latas, rojo para el depósito y azul para el agua. Los valores concretos de los filtros se encuentran en **[arenito_vision.py](ai/arenito_vision.py)**.
+It distinguishes elements using color filters: black for cans, red for the dump zone, and blue for water. The exact filter values can be found in **[arenito_vision.py](ai/arenito_vision.py)**.
 
-<!-- Imagen comparativa: filtros de color -->
 ![](readme-images/filters.png)
 
-El resultado de aplicar un filtro es una matriz binaria del mismo tamaño de la imagen original (512x512) que tiene `1` donde hay pixeles del color a filtrar y `0` en todo lo demás.
+The output of each filter is a binary matrix of the same dimensions as the original image (512x512), where pixels matching the target color are marked with `1`, and everything else is `0`.
 
-Con las matrices resultado de filtro (filtros) se determinan las acciones posibles para cada situación: Cuando el robot ve latas, cuando ve el depósito, cuando ve agua y todas las combinaciones de estas.
+Cans and the dump zone are considered **potentially reachable targets**. To determine if a target is actually reachable, the AI creates another binary mask that represents a path (typically a trapezoid) from the robot’s position to the target.
 
-Las latas y el depósito se consideran **objetivos potencialmente alcanzables** y, antes de tomar una decisión, se debe determinar si son o no realmente alcanzables. Esto se hace con otra matriz binaria en la cual se dibuja el camino a recorrer hasta el objetivo.
-
-<!-- Imagen comparativa: original, filtro negro, filtro rojo, camino hasta lata -->
 ![](readme-images/line-to-can.png)
 
-Se dice que una lata es alcanzable cuando la intersección entre los filtros azul y rojo con el camino hasta la detección resulta en una matriz cuya cantidad de `1` no supera el umbral respectivo de azul y rojo. Cuando se determina si el depósito es alcanzable no se considera el filtro rojo.
+A can is considered reachable if the intersection between the blue and red filters and the path mask results in a region smaller than a defined threshold. These filters are evaluated separately.
 
-Considere el siguiente caso (derecha). Los filtros de color relevantes son el negro (centro) y azul (derecha)
+Consider the following case:
 
 ![](readme-images/filter-example.png)
 
-Al crear el camino para llegar a la lata (centro) e intersectarlo con el filtro azul (izquierda) se obtiene una figura (derecha), con la cual se determina que la lata no es alcanzable.
+Here, a can is detected outside the arena. When a path to the can is drawn (middle) and intersected with the blue filter (right), the resulting area exceeds the threshold, so the can is deemed unreachable.
 
-<!-- Imagen comparativa: filtro rojo, filtro azul, camino hasta lata, intersección azul, intersección rojo -->
 ![](readme-images/reachable-example.png)
 
-Otra situación común es cuando el robot no ve ningún objetivo. En este caso buscará seguir avanzando hasta que el agua, el depósito o un obstáculo se lo impida. La manera en que determina esto es con el mismo método mencionado anteriormente, pero imaginando un objetivo directamente en frente. Si no puede alcanzar el objetivo imaginario, girará hacia algún lado, hasta que sí pueda avanzar.
+Another common situation occurs when no targets are visible. In this case, the robot will attempt to move forward unless water, the dump zone, or an obstacle blocks the path. To check this, it imagines a virtual target directly ahead and evaluates reachability as usual. If it can't reach the imagined target, it turns until a clear path is found.
 
-<!-- Imagen comparativa: original en borde, filtro rojo, filtro azul, camino hasta objetivo imaginario, intersección rojo, intersección azul -->
 ![](readme-images/search-can-example.png)
 
-## IA: Recolección de latas
+## AI: Can Collection
 
-Para determinar si recogió una lata se implementó una región crítica. Se registra caundo una lata está dentro de la región crítica y cuando deja de ser visible, entonces se considera que la recogió. Dicha región crítica está delimitada por el *rectángulo negro*.
+To detect when a can has been collected, a **critical region** is defined. If a can enters this region and then disappears from view, it is assumed to have been picked up. This region is marked with a black rectangle in the image.
 
-<!-- Imagen simulación mostrando campo de visión, imagen procesada con lata dentro de región crítica, imagen después de lata en región crítica -->
 ![](readme-images/markings-example.png)
 
-<!-- NOTAS:
-- El robot solo usa la cámara y sensores traseros para acomodarse con el depósito.
-- CV2 almacena imágenes en formato BGR, ese es el formato que se usa al aplicar los filtros. -->
+<!-- NOTES:
+- The robot only uses the camera and rear sensors when aligning with the dump zone.
+- OpenCV stores images in BGR format, which is the format used when applying the color filters. -->
