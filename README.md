@@ -14,7 +14,7 @@ Arenito's artificial intelligence makes decisions based on what the camera detec
 
 ![](readme-images/ai-diagram.png)
 
-An explanation of the critical region is provided in this section: [IA: Recolección de latas](#ia-recolección-de-latas)
+An explanation of the critical region is provided in this section: [AI: Can collection](#ai-can-collection)
 
 The AI is divided into three modules:
 - Decision-making [**[arenito_ai.py](ai/arenito_ai.py)**]: Align with the dump zone, avoid water, collect cans, etc.
